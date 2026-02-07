@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliação Neuro-Cognitiva | Relatório Oficial</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #2563eb; --success: #10b981; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        
+        h1, h2 { text-align: center; color: #0f172a; }
+        .btn { display: block; width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 20px; text-align: center; text-decoration: none; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-zap { background: #25D366; }
+        
+        /* Telas */
+        .screen { display: none; animation: fadeIn 0.5s; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Inputs e Opções */
+        input { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 10px; margin-top: 10px; box-sizing: border-box; }
+        .option { padding: 15px; border: 1px solid #e2e8f0; margin-bottom: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .option:hover { background: #eff6ff; border-color: var(--primary); }
+
+        /* Pix Area */
+        .pix-container { text-align: center; background: #f1f5f9; padding: 20px; border-radius: 12px; margin-top: 20px; }
+        .qr-img { width: 200px; height: 200px; mix-blend-mode: multiply; margin: 10px auto; display: block; }
+        .copy-code { word-break: break-all; font-family: monospace; font-size: 0.8rem; background: #fff; padding: 10px; border-radius: 5px; border: 1px dashed #cbd5e1; user-select: all; }
+
+        /* Relatório */
+        .report-card { border-left: 5px solid var(--primary); background: #f8fafc; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .blur-text { filter: blur(5px); user-select: none; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div id="step-lead" class="screen active">
+        <h1>Avaliação Neuro-Cognitiva</h1>
+        <p>Descubra seu perfil exato de QI (Lógico) e QE (Emocional) e receba um plano de carreira personalizado.</p>
+        <p style="font-size: 0.9rem; color: #64748b;">🔒 Seus dados estão seguros.</p>
+        
+        <label>Seu melhor e-mail:</label>
+        <input type="email" id="email" placeholder="exemplo@email.com">
+        <button class="btn" onclick="app.start()">Iniciar Avaliação</button>
+    </div>
+
+    <div id="step-quiz" class="screen">
+        <div style="height: 5px; background: #e2e8f0; margin-bottom: 20px;"><div id="progress" style="height: 100%; background: var(--primary); width: 0%;"></div></div>
+        <h2 id="q-text">...</h2>
+        <div id="q-options"></div>
+    </div>
+
+    <div id="step-loading" class="screen" style="text-align: center; padding: 40px 0;">
+        <div style="font-size: 3rem;">🧠</div>
+        <h3>Analisando Padrões...</h3>
+        <p>Cruzando dados de 19 anos de metodologia...</p>
+    </div>
+
+    <div id="step-pay" class="screen">
+        <h2 style="color: var(--success)">Análise Concluída!</h2>
+        <p>Identificamos um perfil raro nas suas respostas.</p>
+        
+        <div class="report-card">
+            <h3>Prévia do Resultado:</h3>
+            <p><strong>Perfil Base:</strong> <span id="preview-perfil">Calculando...</span></p>
+            <div class="blur-text">
+                <p>Análise detalhada: Seu nível de resiliência indica uma forte tendência para liderança...</p>
+                <p>Plano de Ação: Recomendamos a mentoria de processos.</p>
+            </div>
+        </div>
+
+        <div class="pix-container">
+            <p><strong>Desbloqueie seu Relatório Completo</strong></p>
+            <h1 style="margin: 10px 0;">R$ 19,90</h1>
+            
+            <div id="qr-area">
+                <p style="font-size: 0.8rem; color: #666;">Gerando Pix Seguro...</p>
+            </div>
+        </div>
+        
+        <p style="font-size: 0.8rem; text-align: center; margin-top: 15px; color: #666;">
+            ⏳ Aguardando confirmação... A tela atualizará automaticamente assim que o pagamento for compensado.
+        </p>
+    </div>
+
+    <div id="step-result" class="screen">
+        <h1 style="color: var(--primary)">Seu Relatório Oficial</h1>
+        <div id="final-content"></div>
+        <button class="btn btn-zap" id="btn-upsell" onclick="app.openZap()">Falar com Especialista</button>
+        <button class="btn" style="background: #333; margin-top: 10px;" onclick="window.print()">Salvar PDF</button>
+    </div>
+
+</div>
+
+<script>
+       CONFIGURAÇÃO DO SISTEMA
+       ========================================= */
+    // Se deixar vazio, o site funciona em "Modo Offline" (Salva na memória)
+    // Insira suas chaves aqui. Se estiverem vazias, o modo offline ativa sozinho.
+    const SB_URL = 'https://oabcppkojfmmmqhevjpq.supabase.co'; 
+const SB_KEY =  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw';
+    // Inicializa Supabase
+    const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+
+    // --- 📚 BIBLIOTECA DE TEXTOS (Sua Estratégia) ---
+    const bibliotecaPerfis = {
+        executor: {
+            nome: "Executor Solitário",
+            texto: "<h3>O Executor Solitário (QI Alto / QE Baixo)</h3><p><strong>Diagnóstico:</strong> Você tem uma capacidade técnica invejável, mas sente que carrega o mundo nas costas. Seu maior desafio hoje é a paciência: entender que cada um tem seu tempo.</p><p><strong>Solução:</strong> Você precisa aprender a organizar as ideias para vender sua visão, não apenas executá-la. Sem gestão e inteligência emocional, você será um gênio sobrecarregado.</p><hr><p><strong>Seu Próximo Passo:</strong> Gestão e Resiliência.</p>",
+            msg: "Olá Anderson! Meu perfil deu Executor Solitário. Preciso de ajuda com Gestão."
+        },
+        relacional: {
+            nome: "Conector Nato",
+            texto: "<h3>O Conector Nato (QI Médio / QE Alto)</h3><p><strong>Diagnóstico:</strong> Você tem facilidade em lidar com pessoas, mas falta 'chão'. Sente que trabalha muito, mas vê pouco resultado concreto por falta de processos.</p><p><strong>Solução:</strong> Precisa se posicionar para criar autoridade real. Sua missão agora é implementar cronogramas organizacionais e usar ferramentas ágeis.</p><hr><p><strong>Seu Próximo Passo:</strong> Ferramentas Ágeis & Autoridade.</p>",
+            msg: "Olá Anderson! Deu perfil Relacional. Preciso organizar meu negócio."
+        },
+        potencia: {
+            nome: "Potência Expansiva",
+            texto: "<h3>A Potência Expansiva (QI Alto / QE Alto)</h3><p><strong>Diagnóstico:</strong> Não adianta ser uma Ferrari em uma pista esburacada. Você tem o motor, mas o ambiente atual limita sua velocidade.</p><p><strong>Solução:</strong> Foco em fluxo e funil. É hora de criar processos de escala e novas conexões estratégicas com a Holding.</p><hr><p><strong>Seu Próximo Passo:</strong> Parcerias Estratégicas (SierComp4ny).</p>",
+            msg: "Olá Anderson! Sou Potência Pura. Quero falar sobre parcerias."
+        },
+        construcao: {
+            nome: "Em Fase de Desbloqueio",
+            texto: "<h3>Em Fase de Desbloqueio</h3><p><strong>Diagnóstico:</strong> Identificamos um bloqueio central. Suas crenças ou medos estão travando seu potencial técnico.</p><p><strong>Solução:</strong> Precisamos trabalhar a ressignificação de crenças. Antes da técnica, vem a coragem. Momento ideal para transição de carreira.</p><hr><p><strong>Seu Próximo Passo:</strong> Ressignificação & Transição.</p>",
+            msg: "Olá Anderson! Estou na fase de Desbloqueio. Preciso da sua mentoria."
+        }
+    };
+
+    const app = {
+        data: { email: '', qi: 0, qe: 0, qIndex: 0, perfilFinal: null },
+        
+        // Perguntas (Amostra - Adicione as suas 20 aqui)
+        questions: [
+            { t: "QI", q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12"], c: 0 },
+            { t: "QE", q: "Sob pressão intensa, você...", opts: ["Foca na solução", "Reage com raiva"], c: 0 },
+            { t: "QI", q: "Se A > B e B > C, então...", opts: ["A > C", "C > A"], c: 0 },
+            { t: "QE", q: "Um cliente reclama injustamente. Você...", opts: ["Escuta e resolve", "Discute de volta"], c: 0 }
+        ],
+
+        start: async () => {
+            const email = document.getElementById('email').value;
+            if(!email.includes('@')) return alert('E-mail inválido');
+            app.data.email = email;
+            
+            // Salva Lead
+            await supabase.from('leads').insert([{ email: email, status_pagamento: 'aguardando' }]);
+            
+            app.show('step-quiz');
+            app.renderQ();
+        },
+
+        renderQ: () => {
+            const q = app.questions[app.data.qIndex];
+            document.getElementById('q-text').innerText = q.q;
+            document.getElementById('progress').style.width = ((app.data.qIndex / app.questions.length) * 100) + '%';
+            
+            const div = document.getElementById('q-options');
+            div.innerHTML = '';
+            q.opts.forEach((opt, idx) => {
+                const btn = document.createElement('div');
+                btn.className = 'option';
+                btn.innerText = opt;
+                btn.onclick = () => app.answer(idx, q.c, q.t);
+                div.appendChild(btn);
+            });
+        },
+
+        answer: (choice, correct, type) => {
+            if(choice === correct) {
+                if(type === 'QI') app.data.qi += 10;
+                else app.data.qe += 10;
+            }
+            app.data.qIndex++;
+            if(app.data.qIndex < app.questions.length) app.renderQ();
+            else app.finish();
+        },
+
+        finish: async () => {
+            app.show('step-loading');
+            
+            // 1. Define Perfil
+            let p = bibliotecaPerfis.construcao;
+            if(app.data.qi > 10 && app.data.qe > 10) p = bibliotecaPerfis.potencia;
+            else if(app.data.qi > 10) p = bibliotecaPerfis.executor;
+            else if(app.data.qe > 10) p = bibliotecaPerfis.relacional;
+            
+            app.data.perfilFinal = p;
+            document.getElementById('preview-perfil').innerText = p.nome;
+
+            // 2. Salva Notas no Banco
+            await supabase.from('leads').update({ 
+                qi_score: app.data.qi, 
+                qe_score: app.data.qe 
+            }).eq('email', app.data.email);
+
+            // 3. Gera PIX (Chama a Edge Function)
+            try {
+                const { data, error } = await supabase.functions.invoke('gerar-pix', {
+                    body: { email: app.data.email, valor: 19.90 }
+                });
+
+                if(error) throw error;
+                
+                // Renderiza QR Code
+                const qrHTML = `
+                    <img src="${data.img}" class="qr-img">
+                    <p style="font-size:0.8rem; margin-bottom:5px">Copia e Cola:</p>
+                    <div class="copy-code" onclick="navigator.clipboard.writeText('${data.code}'); alert('Copiado!')">${data.code}</div>
+                    <button class="btn btn-outline" onclick="navigator.clipboard.writeText('${data.code}'); alert('Copiado!')" style="margin-top:10px; background:transparent; border:1px solid #333; color:#333">Copiar Código</button>
+                `;
+                document.getElementById('qr-area').innerHTML = qrHTML;
+
+                app.show('step-pay');
+                app.listenPayment();
+
+            } catch (e) {
+                alert('Erro ao gerar Pix. Tente novamente.');
+                console.error(e);
+            }
+        },
+
+        listenPayment: () => {
+            // Escuta o banco de dados em tempo real
+            supabase.channel('checar-pagamento')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'leads', filter: `email=eq.${app.data.email}` }, 
+            (payload) => {
+                if(payload.new.status_pagamento === 'pago') {
+                    app.renderFinal();
+                }
+            })
+            .subscribe();
+        },
+
+        renderFinal: () => {
+            const p = app.data.perfilFinal;
+            document.getElementById('final-content').innerHTML = p.texto;
+            app.show('step-result');
+        },
+
+        openZap: () => {
+            const p = app.data.perfilFinal;
+            const zap = "5571999999999"; // SEU NÚMERO AQUI
+            window.open(`https://wa.me/${zap}?text=${encodeURIComponent(p.msg)}`, '_blank');
+        },
+
+        show: (id) => {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+    };
+</script>
+
+</body>
+</html>
