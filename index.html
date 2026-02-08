@@ -1,3 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliação Neuro-Cognitiva</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --cor-principal: #2563eb; --fundo: #f8fafc; --texto: #1e293b; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--fundo); color: var(--texto); padding: 20px; text-align: center; margin: 0; }
+        .cx-container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #0f172a; font-size: 1.8rem; }
+        .botao-acao { display: block; width: 100%; padding: 16px; background: var(--cor-principal); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.2s; }
+        .botao-acao:active { transform: scale(0.98); }
+        input { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; margin-top: 10px; box-sizing: border-box; font-size: 1rem; }
+        
+        /* Telas */
+        .tela-app { display: none; animation: aparecer 0.4s; }
+        .tela-app.ativa { display: block; }
+        @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Quiz */
+        .opcao-quiz { padding: 15px; border: 2px solid #f1f5f9; margin: 10px 0; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; font-weight: 500; }
+        .opcao-quiz:hover { background: #eff6ff; border-color: var(--cor-principal); }
+        .barra-fundo { width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 20px; }
+        .barra-progresso { height: 100%; background: var(--cor-principal); width: 0%; border-radius: 4px; transition: width 0.3s; }
+        .caixa-pix { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="cx-container">
+    
+    <div id="tela-inicio" class="tela-app ativa">
+        <h1>Avaliação Neuro-Cognitiva</h1>
+        <p>Descubra seu perfil exato de QI e QE e receba um plano de carreira.</p>
+        <div style="background: #ecfdf5; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #065f46; margin-bottom: 20px;">
+            🔒 Teste Oficial Sier Growth
+        </div>
+        <input type="email" id="email-usuario" placeholder="Seu melhor e-mail...">
+        <button class="botao-acao" onclick="_quizApp.iniciar()">Iniciar Avaliação</button>
+    </div>
+
+    <div id="tela-perguntas" class="tela-app">
+        <div class="barra-fundo"><div id="barra-progresso" class="barra-progresso"></div></div>
+        <p style="text-align: right; font-size: 0.8rem; color: #64748b;">Pergunta <span id="num-pergunta">1</span> de 19</p>
+        <h2 id="texto-pergunta" style="min-height: 50px;">...</h2>
+        <div id="area-opcoes"></div>
+    </div>
+
+    <div id="tela-carregando" class="tela-app">
+        <div style="font-size: 3rem; margin-bottom: 20px;">🧠</div>
+        <h2>Processando Respostas...</h2>
+        <p>Cruzando métricas de lógica e inteligência emocional...</p>
+    </div>
+
+    <div id="tela-pagamento" class="tela-app">
+        <h2 style="color: #10b981">Análise Concluída!</h2>
+        <p>Identificamos um perfil de alto potencial.</p>
+        
+        <div style="text-align: left; background: #fff; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            <p><strong>Seu Perfil Base:</strong> <span id="preview-perfil">Calculando...</span></p>
+            <p style="filter: blur(4px); opacity: 0.5;">Sua capacidade de liderança é notável, porém a gestão de tempo...</p>
+        </div>
+
+        <h1 style="color: #2563eb; font-size: 2.5rem; margin: 10px 0;">R$ 19,90</h1>
+        
+        <div id="area-qr" class="caixa-pix">
+            <p>Gerando Pix Seguro...</p>
+        </div>
+        
+        <p style="font-size: 0.8rem; color: #64748b;">Relatório liberado automaticamente após pagamento.</p>
+    </div>
+
+    <div id="tela-resultado" class="tela-app">
+        <h1 style="color: #2563eb">Relatório Liberado ✅</h1>
+        <div id="conteudo-final" style="text-align: left; line-height: 1.6;"></div>
+        <button class="botao-acao" style="background: #25D366" onclick="_quizApp.abrirZap()">Falar com Anderson Dias</button>
+    </div>
+
+</div>
 <script>
     // --- ⚙️ ÁREA DE CONFIGURAÇÃO ---
     // Coloque suas chaves do Supabase aqui (se já estiverem lá, pode manter)
