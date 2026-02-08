@@ -2,103 +2,249 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Teste de Diagnóstico</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliação Neuro-Cognitiva</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: monospace; padding: 20px; background: #333; color: #0f0; }
-        .box { border: 1px solid #fff; padding: 10px; margin-bottom: 10px; }
-        button { padding: 15px; font-size: 20px; cursor: pointer; }
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; text-align: center; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #0f172a; font-size: 1.8rem; }
+        .btn { display: block; width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
+        input { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; margin-top: 10px; box-sizing: border-box; font-size: 1rem; }
+        
+        /* Telas */
+        .screen { display: none; animation: fadeIn 0.4s; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Quiz */
+        .option { padding: 15px; border: 2px solid #f1f5f9; margin: 10px 0; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; font-weight: 500; }
+        .option:hover { background: #eff6ff; border-color: var(--primary); }
+        .bar-bg { width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 20px; }
+        .bar-fill { height: 100%; background: var(--primary); width: 0%; border-radius: 4px; transition: width 0.3s; }
+
+        /* Pix Area */
+        .pix-box { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin: 20px 0; }
+        .copy-btn { background: #334155; margin-top: 10px; font-size: 0.9rem; padding: 10px; width: auto; display: inline-block; }
     </style>
 </head>
 <body>
 
-    <h1>MODE DE DEPURAÇÃO (DEBUG)</h1>
-    <div id="status" class="box">Aguardando início...</div>
-    <div id="erro" class="box" style="color: #ff5555; display:none;"></div>
+<div class="container">
+    
+    <div id="step-lead" class="screen active">
+        <h1>Avaliação Neuro-Cognitiva</h1>
+        <p>Descubra seu perfil exato de QI e QE e receba um plano de carreira.</p>
+        <div style="background: #ecfdf5; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #065f46; margin-bottom: 20px;">
+            🔒 Teste Oficial Sier Growth
+        </div>
+        <input type="email" id="email" placeholder="Seu melhor e-mail...">
+        <button class="btn" onclick="app.start()">Iniciar Avaliação</button>
+    </div>
 
-    <button onclick="rodarTeste()">TESTAR SISTEMA AGORA</button>
+    <div id="step-quiz" class="screen">
+        <div class="bar-bg"><div id="progress" class="bar-fill"></div></div>
+        <p style="text-align: right; font-size: 0.8rem; color: #64748b;">Pergunta <span id="q-num">1</span> de 19</p>
+        <h2 id="q-text" style="min-height: 50px;">...</h2>
+        <div id="q-options"></div>
+    </div>
+
+    <div id="step-loading" class="screen">
+        <div style="font-size: 3rem; margin-bottom: 20px;">🧠</div>
+        <h2>Processando Respostas...</h2>
+        <p>Cruzando métricas de lógica e inteligência emocional...</p>
+    </div>
+
+    <div id="step-pay" class="screen">
+        <h2 style="color: #10b981">Análise Concluída!</h2>
+        <p>Identificamos um perfil de alto potencial, mas com travas ocultas.</p>
+        
+        <div style="text-align: left; background: #fff; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            <p><strong>Seu Perfil Base:</strong> <span id="preview-perfil">Calculando...</span></p>
+            <p style="filter: blur(4px); opacity: 0.5;">Sua capacidade de liderança é notável, porém a gestão de tempo...</p>
+        </div>
+
+        <h1 style="color: #2563eb; font-size: 2.5rem; margin: 10px 0;">R$ 19,90</h1>
+        
+        <div id="qr-area" class="pix-box">
+            <p>Gerando Pix Seguro...</p>
+        </div>
+        
+        <p style="font-size: 0.8rem; color: #64748b;">O relatório completo será liberado automaticamente após o pagamento.</p>
+    </div>
+
+    <div id="step-result" class="screen">
+        <h1 style="color: #2563eb">Relatório Liberado ✅</h1>
+        <div id="final-content" style="text-align: left; line-height: 1.6;"></div>
+        <button class="btn" style="background: #25D366" onclick="app.openZap()">Falar com Anderson Dias</button>
+    </div>
+
+</div>
 
 <script>
-    // --- SUA CONFIGURAÇÃO ---
-    const SB_URL = 'https://oabcppkojfmmmqhevjpq.supabase.co'; 
+    // --- ⚙️ ÁREA DE CONFIGURAÇÃO (PREENCHA AQUI) ---
+    // Coloque suas chaves do Supabase dentro das aspas abaixo
+    
+    const SB_URL = 'https://oabcppkojfmmmqhevjpq.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw';
 
-    // -----------------------
+    // ---------------------------------------------
 
-    function log(msg) {
-        document.getElementById('status').innerHTML += "<br>> " + msg;
-    }
-
-    function erro(msg) {
-        const div = document.getElementById('erro');
-        div.style.display = 'block';
-        div.innerHTML += "<br>❌ ERRO CRÍTICO: " + msg;
-    }
-
-    // Captura erros globais de sintaxe
-    window.onerror = function(message, source, lineno, colno, error) {
-        erro("Erro no código (Sintaxe): " + message + " na linha " + lineno);
-    };
-
-    async function rodarTeste() {
-        log("Iniciando...");
-
-        // 1. Teste de Chaves
-        if (!SB_URL || !SB_KEY) {
-            return erro("As chaves SB_URL e SB_KEY estão vazias no código!");
+    // Inicializa Supabase (Só para salvar leads, o Pix vai pela Vercel)
+    let supabase = null;
+    try {
+        if (SB_URL && SB_KEY) {
+            supabase = window.supabase.createClient(SB_URL, SB_KEY);
+        } else {
+            console.warn("Chaves não configuradas.");
         }
-        log("Chaves detectadas.");
+    } catch (e) { console.error(e); }
 
-        try {
-            // 2. Teste de Conexão com Supabase
-            const supabase = window.supabase.createClient(SB_URL, SB_KEY);
-            log("Supabase iniciado.");
+    const app = {
+        data: { email: '', qi: 0, qe: 0, idx: 0, perfil: null },
+        
+        // AS 19 PERGUNTAS OFICIAIS
+        questions: [
+            { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
+            { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava/Entra em pânico", "Reclama com a equipe"], type: "QE", c: 0 },
+            { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
+            { q: "Cliente gritou com você injustamente. Reação:", opts: ["Escuta e resolve calmo", "Grita de volta", "Leva pro pessoal e chora"], type: "QE", c: 0 },
+            { q: "O que pesa mais: 1kg de chumbo ou 1kg de algodão?", opts: ["Pesam igual", "Chumbo", "Algodão"], type: "QI", c: 0 },
+            { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
+            { q: "Em um projeto em grupo, você prefere:", opts: ["Liderar e organizar", "Esperar ordens", "Fazer tudo sozinho"], type: "QE", c: 0 },
+            { q: "Você cometeu um erro grave na empresa:", opts: ["Assume e propõe solução", "Tenta esconder", "Culpa o sistema"], type: "QE", c: 0 },
+            { q: "Quanto é 20% de 500?", opts: ["100", "50", "200"], type: "QI", c: 0 },
+            { q: "Se ontem fosse amanhã, hoje seria sábado. Que dia é hoje?", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
+            { q: "Recebeu um feedback duro do chefe:", opts: ["Usa para crescer", "Fica com raiva", "Pensa em pedir demissão"], type: "QE", c: 0 },
+            { q: "Médico está para Hospital como Professor está para:", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
+            { q: "Colega está visivelmente triste hoje:", opts: ["Oferece ajuda discreta", "Ignora para não incomodar", "Faz piada para animar"], type: "QE", c: 0 },
+            { q: "Numa negociação difícil, o objetivo é:", opts: ["Acordo bom para ambos", "Vencer a qualquer custo", "Não perder dinheiro"], type: "QE", c: 0 },
+            { q: "Carro a 80km/h. Em 30min percorre:", opts: ["40km", "80km", "60km"], type: "QI", c: 0 },
+            { q: "Inteligência Emocional significa:", opts: ["Gerir emoções", "Não sentir nada", "Ser sempre feliz"], type: "QE", c: 0 },
+            { q: "Qual item não pertence ao grupo?", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
+            { q: "Para inovar no mercado é preciso:", opts: ["Resolver dores reais", "Ter muito dinheiro", "Sorte"], type: "QI", c: 0 },
+            { q: "Mudança repentina de planos:", opts: ["Adapta-se rápido", "Reclama do planejamento", "Trava"], type: "QE", c: 0 }
+        ],
 
-            log("Tentando salvar lead de teste...");
-            const { data: leadData, error: leadError } = await supabase
-                .from('leads')
-                .insert([{ email: 'teste_debug@sier.com', status_pagamento: 'teste' }]);
+        start: async () => {
+            const email = document.getElementById('email').value.trim();
+            if(!email.includes('@')) return alert('Digite um e-mail válido!');
+            app.data.email = email;
+            
+            if(supabase) await supabase.from('leads').insert([{ email: email, status_pagamento: 'aguardando' }]);
+            app.show('step-quiz');
+            app.renderQ();
+        },
 
-            if (leadError) {
-                // Se der erro aqui, o problema é no Banco de Dados (Tabela)
-                return erro("Falha ao salvar no banco: " + JSON.stringify(leadError));
-            }
-            log("✅ Banco de Dados: OK (Lead salvo)");
-
-            // 3. Teste de Geração de Pix (Edge Function)
-            log("Chamando o Robô do Pix (Edge Function)...");
-            const { data: pixData, error: pixError } = await supabase.functions.invoke('gerar-pix', {
-                body: { email: 'teste_debug@sier.com', valor: 1.00 }
+        renderQ: () => {
+            if(app.data.idx >= app.questions.length) return app.finish();
+            const q = app.questions[app.data.idx];
+            
+            document.getElementById('q-num').innerText = app.data.idx + 1;
+            document.getElementById('q-text').innerText = q.q;
+            document.getElementById('progress').style.width = ((app.data.idx / app.questions.length) * 100) + '%';
+            
+            const div = document.getElementById('q-options');
+            div.innerHTML = '';
+            q.opts.forEach((opt, i) => {
+                const btn = document.createElement('div');
+                btn.className = 'option';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if(i === q.c) q.type === 'QI' ? app.data.qi++ : app.data.qe++;
+                    app.data.idx++;
+                    app.renderQ();
+                };
+                div.appendChild(btn);
             });
+        },
 
-            if (pixError) {
-                // Se der erro aqui, o problema é na CONEXÃO com a Função
-                return erro("O Site não conseguiu chamar a função: " + JSON.stringify(pixError));
+        finish: async () => {
+            app.show('step-loading');
+            
+            // Lógica do Perfil
+            let perfil = { nome: "Em Construção", texto: "Perfil em desenvolvimento." };
+            if(app.data.qi > 6 && app.data.qe > 6) {
+                perfil = { nome: "Potência Expansiva", texto: "Você tem o equilíbrio raro entre Lógica e Emoção. Seu desafio agora é Escala e Parcerias." };
+            } else if(app.data.qi > 6) {
+                perfil = { nome: "Executor Solitário", texto: "Alta capacidade técnica, mas sofre por centralizar. Precisa aprender Gestão e Delegação." };
+            } else if(app.data.qe > 6) {
+                perfil = { nome: "Conector Nato", texto: "Excelente com pessoas e vendas, mas falta processo e métricas. Precisa de Organização." };
             }
+            
+            app.data.perfil = perfil;
+            document.getElementById('preview-perfil').innerText = perfil.nome;
 
-            if (!pixData) {
-                return erro("A função respondeu vazio (null).");
+            if(supabase) await supabase.from('leads').update({ qi_score: app.data.qi, qe_score: app.data.qe }).eq('email', app.data.email);
+
+            app.generatePix();
+        },
+
+        generatePix: async () => {
+            // Aqui mudamos a lógica para chamar a VERCEL em vez do Supabase
+            try {
+                // Chama seu novo robô Vercel (/api/pix.js)
+                const response = await fetch('/api/pix', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: app.data.email, valor: 19.90 })
+                });
+
+                const data = await response.json();
+                
+                if(!response.ok) {
+                    throw new Error(data.erro || 'Erro desconhecido na Vercel');
+                }
+                
+                // Exibe o Pix com Sucesso
+                document.getElementById('qr-area').innerHTML = `
+                    <img src="${data.img}" style="width:200px; mix-blend-mode: multiply; display:block; margin:0 auto;">
+                    <textarea style="width:100%; font-size:0.8rem; border:1px solid #ccc; padding:10px; margin-top:10px; border-radius:5px;" rows="3" readonly>${data.code}</textarea>
+                    <button class="btn copy-btn" onclick="navigator.clipboard.writeText('${data.code}'); alert('Código Pix Copiado!')">Copiar Código Pix</button>
+                `;
+                
+                app.show('step-pay');
+
+                // Mantém o ouvinte de pagamento do Supabase (para liberar o relatório)
+                if(supabase) {
+                    supabase.channel('pgto_realtime')
+                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'leads', filter: `email=eq.${app.data.email}` }, 
+                    (payload) => {
+                        if(payload.new.status_pagamento === 'pago') app.showResult();
+                    }).subscribe();
+                }
+
+            } catch(e) {
+                console.error(e);
+                app.show('step-pay');
+                document.getElementById('qr-area').innerHTML = `
+                    <p style='color:red; font-weight:bold;'>Erro ao gerar Pix.</p>
+                    <p style='font-size:0.8rem;'>Detalhe: ${e.message}</p>
+                    <button class="btn" onclick="app.generatePix()">Tentar Novamente</button>
+                `;
             }
+        },
 
-            // Verifica se a função retornou erro interno (ex: Segredos errados)
-            if (pixData.erro) {
-                return erro("O Robô do Pix falhou: " + pixData.erro + " | Detalhe: " + JSON.stringify(pixData.detalhes));
-            }
+        showResult: () => {
+            const p = app.data.perfil;
+            document.getElementById('final-content').innerHTML = `
+                <h2>${p.nome}</h2>
+                <p><strong>Diagnóstico:</strong> ${p.texto}</p>
+                <hr style="margin:20px 0; border-top:1px solid #eee;">
+                <p>Seu pagamento foi confirmado! Vamos agendar sua mentoria para desbloquear o próximo nível.</p>
+            `;
+            app.show('step-result');
+        },
 
-            log("✅ Robô do Pix: OK");
-            log("🎉 SUCESSO TOTAL! O sistema está funcionando.");
-            log("Código Pix gerado: " + pixData.code.substring(0, 20) + "...");
-
-            // Mostra a imagem
-            const img = document.createElement('img');
-            img.src = pixData.img;
-            img.style.width = "150px";
-            document.body.appendChild(img);
-
-        } catch (e) {
-            erro("Erro inesperado (Try/Catch): " + e.message);
+        openZap: () => window.open("https://wa.me/5571999466243", "_blank"), // Coloque seu número aqui
+        
+        show: (id) => {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         }
-    }
+    };
 </script>
 
 </body>
