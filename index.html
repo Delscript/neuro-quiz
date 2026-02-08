@@ -113,15 +113,6 @@
     
     // Inicializa Supabase
     let supabase = null;
-    try {
-        if(SB_URL && SB_KEY) {
-            supabase = window.supabase.createClient(SB_URL, SB_KEY);
-        } else {
-            console.warn("Chaves do Supabase não configuradas.");
-        }
-    } catch (err) {
-        console.error("Erro ao iniciar Supabase:", err);
-    }
 
     // --- 📚 BIBLIOTECA DE TEXTOS E PERFIS ---
     const bibliotecaPerfis = {
