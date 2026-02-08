@@ -63,7 +63,7 @@
             <p style="filter: blur(4px); opacity: 0.5;">Sua capacidade de liderança é notável, porém a gestão de tempo...</p>
         </div>
 
-        <h1 style="color: #2563eb; font-size: 2.5rem; margin: 10px 0;">R$ 1,99</h1>
+        <h1 style="color: #2563eb; font-size: 2.5rem; margin: 10px 0;">R$ 1.99</h1>
         
         <div id="area-qr" class="caixa-pix">
             <p>Gerando Pix Seguro...</p>
@@ -193,7 +193,7 @@
                 const resposta = await fetch('/api/pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: _quizApp.dados.email, valor: 1,99 })
+                    body: JSON.stringify({ email: _quizApp.dados.email, valor: 1.99 })
                 });
 
                 const json = await resposta.json();
