@@ -111,23 +111,18 @@
     
     // ----------------------------------------
     
-// --- INICIALIZAÇÃO CORRIGIDA ---
-    
-    // 1. Criamos a variável vazia
+    // Inicializa Supabase (LÓGICA CORRIGIDA E LIMPA)
     let supabase = null;
-
     try {
-        // 2. O "IF" (SE) que estava faltando:
-        if (SB_URL && SB_KEY) {
-            // Se as chaves existem, conecta no banco
+        if(SB_URL && SB_KEY) {
             supabase = window.supabase.createClient(SB_URL, SB_KEY);
         } else {
-            // Senão, avisa que faltou
             console.warn("Chaves do Supabase não configuradas.");
         }
     } catch (err) {
         console.error("Erro ao iniciar Supabase:", err);
     }
+
     // --- 📚 BIBLIOTECA DE TEXTOS E PERFIS ---
     const bibliotecaPerfis = {
         executor: {
@@ -155,7 +150,7 @@
     const app = {
         data: { email: '', qi: 0, qe: 0, qIndex: 0, perfilFinal: null },
         
-        // --- AS 19 PERGUNTAS (MISTAS: Lógica e Emocional) ---
+        // --- AS 19 PERGUNTAS ---
         questions: [
             // BLOCO 1: LÓGICA (QI)
             { t: "QI", q: "1. Qual número completa a sequência: 2, 4, 8, 16...?", opts: ["24", "32", "18"], c: 1 },
@@ -168,7 +163,7 @@
             { t: "QI", q: "8. Complete: A Z B Y C ...", opts: ["D", "X", "W"], c: 1 },
             { t: "QI", q: "9. Um carro viaja a 60km/h. Em quanto tempo percorre 180km?", opts: ["2 horas", "3 horas", "4 horas"], c: 1 },
             
-            // BLOCO 2: EMOCIONAL (QE) - Sem resposta certa/errada fixa, pontuamos a mais equilibrada
+            // BLOCO 2: EMOCIONAL (QE)
             { t: "QE", q: "10. Um cliente critica seu trabalho de forma agressiva. Você:", opts: ["Critica ele de volta", "Ouve e busca entender a dor dele", "Ignora e vai embora"], c: 1 },
             { t: "QE", q: "11. Um colega de equipe errou feio. Sua reação:", opts: ["Aponta o erro na frente de todos", "Chama no particular para orientar", "Faz o trabalho por ele calado"], c: 1 },
             { t: "QE", q: "12. Você está sob pressão extrema de prazo. O que sente?", opts: ["Pânico e paralisia", "Foco total na ação", "Raiva do chefe"], c: 1 },
@@ -240,7 +235,6 @@
             if(qi > 60 && qe > 60) p = bibliotecaPerfis.potencia; // Alto QI e QE
             else if(qi > 60) p = bibliotecaPerfis.executor;       // Alto QI, Baixo QE
             else if(qe > 60) p = bibliotecaPerfis.relacional;     // Baixo QI, Alto QE
-            // Se nenhum, fica em 'construcao'
             
             app.data.perfilFinal = p;
             document.getElementById('preview-perfil').innerText = p.nome;
@@ -279,7 +273,7 @@
                 }
             } else {
                 // Modo Teste sem chaves
-                alert("Modo Demonstração (Sem Supabase). O relatório será exibido direto.");
+                alert("Modo Demonstração. O Supabase não está conectado.");
                 app.renderFinal();
                 return;
             }
@@ -311,7 +305,7 @@
         openZap: () => {
             const p = app.data.perfilFinal;
             // Substitua pelo seu número REAL abaixo
-            const zap = "5511999999999"; 
+            const zap = "5571999466243"; 
             window.open(`https://wa.me/${zap}?text=${encodeURIComponent(p.msg)}`, '_blank');
         },
 
