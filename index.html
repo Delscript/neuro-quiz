@@ -7,16 +7,27 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 20px; text-align: center; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .btn { display: block; width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 1.1rem; cursor: pointer; margin-top: 20px; }
-        input { width: 100%; padding: 15px; border: 1px solid #ccc; border-radius: 10px; margin-top: 10px; box-sizing: border-box; }
-        .screen { display: none; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; text-align: center; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #0f172a; font-size: 1.8rem; }
+        .btn { display: block; width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
+        input { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; margin-top: 10px; box-sizing: border-box; font-size: 1rem; }
+        
+        /* Telas */
+        .screen { display: none; animation: fadeIn 0.4s; }
         .screen.active { display: block; }
-        .option { padding: 15px; border: 1px solid #ddd; margin: 10px 0; border-radius: 8px; cursor: pointer; text-align: left; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Quiz */
+        .option { padding: 15px; border: 2px solid #f1f5f9; margin: 10px 0; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; font-weight: 500; }
         .option:hover { background: #eff6ff; border-color: var(--primary); }
-        .bar-container { width: 100%; background: #e0e0e0; height: 10px; border-radius: 5px; margin-bottom: 20px; }
-        .bar-fill { height: 100%; background: var(--primary); width: 0%; border-radius: 5px; transition: width 0.3s; }
+        .bar-bg { width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 20px; }
+        .bar-fill { height: 100%; background: var(--primary); width: 0%; border-radius: 4px; transition: width 0.3s; }
+
+        /* Pix */
+        .pix-box { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin: 20px 0; }
+        .copy-btn { background: #334155; margin-top: 10px; font-size: 0.9rem; padding: 10px; }
     </style>
 </head>
 <body>
@@ -25,43 +36,49 @@
     
     <div id="step-lead" class="screen active">
         <h1>Avaliação Neuro-Cognitiva</h1>
-        <p>Descubra seu perfil exato de QI (Lógico) e QE (Emocional).</p>
-        <p style="font-size:0.9rem; color:#666">🔒 Teste Oficial Sier Growth.</p>
-        <input type="email" id="email" placeholder="Seu melhor e-mail">
+        <p>Descubra seu perfil exato de QI (Lógico) e QE (Emocional) e receba um plano de carreira.</p>
+        <div style="background: #ecfdf5; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #065f46; margin-bottom: 20px;">
+            🔒 Teste Oficial Sier Growth
+        </div>
+        <input type="email" id="email" placeholder="Seu melhor e-mail...">
         <button class="btn" onclick="app.start()">Iniciar Avaliação</button>
     </div>
 
     <div id="step-quiz" class="screen">
-        <div class="bar-container"><div id="progress" class="bar-fill"></div></div>
-        <p>Pergunta <span id="q-num">1</span> de 19</p>
-        <h2 id="q-text" style="min-height: 60px;">...</h2>
+        <div class="bar-bg"><div id="progress" class="bar-fill"></div></div>
+        <p style="text-align: right; font-size: 0.8rem; color: #64748b;">Pergunta <span id="q-num">1</span> de 19</p>
+        <h2 id="q-text" style="min-height: 50px;">...</h2>
         <div id="q-options"></div>
     </div>
 
     <div id="step-loading" class="screen">
-        <h2>Processando Dados...</h2>
-        <p>Cruzando métricas de inteligência...</p>
-        <img src="https://i.gifer.com/ZKZg.gif" style="width:50px; margin-top:20px;">
+        <div style="font-size: 3rem; margin-bottom: 20px;">🧠</div>
+        <h2>Processando Respostas...</h2>
+        <p>Cruzando métricas de lógica e inteligência emocional...</p>
     </div>
 
     <div id="step-pay" class="screen">
         <h2 style="color: #10b981">Análise Concluída!</h2>
-        <p>Seu perfil comportamental foi identificado.</p>
-        <div style="background:#f0fdf4; padding:15px; border-radius:10px; margin:10px 0; text-align:left;">
-            <p><strong>Prévia:</strong> <span id="preview-perfil">Calculando...</span></p>
-            <p style="filter: blur(4px); opacity: 0.6;">Sua tendência a liderança é alta, porém...</p>
+        <p>Identificamos um perfil de alto potencial, mas com travas ocultas.</p>
+        
+        <div style="text-align: left; background: #fff; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            <p><strong>Seu Perfil Base:</strong> <span id="preview-perfil">Calculando...</span></p>
+            <p style="filter: blur(4px); opacity: 0.5;">Sua capacidade de liderança é notável, porém a gestão de tempo...</p>
         </div>
-        <h1 style="color: #2563eb">R$ 19,90</h1>
-        <div id="qr-area" style="margin: 20px 0; padding: 20px; background: #f1f5f9; border-radius: 10px;">
+
+        <h1 style="color: #2563eb; font-size: 2.5rem; margin: 10px 0;">R$ 19,90</h1>
+        
+        <div id="qr-area" class="pix-box">
             <p>Gerando Pix Seguro...</p>
         </div>
-        <p style="font-size: 0.8rem; color: #666">O relatório é liberado assim que o pagamento confirmar.</p>
+        
+        <p style="font-size: 0.8rem; color: #64748b;">O relatório completo será liberado automaticamente após o pagamento.</p>
     </div>
 
     <div id="step-result" class="screen">
-        <h1 style="color: #2563eb">Relatório Oficial</h1>
-        <div id="final-content" style="text-align: left; padding: 10px;"></div>
-        <button class="btn" style="background: #25D366" onclick="app.openZap()">Falar com Especialista</button>
+        <h1 style="color: #2563eb">Relatório Liberado ✅</h1>
+        <div id="final-content" style="text-align: left; line-height: 1.6;"></div>
+        <button class="btn" style="background: #25D366" onclick="app.openZap()">Falar com Anderson Dias</button>
     </div>
 
 </div>
@@ -72,46 +89,47 @@
     const SB_URL = 'https://oabcppkojfmmmqhevjpq.supabase.co'; // Cole a URL do Supabase aqui
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw'; // Cole a Chave ANON aqui
 
-    // --- INICIALIZAÇÃO SEGURA ---
+    // ---------------------------------------------
+
+    // Inicializa Supabase de forma segura
     let supabase = null;
     try {
         if (SB_URL && SB_KEY) {
             supabase = window.supabase.createClient(SB_URL, SB_KEY);
         } else {
-            console.warn("Chaves ausentes.");
+            console.warn("Chaves não configuradas.");
         }
     } catch (e) { console.error(e); }
 
-    // --- LÓGICA DO APP ---
     const app = {
         data: { email: '', qi: 0, qe: 0, idx: 0, perfil: null },
         
-        // AS 19 PERGUNTAS COMPLETAS
+        // AS 19 PERGUNTAS OFICIAIS
         questions: [
             { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
-            { q: "Sob pressão, você...", opts: ["Foca na solução", "Reclama", "Trava"], type: "QE", c: 0 },
-            { q: "Se A > B e B > C, então...", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
-            { q: "Um cliente reclama injustamente. Você...", opts: ["Ouve e resolve", "Discute", "Ignora"], type: "QE", c: 0 },
-            { q: "O que pesa mais: 1kg de chumbo ou 1kg de algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
-            { q: "Complete: A Z B Y C ...", opts: ["X", "W", "D"], type: "QI", c: 0 },
-            { q: "Em equipe, você prefere:", opts: ["Liderar", "Seguir", "Fazer sozinho"], type: "QE", c: 0 },
-            { q: "Diante de um erro seu:", opts: ["Assume e corrige", "Culpa outro", "Esconde"], type: "QE", c: 0 },
-            { q: "Quanto é 10% de 500?", opts: ["50", "5", "100"], type: "QI", c: 0 },
+            { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava/Entra em pânico", "Reclama com a equipe"], type: "QE", c: 0 },
+            { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
+            { q: "Cliente gritou com você injustamente. Reação:", opts: ["Escuta e resolve calmo", "Grita de volta", "Leva pro pessoal e chora"], type: "QE", c: 0 },
+            { q: "O que pesa mais: 1kg de chumbo ou 1kg de algodão?", opts: ["Pesam igual", "Chumbo", "Algodão"], type: "QI", c: 0 },
+            { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
+            { q: "Em um projeto em grupo, você prefere:", opts: ["Liderar e organizar", "Esperar ordens", "Fazer tudo sozinho"], type: "QE", c: 0 },
+            { q: "Você cometeu um erro grave na empresa:", opts: ["Assume e propõe solução", "Tenta esconder", "Culpa o sistema"], type: "QE", c: 0 },
+            { q: "Quanto é 20% de 500?", opts: ["100", "50", "200"], type: "QI", c: 0 },
             { q: "Se ontem fosse amanhã, hoje seria sábado. Que dia é hoje?", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
-            { q: "Feedback negativo te deixa:", opts: ["Motivado a melhorar", "Com raiva", "Triste"], type: "QE", c: 0 },
+            { q: "Recebeu um feedback duro do chefe:", opts: ["Usa para crescer", "Fica com raiva", "Pensa em pedir demissão"], type: "QE", c: 0 },
             { q: "Médico está para Hospital como Professor está para:", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
-            { q: "Você vê um colega triste:", opts: ["Pergunta se ajuda", "Ignora", "Riem dele"], type: "QE", c: 0 },
-            { q: "Numa negociação, o foco é:", opts: ["Ganha-Ganha", "Vencer", "Não perder"], type: "QE", c: 0 },
-            { q: "Carro viaja a 60km/h. Em 3h anda:", opts: ["180km", "120km", "200km"], type: "QI", c: 0 },
-            { q: "Inteligência Emocional é:", opts: ["Gerir emoções", "Não ter emoções", "Ser feliz sempre"], type: "QE", c: 0 },
-            { q: "Qual não pertence?", opts: ["Banana", "Maçã", "Cadeira"], type: "QI", c: 2 },
-            { q: "Para inovar é preciso:", opts: ["Criatividade", "Dinheiro", "Sorte"], type: "QI", c: 0 },
-            { q: "Seu chefe muda tudo de última hora:", opts: ["Adapta-se", "Reclama", "Desiste"], type: "QE", c: 0 }
+            { q: "Colega está visivelmente triste hoje:", opts: ["Oferece ajuda discreta", "Ignora para não incomodar", "Faz piada para animar"], type: "QE", c: 0 },
+            { q: "Numa negociação difícil, o objetivo é:", opts: ["Acordo bom para ambos", "Vencer a qualquer custo", "Não perder dinheiro"], type: "QE", c: 0 },
+            { q: "Carro a 80km/h. Em 30min percorre:", opts: ["40km", "80km", "60km"], type: "QI", c: 0 },
+            { q: "Inteligência Emocional significa:", opts: ["Gerir emoções", "Não sentir nada", "Ser sempre feliz"], type: "QE", c: 0 },
+            { q: "Qual item não pertence ao grupo?", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
+            { q: "Para inovar no mercado é preciso:", opts: ["Resolver dores reais", "Ter muito dinheiro", "Sorte"], type: "QI", c: 0 },
+            { q: "Mudança repentina de planos:", opts: ["Adapta-se rápido", "Reclama do planejamento", "Trava"], type: "QE", c: 0 }
         ],
 
         start: async () => {
             const email = document.getElementById('email').value.trim();
-            if(!email.includes('@')) return alert('E-mail inválido');
+            if(!email.includes('@')) return alert('Digite um e-mail válido!');
             app.data.email = email;
             
             if(supabase) await supabase.from('leads').insert([{ email: email, status_pagamento: 'aguardando' }]);
@@ -145,67 +163,50 @@
         finish: async () => {
             app.show('step-loading');
             
-            // Define Perfil Base
-            let perfilNome = "Em Construção";
-            let msg = "Olá Anderson, fiz o teste e preciso de mentoria.";
-            let texto = "Seu perfil indica grande potencial, mas travas emocionais.";
-            
-            if(app.data.qi > 5 && app.data.qe > 5) { 
-                perfilNome = "Potência Expansiva"; 
-                msg = "Sou Potência Expansiva! Quero escalar."; 
-                texto = "Você combina lógica afiada com inteligência emocional. É um perfil raro de liderança.";
-            } else if(app.data.qi > 5) { 
-                perfilNome = "Executor Solitário"; 
-                msg = "Sou Executor Solitário. Preciso de gestão.";
-                texto = "Alta capacidade técnica, mas tende a se sobrecarregar por centralizar tarefas.";
-            } else if(app.data.qe > 5) { 
-                perfilNome = "Conector Nato"; 
-                msg = "Sou Conector Nato. Preciso de processos.";
-                texto = "Excelente com pessoas, mas pode faltar foco em processos e números.";
+            // Lógica do Perfil
+            let perfil = { nome: "Em Construção", texto: "Perfil em desenvolvimento." };
+            if(app.data.qi > 6 && app.data.qe > 6) {
+                perfil = { nome: "Potência Expansiva", texto: "Você tem o equilíbrio raro entre Lógica e Emoção. Seu desafio agora é Escala e Parcerias." };
+            } else if(app.data.qi > 6) {
+                perfil = { nome: "Executor Solitário", texto: "Alta capacidade técnica, mas sofre por centralizar. Precisa aprender Gestão e Delegação." };
+            } else if(app.data.qe > 6) {
+                perfil = { nome: "Conector Nato", texto: "Excelente com pessoas e vendas, mas falta processo e métricas. Precisa de Organização." };
             }
             
-            app.data.perfil = { nome: perfilNome, msg: msg, texto: texto };
-            document.getElementById('preview-perfil').innerText = perfilNome;
+            app.data.perfil = perfil;
+            document.getElementById('preview-perfil').innerText = perfil.nome;
 
-            // Salva Pontuação
-            if(supabase) {
-                await supabase.from('leads').update({ qi_score: app.data.qi, qe_score: app.data.qe }).eq('email', app.data.email);
-            }
+            if(supabase) await supabase.from('leads').update({ qi_score: app.data.qi, qe_score: app.data.qe }).eq('email', app.data.email);
 
-            // Gera Pix
             app.generatePix();
         },
 
         generatePix: async () => {
             if(!supabase) {
                 app.show('step-pay');
-                return alert("Configure as chaves no código para gerar o Pix.");
+                return alert("Configure as chaves no código!");
             }
             
             try {
-                // Chama a Edge Function
                 const { data, error } = await supabase.functions.invoke('gerar-pix', {
                     body: { email: app.data.email, valor: 19.90 }
                 });
 
                 if(error || !data) throw error;
                 
-                // Exibe QR Code
                 document.getElementById('qr-area').innerHTML = `
                     <img src="${data.img}" style="width:200px; mix-blend-mode: multiply;">
-                    <p style="word-break:break-all; font-size:0.8rem; border:1px dashed #ccc; padding:10px; background:white; margin:10px 0;">${data.code}</p>
-                    <button class="btn" style="background:#333; font-size:0.9rem" onclick="navigator.clipboard.writeText('${data.code}'); alert('Copiado!')">Copiar Código Pix</button>
+                    <textarea style="width:100%; font-size:0.8rem; border:1px solid #ccc; padding:10px; margin-top:10px;" rows="3" readonly>${data.code}</textarea>
+                    <button class="btn copy-btn" onclick="navigator.clipboard.writeText('${data.code}'); alert('Código Pix Copiado!')">Copiar Código Pix</button>
                 `;
                 
                 app.show('step-pay');
 
-                // Monitora Pagamento em Tempo Real
+                // OUVINTE DE PAGAMENTO
                 supabase.channel('pgto_realtime')
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'leads', filter: `email=eq.${app.data.email}` }, 
                 (payload) => {
-                    if(payload.new.status_pagamento === 'pago') {
-                        app.showResult();
-                    }
+                    if(payload.new.status_pagamento === 'pago') app.showResult();
                 }).subscribe();
 
             } catch(e) {
@@ -218,19 +219,15 @@
         showResult: () => {
             const p = app.data.perfil;
             document.getElementById('final-content').innerHTML = `
-                <h2 style="color:#2563eb">${p.nome}</h2>
-                <p>${p.texto}</p>
-                <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
-                <p><strong>Status:</strong> Pagamento Confirmado ✅</p>
-                <p>Clique abaixo para receber seu Plano de Ação.</p>
+                <h2>${p.nome}</h2>
+                <p><strong>Diagnóstico:</strong> ${p.texto}</p>
+                <hr>
+                <p>Seu pagamento foi confirmado! Vamos agendar sua mentoria para desbloquear o próximo nível.</p>
             `;
             app.show('step-result');
         },
 
-        openZap: () => {
-            const zap = "5571999466243"; // SEU WHATSAPP AQUI
-            window.open(`https://wa.me/${zap}?text=${encodeURIComponent(app.data.perfil.msg)}`, '_blank');
-        },
+        openZap: () => window.open("https://wa.me/5511999999999", "_blank"), // Mude seu numero aqui
         
         show: (id) => {
             document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
