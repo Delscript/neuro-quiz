@@ -6,97 +6,100 @@
     <title>Avaliação Neuro-Cognitiva</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --cor-principal: #2563eb; --fundo: #f8fafc; --texto: #1e293b; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--fundo); color: var(--texto); padding: 20px; text-align: center; margin: 0; }
-        .cx-container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; text-align: center; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         h1 { color: #0f172a; font-size: 1.8rem; }
-        .botao-acao { display: block; width: 100%; padding: 16px; background: var(--cor-principal); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.2s; }
-        .botao-acao:active { transform: scale(0.98); }
+        .btn { display: block; width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
         input { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; margin-top: 10px; box-sizing: border-box; font-size: 1rem; }
         
         /* Telas */
-        .tela-app { display: none; animation: aparecer 0.4s; }
-        .tela-app.ativa { display: block; }
-        @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .screen { display: none; animation: fadeIn 0.4s; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Quiz */
-        .opcao-quiz { padding: 15px; border: 2px solid #f1f5f9; margin: 10px 0; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; font-weight: 500; }
-        .opcao-quiz:hover { background: #eff6ff; border-color: var(--cor-principal); }
-        .barra-fundo { width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 20px; }
-        .barra-progresso { height: 100%; background: var(--cor-principal); width: 0%; border-radius: 4px; transition: width 0.3s; }
-        .caixa-pix { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin: 20px 0; }
+        .option { padding: 15px; border: 2px solid #f1f5f9; margin: 10px 0; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; font-weight: 500; }
+        .option:hover { background: #eff6ff; border-color: var(--primary); }
+        .bar-bg { width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 20px; }
+        .bar-fill { height: 100%; background: var(--primary); width: 0%; border-radius: 4px; transition: width 0.3s; }
+
+        /* Pix Area */
+        .pix-box { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin: 20px 0; }
+        .copy-btn { background: #334155; margin-top: 10px; font-size: 0.9rem; padding: 10px; width: auto; display: inline-block; }
+
+        /* Estilo do Relatório */
+        .relatorio-box { text-align: left; border: 2px solid #2563eb; padding: 20px; border-radius: 10px; background: #eff6ff; margin-top: 20px; }
+        .relatorio-box h2 { color: #2563eb; margin-top: 0; }
+        .relatorio-box h3 { color: #1e293b; margin-top: 15px; border-bottom: 1px solid #bfdbfe; padding-bottom: 5px; }
+        .relatorio-box ul { padding-left: 20px; }
+        .relatorio-box li { margin-bottom: 8px; }
     </style>
 </head>
 <body>
 
-<div class="cx-container">
+<div class="container">
     
-    <div id="tela-inicio" class="tela-app ativa">
+    <div id="step-lead" class="screen active">
         <h1>Avaliação Neuro-Cognitiva</h1>
         <p>Descubra seu perfil exato de QI e QE e receba um plano de carreira.</p>
         <div style="background: #ecfdf5; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #065f46; margin-bottom: 20px;">
             🔒 Teste Oficial Sier Growth
         </div>
-        <input type="email" id="email-usuario" placeholder="Seu melhor e-mail...">
-        <button class="botao-acao" onclick="_quizApp.iniciar()">Iniciar Avaliação</button>
+        <input type="email" id="email" placeholder="Seu melhor e-mail...">
+        <button class="btn" onclick="app.start()">Iniciar Avaliação</button>
     </div>
 
-    <div id="tela-perguntas" class="tela-app">
-        <div class="barra-fundo"><div id="barra-progresso" class="barra-progresso"></div></div>
-        <p style="text-align: right; font-size: 0.8rem; color: #64748b;">Pergunta <span id="num-pergunta">1</span> de 19</p>
-        <h2 id="texto-pergunta" style="min-height: 50px;">...</h2>
-        <div id="area-opcoes"></div>
+    <div id="step-quiz" class="screen">
+        <div class="bar-bg"><div id="progress" class="bar-fill"></div></div>
+        <p style="text-align: right; font-size: 0.8rem; color: #64748b;">Pergunta <span id="q-num">1</span> de 19</p>
+        <h2 id="q-text" style="min-height: 50px;">...</h2>
+        <div id="q-options"></div>
     </div>
 
-    <div id="tela-carregando" class="tela-app">
+    <div id="step-loading" class="screen">
         <div style="font-size: 3rem; margin-bottom: 20px;">🧠</div>
         <h2>Processando Respostas...</h2>
         <p>Cruzando métricas de lógica e inteligência emocional...</p>
     </div>
 
-    <div id="tela-pagamento" class="tela-app">
+    <div id="step-pay" class="screen">
         <h2 style="color: #10b981">Análise Concluída!</h2>
-        <p>Identificamos um perfil de alto potencial.</p>
+        <p>Identificamos um perfil de alto potencial, mas com travas ocultas.</p>
         
         <div style="text-align: left; background: #fff; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
             <p><strong>Seu Perfil Base:</strong> <span id="preview-perfil">Calculando...</span></p>
             <p style="filter: blur(4px); opacity: 0.5;">Sua capacidade de liderança é notável, porém a gestão de tempo...</p>
         </div>
 
-        <h1 style="color: #2563eb; font-size: 2.5rem; margin: 10px 0;">R$ 19,90</h1>
+        <h1 style="color: #2563eb; font-size: 2.5rem; margin: 10px 0;">R$ 1,00</h1>
         
-        <div id="area-qr" class="caixa-pix">
+        <div id="qr-area" class="pix-box">
             <p>Gerando Pix Seguro...</p>
         </div>
         
-        <p style="font-size: 0.8rem; color: #64748b;">Relatório liberado automaticamente após pagamento.</p>
+        <p style="font-size: 0.8rem; color: #64748b;">O relatório completo será liberado automaticamente após o pagamento.</p>
     </div>
 
-    <div id="tela-resultado" class="tela-app">
+    <div id="step-result" class="screen">
         <h1 style="color: #2563eb">Relatório Liberado ✅</h1>
-        <div id="conteudo-final" style="text-align: left; line-height: 1.6;"></div>
-        <button class="botao-acao" style="background: #25D366" onclick="_quizApp.abrirZap()">Falar com Anderson Dias</button>
+        <div id="final-content"></div>
+        <button class="btn" style="background: #25D366" onclick="app.openZap()">Falar com Anderson Dias</button>
     </div>
 
 </div>
+
 <script>
     // --- ⚙️ ÁREA DE CONFIGURAÇÃO ---
-    // Coloque suas chaves do Supabase aqui (se já estiverem lá, pode manter)
+    // Coloque suas chaves do Supabase aqui
     
     const SB_URL = 'https://oabcppkojfmmmqhevjpq.supabase.co'; // <--- COLE SUA URL AQUI
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw'; // <--- COLE SUA CHAVE AQUI
 
     // ---------------------------------------------
 
-    var supabase = null; 
-    try {
-        if (SB_URL && SB_KEY) {
-            if (!window.supabaseClient) window.supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
-            supabase = window.supabaseClient;
-        }
-    } catch (e) { console.error(e); }
-
-    // --- BANCO DE DADOS DE PERFIS (TEXTOS COMPLETOS) ---
+    // --- BANCO DE DADOS DE PERFIS ---
     const PERFIS = {
         "Potência Expansiva": {
             titulo: "🧠 Potência Expansiva (O Visionário)",
@@ -104,12 +107,12 @@
             texto: `
                 <h3>Análise Profunda</h3>
                 <p>Seu cérebro opera em alta performance tanto na análise de dados quanto na leitura de pessoas. Isso é encontrado em menos de 5% da população.</p>
-                <p><strong>Pontos Fortes:</strong> Visão estratégica, liderança natural e capacidade de resolver crises sem perder o controle.</p>
-                <p><strong>Seu Ponto Cego:</strong> Você tende a assumir responsabilidades demais porque acha que "ninguém fará tão bem quanto você". Isso gera gargalos na sua empresa.</p>
+                <p><strong>Pontos Fortes:</strong> Visão estratégica, liderança natural e capacidade de resolver crises.</p>
+                <p><strong>Ponto Cego:</strong> Centralização. Tende a assumir responsabilidades demais.</p>
                 <h3>Plano de Ação</h3>
                 <ul>
-                    <li><strong>Delegação:</strong> Solte o operacional. Sua hora vale muito para ficar resolvendo problemas pequenos.</li>
-                    <li><strong>Escala:</strong> Seu foco agora deve ser criar processos para que a empresa ande sozinha.</li>
+                    <li><strong>Delegação:</strong> Solte o operacional.</li>
+                    <li><strong>Escala:</strong> Crie processos para a empresa andar sozinha.</li>
                 </ul>
             `
         },
@@ -118,47 +121,57 @@
             resumo: "Sua capacidade lógica é brilhante, mas o lado emocional precisa de atenção.",
             texto: `
                 <h3>Análise Profunda</h3>
-                <p>Você é a pessoa que resolve. Se derem um problema técnico na sua mão, você mata no peito. Porém, você sofre quando precisa lidar com "drama" de funcionários ou clientes.</p>
-                <p><strong>Pontos Fortes:</strong> Foco, precisão, inteligência lógica e lealdade.</p>
-                <p><strong>Seu Ponto Cego:</strong> Centralização. Você acredita que fazer sozinho é mais rápido do que ensinar. Isso limita seu crescimento financeiro.</p>
+                <p>Você resolve qualquer problema técnico, mas sofre ao lidar com gestão de pessoas.</p>
+                <p><strong>Pontos Fortes:</strong> Foco, precisão e lealdade.</p>
+                <p><strong>Ponto Cego:</strong> Acredita que "se quer bem feito, faça você mesmo". Isso impede seu crescimento.</p>
                 <h3>Plano de Ação</h3>
                 <ul>
-                    <li><strong>Treinamento:</strong> Dedique 1 hora por dia para treinar alguém para ser seu "braço direito".</li>
-                    <li><strong>Comunicação:</strong> Aprenda a vender sua visão, não apenas executar tarefas.</li>
+                    <li><strong>Treinamento:</strong> Treine um braço direito urgente.</li>
+                    <li><strong>Vendas:</strong> Aprenda a vender sua visão.</li>
                 </ul>
             `
         },
         "Conector Nato": {
             titulo: "🤝 Conector Nato (O Comunicador)",
-            resumo: "Você vende até areia no deserto, mas falta organização e processo.",
+            resumo: "Você vende até areia no deserto, mas falta organização.",
             texto: `
                 <h3>Análise Profunda</h3>
-                <p>Sua inteligência emocional é altíssima. As pessoas gostam de você e confiam em você rapidamente. O problema é a execução e a constância.</p>
-                <p><strong>Pontos Fortes:</strong> Persuasão, networking, empatia e vendas.</p>
-                <p><strong>Seu Ponto Cego:</strong> Desorganização. Você começa 10 projetos e termina 2. Isso faz você deixar dinheiro na mesa por falta de acompanhamento (follow-up).</p>
+                <p>Inteligência emocional altíssima. As pessoas confiam em você rapidamente.</p>
+                <p><strong>Pontos Fortes:</strong> Persuasão, networking e empatia.</p>
+                <p><strong>Ponto Cego:</strong> Começa muito e termina pouco. Falta follow-up.</p>
                 <h3>Plano de Ação</h3>
                 <ul>
-                    <li><strong>Processos:</strong> Você precisa de um CRM ou uma planilha rígida. Não confie na cabeça.</li>
-                    <li><strong>Parceria:</strong> Busque um sócio ou assistente com perfil "Executor" para organizar sua bagunça criativa.</li>
+                    <li><strong>Processos:</strong> Use um CRM ou planilha rígida.</li>
+                    <li><strong>Parceria:</strong> Busque um sócio com perfil Executor.</li>
                 </ul>
             `
         },
         "Em Construção": {
             titulo: "🚧 Perfil em Desenvolvimento",
-            resumo: "Detectamos inconsistências nas respostas (provavelmente feito rápido).",
+            resumo: "Respostas inconsistentes detectadas.",
             texto: `
-                <h3>Análise Preliminar</h3>
-                <p>Suas respostas indicaram uma pontuação baixa em ambos os eixos. Isso geralmente acontece quando o teste é feito com pressa ou sob muita distração.</p>
+                <h3>Diagnóstico</h3>
+                <p>Suas respostas indicaram pontuação baixa ou neutra. Isso acontece quando o teste é feito muito rápido.</p>
                 <h3>Recomendação</h3>
-                <p>Para um diagnóstico preciso que possa realmente mudar sua carreira, recomendamos refazer o teste com calma e total sinceridade.</p>
+                <p>Para um resultado fiel, recomendamos refazer o teste com calma.</p>
             `
         }
     };
 
+    // Inicializa Supabase com segurança
+    var supabase = null; 
+    try {
+        if (SB_URL && SB_KEY && window.supabase) {
+            if (!window.supabaseClient) {
+                window.supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+            }
+            supabase = window.supabaseClient;
+        }
+    } catch (e) { console.error("Erro ao iniciar Supabase:", e); }
+
     var app = {
         data: { email: '', qi: 0, qe: 0, idx: 0, perfil: null },
         
-        // PERGUNTAS (Mantive as mesmas)
         questions: [
             { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
             { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava/Pânico", "Reclama"], type: "QE", c: 0 },
@@ -215,7 +228,7 @@
         finish: async () => {
             app.show('step-loading');
             
-            // Lógica Inteligente de Perfil
+            // Lógica de Perfil
             let chavePerfil = "Em Construção";
             const qi = app.data.qi;
             const qe = app.data.qe;
@@ -224,7 +237,7 @@
             else if(qi > 6) chavePerfil = "Executor Solitário";
             else if(qe > 6) chavePerfil = "Conector Nato";
             
-            app.data.perfil = PERFIS[chavePerfil]; // Pega o texto completo do banco
+            app.data.perfil = PERFIS[chavePerfil];
             document.getElementById('preview-perfil').innerText = app.data.perfil.titulo;
 
             if(supabase) await supabase.from('leads').update({ qi_score: qi, qe_score: qe }).eq('email', app.data.email);
@@ -234,7 +247,7 @@
 
         generatePix: async () => {
             try {
-                // VALOR: R$ 1.00 para testes (Mude para 19.90 depois)
+                // GERAÇÃO DE PIX R$ 1,00 (Para Teste)
                 const response = await fetch('/api/pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -252,6 +265,7 @@
                 
                 app.show('step-pay');
 
+                // Monitoramento Realtime
                 if(supabase) {
                     supabase.channel('pgto_realtime')
                     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'leads', filter: `email=eq.${app.data.email}` }, 
@@ -270,11 +284,10 @@
         showResult: () => {
             const p = app.data.perfil;
             document.getElementById('final-content').innerHTML = `
-                <div style="border: 2px solid #2563eb; padding: 20px; border-radius: 10px; background: #eff6ff;">
-                    <h2 style="color: #2563eb; margin-top:0;">${p.titulo}</h2>
+                <div class="relatorio-box">
+                    <h2>${p.titulo}</h2>
                     <p style="font-size: 1.1rem; font-style: italic;">"${p.resumo}"</p>
-                    <hr style="border-top: 1px solid #bfdbfe;">
-                    <div style="text-align: left;">${p.texto}</div>
+                    ${p.texto}
                 </div>
                 <button class="btn" style="background: #333; margin-top: 20px;" onclick="window.print()">🖨️ Salvar Relatório em PDF</button>
             `;
