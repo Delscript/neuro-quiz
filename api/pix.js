@@ -85,7 +85,7 @@ function createCharge(token, valor, creds) {
             calendario: { expiracao: 3600 },
             // REMOVI A LINHA "DEVEDOR" PARA NÃO DAR ERRO DE CPF
             valor: { original: valor.toFixed(2) },
-            chave: "SUA_CHAVE_PIX_AQUI", // (A Efí ignora isso e usa a do certificado)
+            chave: "65e5f3c3-b7d1-4757-a955-d6fc20519dce", // (A Efí ignora isso e usa a do certificado)
             solicitacaoPagador: "Relatorio Neuro-Cognitivo"
         });
 
