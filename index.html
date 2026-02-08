@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliação Neuro-Cognitiva</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 20px; text-align: center; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn { display: block; width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 1.1rem; cursor: pointer; margin-top: 20px; }
+        input { width: 100%; padding: 15px; border: 1px solid #ccc; border-radius: 10px; margin-top: 10px; box-sizing: border-box; }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        .option { padding: 15px; border: 1px solid #ddd; margin: 10px 0; border-radius: 8px; cursor: pointer; text-align: left; }
+        .option:hover { background: #eff6ff; border-color: var(--primary); }
+        .bar-container { width: 100%; background: #e0e0e0; height: 10px; border-radius: 5px; margin-bottom: 20px; }
+        .bar-fill { height: 100%; background: var(--primary); width: 0%; border-radius: 5px; transition: width 0.3s; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div id="step-lead" class="screen active">
+        <h1>Avaliação Neuro-Cognitiva</h1>
+        <p>Descubra seu perfil exato de QI (Lógico) e QE (Emocional).</p>
+        <p style="font-size:0.9rem; color:#666">🔒 Teste Oficial Sier Growth.</p>
+        <input type="email" id="email" placeholder="Seu melhor e-mail">
+        <button class="btn" onclick="app.start()">Iniciar Avaliação</button>
+    </div>
+
+    <div id="step-quiz" class="screen">
+        <div class="bar-container"><div id="progress" class="bar-fill"></div></div>
+        <p>Pergunta <span id="q-num">1</span> de 19</p>
+        <h2 id="q-text" style="min-height: 60px;">...</h2>
+        <div id="q-options"></div>
+    </div>
+
+    <div id="step-loading" class="screen">
+        <h2>Processando Dados...</h2>
+        <p>Cruzando métricas de inteligência...</p>
+        <img src="https://i.gifer.com/ZKZg.gif" style="width:50px; margin-top:20px;">
+    </div>
+
+    <div id="step-pay" class="screen">
+        <h2 style="color: #10b981">Análise Concluída!</h2>
+        <p>Seu perfil comportamental foi identificado.</p>
+        <div style="background:#f0fdf4; padding:15px; border-radius:10px; margin:10px 0; text-align:left;">
+            <p><strong>Prévia:</strong> <span id="preview-perfil">Calculando...</span></p>
+            <p style="filter: blur(4px); opacity: 0.6;">Sua tendência a liderança é alta, porém...</p>
+        </div>
+        <h1 style="color: #2563eb">R$ 19,90</h1>
+        <div id="qr-area" style="margin: 20px 0; padding: 20px; background: #f1f5f9; border-radius: 10px;">
+            <p>Gerando Pix Seguro...</p>
+        </div>
+        <p style="font-size: 0.8rem; color: #666">O relatório é liberado assim que o pagamento confirmar.</p>
+    </div>
+
+    <div id="step-result" class="screen">
+        <h1 style="color: #2563eb">Relatório Oficial</h1>
+        <div id="final-content" style="text-align: left; padding: 10px;"></div>
+        <button class="btn" style="background: #25D366" onclick="app.openZap()">Falar com Especialista</button>
+    </div>
+
+</div>
+
+<script>
+    // --- ⚙️ CONFIGURAÇÃO ---
+    // Coloque suas chaves DENTRO das aspas abaixo
+    const SB_URL = 'https://oabcppkojfmmmqhevjpq.supabase.co'; // Cole a URL do Supabase aqui
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw'; // Cole a Chave ANON aqui
+
+    // --- INICIALIZAÇÃO SEGURA ---
+    let supabase = null;
+    try {
+        if (SB_URL && SB_KEY) {
+            supabase = window.supabase.createClient(SB_URL, SB_KEY);
+        } else {
+            console.warn("Chaves ausentes.");
+        }
+    } catch (e) { console.error(e); }
+
+    // --- LÓGICA DO APP ---
+    const app = {
+        data: { email: '', qi: 0, qe: 0, idx: 0, perfil: null },
+        
+        // AS 19 PERGUNTAS COMPLETAS
+        questions: [
+            { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
+            { q: "Sob pressão, você...", opts: ["Foca na solução", "Reclama", "Trava"], type: "QE", c: 0 },
+            { q: "Se A > B e B > C, então...", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
+            { q: "Um cliente reclama injustamente. Você...", opts: ["Ouve e resolve", "Discute", "Ignora"], type: "QE", c: 0 },
+            { q: "O que pesa mais: 1kg de chumbo ou 1kg de algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
+            { q: "Complete: A Z B Y C ...", opts: ["X", "W", "D"], type: "QI", c: 0 },
+            { q: "Em equipe, você prefere:", opts: ["Liderar", "Seguir", "Fazer sozinho"], type: "QE", c: 0 },
+            { q: "Diante de um erro seu:", opts: ["Assume e corrige", "Culpa outro", "Esconde"], type: "QE", c: 0 },
+            { q: "Quanto é 10% de 500?", opts: ["50", "5", "100"], type: "QI", c: 0 },
+            { q: "Se ontem fosse amanhã, hoje seria sábado. Que dia é hoje?", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
+            { q: "Feedback negativo te deixa:", opts: ["Motivado a melhorar", "Com raiva", "Triste"], type: "QE", c: 0 },
+            { q: "Médico está para Hospital como Professor está para:", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
+            { q: "Você vê um colega triste:", opts: ["Pergunta se ajuda", "Ignora", "Riem dele"], type: "QE", c: 0 },
+            { q: "Numa negociação, o foco é:", opts: ["Ganha-Ganha", "Vencer", "Não perder"], type: "QE", c: 0 },
+            { q: "Carro viaja a 60km/h. Em 3h anda:", opts: ["180km", "120km", "200km"], type: "QI", c: 0 },
+            { q: "Inteligência Emocional é:", opts: ["Gerir emoções", "Não ter emoções", "Ser feliz sempre"], type: "QE", c: 0 },
+            { q: "Qual não pertence?", opts: ["Banana", "Maçã", "Cadeira"], type: "QI", c: 2 },
+            { q: "Para inovar é preciso:", opts: ["Criatividade", "Dinheiro", "Sorte"], type: "QI", c: 0 },
+            { q: "Seu chefe muda tudo de última hora:", opts: ["Adapta-se", "Reclama", "Desiste"], type: "QE", c: 0 }
+        ],
+
+        start: async () => {
+            const email = document.getElementById('email').value.trim();
+            if(!email.includes('@')) return alert('E-mail inválido');
+            app.data.email = email;
+            
+            if(supabase) await supabase.from('leads').insert([{ email: email, status_pagamento: 'aguardando' }]);
+            app.show('step-quiz');
+            app.renderQ();
+        },
+
+        renderQ: () => {
+            if(app.data.idx >= app.questions.length) return app.finish();
+            const q = app.questions[app.data.idx];
+            
+            document.getElementById('q-num').innerText = app.data.idx + 1;
+            document.getElementById('q-text').innerText = q.q;
+            document.getElementById('progress').style.width = ((app.data.idx / app.questions.length) * 100) + '%';
+            
+            const div = document.getElementById('q-options');
+            div.innerHTML = '';
+            q.opts.forEach((opt, i) => {
+                const btn = document.createElement('div');
+                btn.className = 'option';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if(i === q.c) q.type === 'QI' ? app.data.qi++ : app.data.qe++;
+                    app.data.idx++;
+                    app.renderQ();
+                };
+                div.appendChild(btn);
+            });
+        },
+
+        finish: async () => {
+            app.show('step-loading');
+            
+            // Define Perfil Base
+            let perfilNome = "Em Construção";
+            let msg = "Olá Anderson, fiz o teste e preciso de mentoria.";
+            let texto = "Seu perfil indica grande potencial, mas travas emocionais.";
+            
+            if(app.data.qi > 5 && app.data.qe > 5) { 
+                perfilNome = "Potência Expansiva"; 
+                msg = "Sou Potência Expansiva! Quero escalar."; 
+                texto = "Você combina lógica afiada com inteligência emocional. É um perfil raro de liderança.";
+            } else if(app.data.qi > 5) { 
+                perfilNome = "Executor Solitário"; 
+                msg = "Sou Executor Solitário. Preciso de gestão.";
+                texto = "Alta capacidade técnica, mas tende a se sobrecarregar por centralizar tarefas.";
+            } else if(app.data.qe > 5) { 
+                perfilNome = "Conector Nato"; 
+                msg = "Sou Conector Nato. Preciso de processos.";
+                texto = "Excelente com pessoas, mas pode faltar foco em processos e números.";
+            }
+            
+            app.data.perfil = { nome: perfilNome, msg: msg, texto: texto };
+            document.getElementById('preview-perfil').innerText = perfilNome;
+
+            // Salva Pontuação
+            if(supabase) {
+                await supabase.from('leads').update({ qi_score: app.data.qi, qe_score: app.data.qe }).eq('email', app.data.email);
+            }
+
+            // Gera Pix
+            app.generatePix();
+        },
+
+        generatePix: async () => {
+            if(!supabase) {
+                app.show('step-pay');
+                return alert("Configure as chaves no código para gerar o Pix.");
+            }
+            
+            try {
+                // Chama a Edge Function
+                const { data, error } = await supabase.functions.invoke('gerar-pix', {
+                    body: { email: app.data.email, valor: 19.90 }
+                });
+
+                if(error || !data) throw error;
+                
+                // Exibe QR Code
+                document.getElementById('qr-area').innerHTML = `
+                    <img src="${data.img}" style="width:200px; mix-blend-mode: multiply;">
+                    <p style="word-break:break-all; font-size:0.8rem; border:1px dashed #ccc; padding:10px; background:white; margin:10px 0;">${data.code}</p>
+                    <button class="btn" style="background:#333; font-size:0.9rem" onclick="navigator.clipboard.writeText('${data.code}'); alert('Copiado!')">Copiar Código Pix</button>
+                `;
+                
+                app.show('step-pay');
+
+                // Monitora Pagamento em Tempo Real
+                supabase.channel('pgto_realtime')
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'leads', filter: `email=eq.${app.data.email}` }, 
+                (payload) => {
+                    if(payload.new.status_pagamento === 'pago') {
+                        app.showResult();
+                    }
+                }).subscribe();
+
+            } catch(e) {
+                console.error(e);
+                app.show('step-pay');
+                document.getElementById('qr-area').innerHTML = "<p style='color:red'>Erro ao gerar Pix. Verifique os Segredos no Supabase.</p>";
+            }
+        },
+
+        showResult: () => {
+            const p = app.data.perfil;
+            document.getElementById('final-content').innerHTML = `
+                <h2 style="color:#2563eb">${p.nome}</h2>
+                <p>${p.texto}</p>
+                <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
+                <p><strong>Status:</strong> Pagamento Confirmado ✅</p>
+                <p>Clique abaixo para receber seu Plano de Ação.</p>
+            `;
+            app.show('step-result');
+        },
+
+        openZap: () => {
+            const zap = "5571999466243"; // SEU WHATSAPP AQUI
+            window.open(`https://wa.me/${zap}?text=${encodeURIComponent(app.data.perfil.msg)}`, '_blank');
+        },
+        
+        show: (id) => {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+    };
+</script>
+
+</body>
+</html>
