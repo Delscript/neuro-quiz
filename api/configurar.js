@@ -8,14 +8,14 @@ export default async function handler(req, res) {
         sandbox: false
     };
 
-    // Detecta o endereço do seu site automaticamente
+    // Seu site na Vercel
     const WEBHOOK_URL = `https://${req.headers.host}/api/webhook`;
 
     try {
         const chavePix = req.query.chave; 
-        if(!chavePix) return res.status(400).json({ erro: "Faltou colocar ?chave=SEU_PIX no final do link" });
+        if(!chavePix) return res.status(400).json({ erro: "Faltou ?chave=SEU_PIX no final do link" });
 
-        console.log(`Configurando chave: ${chavePix} para ouvir em: ${WEBHOOK_URL}`);
+        console.log(`Configurando Webhook (Sem mTLS) para: ${chavePix}`);
 
         const token = await getToken(CREDENTIALS);
         const resultado = await configWebhook(token, chavePix, WEBHOOK_URL, CREDENTIALS);
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     }
 }
 
-// Funções auxiliares
+// --- FUNÇÕES ---
 function getAgent(creds) {
     let certLimpo = creds.cert_base64.replace(/^data:.*;base64,/, "").replace(/\s/g, "");
     return new https.Agent({ pfx: Buffer.from(certLimpo, 'base64'), passphrase: '' });
@@ -73,7 +73,14 @@ function configWebhook(token, chave, urlWebhook, creds) {
             res.on('end', () => resolve(JSON.parse(data)));
         });
         req.on('error', reject);
-        req.write(JSON.stringify({ webhookUrl: urlWebhook }));
+        
+        // --- O SEGREDO ESTÁ AQUI EMBAIXO ---
+        req.write(JSON.stringify({ 
+            webhookUrl: urlWebhook,
+            skipMtls: true  // <--- ISSO OBRIGA A EFÍ A ACEITAR A VERCEL
+        }));
+        // -----------------------------------
+        
         req.end();
     });
 }
