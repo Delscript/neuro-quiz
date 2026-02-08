@@ -8,14 +8,13 @@ export default async function handler(req, res) {
         sandbox: false
     };
 
-    // Seu site na Vercel
     const WEBHOOK_URL = `https://${req.headers.host}/api/webhook`;
 
     try {
         const chavePix = req.query.chave; 
         if(!chavePix) return res.status(400).json({ erro: "Faltou ?chave=SEU_PIX no final do link" });
 
-        console.log(`Configurando Webhook (Sem mTLS) para: ${chavePix}`);
+        console.log(`Configurando Webhook para: ${chavePix}`);
 
         const token = await getToken(CREDENTIALS);
         const resultado = await configWebhook(token, chavePix, WEBHOOK_URL, CREDENTIALS);
@@ -27,7 +26,11 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        return res.status(500).json({ erro: error.message });
+        // Se der erro, mostra o detalhe para a gente corrigir
+        return res.status(500).json({ 
+            mensagem: "Erro ao configurar",
+            erro_detalhado: error.message 
+        });
     }
 }
 
@@ -64,23 +67,27 @@ function configWebhook(token, chave, urlWebhook, creds) {
             hostname: creds.sandbox ? 'pix-h.api.efipay.com.br' : 'pix.api.efipay.com.br',
             path: `/v2/webhook/${chave}`,
             method: 'PUT',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            headers: { 
+                'Authorization': `Bearer ${token}`, 
+                'Content-Type': 'application/json',
+                'x-skip-mtls-checking': 'true' // <--- O SEGREDO ESTÁ AQUI (No cabeçalho)
+            },
             agent: getAgent(creds)
         };
         const req = https.request(options, (res) => {
             let data = '';
             res.on('data', c => data += c);
-            res.on('end', () => resolve(JSON.parse(data)));
+            res.on('end', () => {
+                // Se a API retornar erro, a gente rejeita a Promise para ver o erro na tela
+                const json = JSON.parse(data);
+                if (json.nome && json.nome.includes("erro")) reject(new Error(JSON.stringify(json)));
+                else resolve(json);
+            });
         });
         req.on('error', reject);
         
-        // --- O SEGREDO ESTÁ AQUI EMBAIXO ---
-        req.write(JSON.stringify({ 
-            webhookUrl: urlWebhook,
-            skipMtls: true  // <--- ISSO OBRIGA A EFÍ A ACEITAR A VERCEL
-        }));
-        // -----------------------------------
-        
+        // CORPO DO PEDIDO LIMPO (Só a URL, sem invenção de moda)
+        req.write(JSON.stringify({ webhookUrl: urlWebhook }));
         req.end();
     });
 }
