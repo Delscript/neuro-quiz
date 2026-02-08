@@ -193,7 +193,7 @@
                 const resposta = await fetch('/api/pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: _quizApp.dados.email, valor: 19.90 })
+                    body: JSON.stringify({ email: _quizApp.dados.email, valor: 1,99 })
                 });
 
                 const json = await resposta.json();
