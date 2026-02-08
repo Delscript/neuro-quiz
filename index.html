@@ -87,14 +87,12 @@
 
 <script>
     // --- ⚙️ CONFIGURAÇÃO (PREENCHA AQUI) ---
-    // Usei nomes diferentes (_URL_BANCO) para evitar erro se você colou duplicado sem querer
     
     var _URL_BANCO = 'https://oabcppkojfmmmqhevjpq.supabase.co'; // <--- COLE SUA URL AQUI
     var _CHAVE_BANCO = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw'; // <--- COLE SUA CHAVE AQUI
 
     // ---------------------------------------------
 
-    // TEXTOS COMPLETOS DO RELATÓRIO
     var _TEXTOS_PERFIL = {
         "Potência Expansiva": {
             titulo: "🧠 Potência Expansiva (O Visionário)",
@@ -118,7 +116,6 @@
         }
     };
 
-    // Inicializa Supabase
     var _clienteSupabase = null;
     try {
         if (_URL_BANCO && _CHAVE_BANCO && window.supabase) {
@@ -126,7 +123,6 @@
         }
     } catch (e) { console.error("Erro Supabase:", e); }
 
-    // Aplicativo Principal (Usei _quizApp que é o nome que funcionou pra você antes)
     var _quizApp = {
         dados: { email: '', qi: 0, qe: 0, idx: 0, perfil: null },
         
@@ -156,7 +152,6 @@
             const email = document.getElementById('email-usuario').value.trim();
             if(!email.includes('@')) return alert('E-mail inválido!');
             _quizApp.dados.email = email;
-            
             if(_clienteSupabase) {
                 await _clienteSupabase.from('leads').insert([{ email: email, status_pagamento: 'aguardando' }]);
             }
@@ -167,11 +162,9 @@
         renderizar: () => {
             if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
             const q = _quizApp.perguntas[_quizApp.dados.idx];
-            
             document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
             document.getElementById('texto-pergunta').innerText = q.q;
             document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / _quizApp.perguntas.length) * 100) + '%';
-            
             const div = document.getElementById('area-opcoes');
             div.innerHTML = '';
             q.opts.forEach((opt, i) => {
@@ -189,7 +182,6 @@
 
         finalizar: async () => {
             _quizApp.mostrarTela('tela-carregando');
-            
             let chave = "Em Construção";
             if(_quizApp.dados.qi > 6 && _quizApp.dados.qe > 6) chave = "Potência Expansiva";
             else if(_quizApp.dados.qi > 6) chave = "Executor Solitário";
@@ -215,6 +207,11 @@
                 const data = await res.json();
                 if(!res.ok) throw new Error(data.erro);
                 
+                // SALVA O TXID NO BANCO (IMPORTANTE PARA A AUTOMAÇÃO)
+                if(_clienteSupabase) {
+                    await _clienteSupabase.from('leads').update({ txid: data.txid }).eq('email', _quizApp.dados.email);
+                }
+
                 document.getElementById('area-qr').innerHTML = `
                     <img src="${data.img}" style="width:200px; mix-blend-mode: multiply; margin:0 auto; display:block;">
                     <textarea style="width:100%; font-size:0.8rem; margin-top:10px;" rows="3" readonly>${data.code}</textarea>
@@ -250,7 +247,7 @@
         },
 
         abrirZap: () => window.open("https://wa.me/5571999466243", "_blank"),
-
+        
         mostrarTela: (id) => {
             document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
             document.getElementById(id).classList.add('ativa');
