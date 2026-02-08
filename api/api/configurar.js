@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
     try {
         const chavePix = req.query.chave; 
-        if(!chavePix) return res.status(400).json({ erro: "Faltou ?chave=SEU_PIX na URL" });
+        if(!chavePix) return res.status(400).json({ erro: "65e5f3c3-b7d1-4757-a955-d6fc20519dce" });
 
         const token = await getToken(CREDENTIALS);
         const resultado = await configWebhook(token, chavePix, WEBHOOK_URL, CREDENTIALS);
