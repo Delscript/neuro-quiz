@@ -111,13 +111,18 @@
     
     // ----------------------------------------
     
-// Inicializa Supabase
+// --- INICIALIZAÇÃO CORRIGIDA ---
+    
+    // 1. Criamos a variável vazia
     let supabase = null;
+
     try {
-        // Verifica se as chaves existem antes de tentar conectar
+        // 2. O "IF" (SE) que estava faltando:
         if (SB_URL && SB_KEY) {
+            // Se as chaves existem, conecta no banco
             supabase = window.supabase.createClient(SB_URL, SB_KEY);
         } else {
+            // Senão, avisa que faltou
             console.warn("Chaves do Supabase não configuradas.");
         }
     } catch (err) {
