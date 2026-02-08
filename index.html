@@ -113,7 +113,12 @@
     
     // Inicializa Supabase
     let supabase = null;
-
+try {
+        } else {
+            console.warn("Chaves do Supabase não configuradas.");
+        }
+    } catch (err) {
+        console.error("Erro ao iniciar Supabase:", err);
     // --- 📚 BIBLIOTECA DE TEXTOS E PERFIS ---
     const bibliotecaPerfis = {
         executor: {
