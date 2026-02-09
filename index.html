@@ -86,12 +86,12 @@
 </div>
 
 <script>
-    // --- ⚙️ CONFIGURAÇÃO (PREENCHA AQUI) ---
+    // --- ⚙️ ÁREA DE CONFIGURAÇÃO (COLOQUE SUAS CHAVES AQUI) ---
     
-    var _URL_BANCO = 'https://oabcppkojfmmmqhevjpq.supabase.co'; // <--- COLE SUA URL AQUI
-    var _CHAVE_BANCO = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw'; // <--- COLE SUA CHAVE AQUI
+    var _URL_BANCO = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
+    var _CHAVE_BANCO = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
 
-    // ---------------------------------------------
+    // ----------------------------------------------------------
 
     var _TEXTOS_PERFIL = {
         "Potência Expansiva": {
@@ -118,7 +118,8 @@
 
     var _clienteSupabase = null;
     try {
-        if (_URL_BANCO && _CHAVE_BANCO && window.supabase) {
+        // Inicializa o Supabase apenas se as chaves estiverem preenchidas
+        if (_URL_BANCO && _CHAVE_BANCO && !_URL_BANCO.includes("COLE_SUA") && window.supabase) {
             _clienteSupabase = window.supabase.createClient(_URL_BANCO, _CHAVE_BANCO);
         }
     } catch (e) { console.error("Erro Supabase:", e); }
@@ -151,10 +152,16 @@
         iniciar: async () => {
             const email = document.getElementById('email-usuario').value.trim();
             if(!email.includes('@')) return alert('E-mail inválido!');
+            
             _quizApp.dados.email = email;
+            
+            // Salva o lead inicial (se o Supabase estiver configurado)
             if(_clienteSupabase) {
-                await _clienteSupabase.from('leads').insert([{ email: email, status_pagamento: 'aguardando' }]);
+                try {
+                    await _clienteSupabase.from('leads').insert([{ email: email, status_pagamento: 'aguardando' }]);
+                } catch(e) { console.log("Erro ao salvar lead inicial (sem impacto no quiz):", e); }
             }
+            
             _quizApp.mostrarTela('tela-perguntas');
             _quizApp.renderizar();
         },
@@ -190,46 +197,61 @@
             _quizApp.dados.perfil = _TEXTOS_PERFIL[chave];
             document.getElementById('preview-perfil').innerText = _quizApp.dados.perfil.titulo;
 
+            // Tenta atualizar a pontuação no banco
             if(_clienteSupabase) {
-                await _clienteSupabase.from('leads').update({ qi_score: _quizApp.dados.qi, qe_score: _quizApp.dados.qe }).eq('email', _quizApp.dados.email);
+                try {
+                    await _clienteSupabase.from('leads').update({ qi_score: _quizApp.dados.qi, qe_score: _quizApp.dados.qe }).eq('email', _quizApp.dados.email);
+                } catch(e) { console.log("Erro ao salvar pontuação:", e); }
             }
             _quizApp.gerarPix();
         },
 
+        // --- AQUI ESTÁ A MÁGICA DO PAGAMENTO 🎩✨ ---
         gerarPix: async () => {
             try {
-                // VALOR R$ 1,00
+                // 1. Gera o Pix no Backend
                 const res = await fetch('/api/pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: _quizApp.dados.email, valor: 1.00 })
                 });
                 const data = await res.json();
-                if(!res.ok) throw new Error(data.erro);
                 
-                // SALVA O TXID NO BANCO (IMPORTANTE PARA A AUTOMAÇÃO)
-                if(_clienteSupabase) {
-                    await _clienteSupabase.from('leads').update({ txid: data.txid }).eq('email', _quizApp.dados.email);
-                }
+                if(!res.ok) throw new Error(data.erro || "Erro ao gerar Pix");
 
+                // 2. Mostra QR Code
                 document.getElementById('area-qr').innerHTML = `
                     <img src="${data.img}" style="width:200px; mix-blend-mode: multiply; margin:0 auto; display:block;">
                     <textarea style="width:100%; font-size:0.8rem; margin-top:10px;" rows="3" readonly>${data.code}</textarea>
                     <button class="botao-acao" style="background:#333; margin-top:10px;" onclick="navigator.clipboard.writeText('${data.code}');alert('Copiado!')">Copiar Pix</button>
+                    <p style="margin-top:10px; font-size:0.9rem; color:#2563eb;">⏳ Aguardando pagamento...</p>
+                    <div style="font-size:0.7rem; color:#999; margin-top:5px;">ID: ${data.txid}</div>
                 `;
                 _quizApp.mostrarTela('tela-pagamento');
 
-                if(_clienteSupabase) {
-                    _clienteSupabase.channel('pgto').on('postgres_changes', 
-                    { event: 'UPDATE', schema: 'public', table: 'leads', filter: `email=eq.${_quizApp.dados.email}` }, 
-                    (payload) => {
-                        if(payload.new.status_pagamento === 'pago') _quizApp.mostrarResultado();
-                    }).subscribe();
-                }
+                // 3. INICIA O LOOP DE VERIFICAÇÃO (Consulta a cada 3 segundos)
+                if (window.loopVerificacao) clearInterval(window.loopVerificacao);
+                
+                window.loopVerificacao = setInterval(async () => {
+                    try {
+                        const reqStatus = await fetch('/api/status?txid=' + data.txid);
+                        const jsonStatus = await reqStatus.json();
+                        
+                        console.log("Verificando pagamento...", jsonStatus.status);
+
+                        if (jsonStatus.status === 'pago') {
+                            clearInterval(window.loopVerificacao);
+                            _quizApp.mostrarResultado(); // <--- LIBERA O PDF AQUI!
+                        }
+                    } catch (erroLoop) {
+                        console.error("Erro na verificação:", erroLoop);
+                    }
+                }, 3000);
+
             } catch(e) {
                 console.error(e);
                 _quizApp.mostrarTela('tela-pagamento');
-                document.getElementById('area-qr').innerHTML = `<p style="color:red">Erro: ${e.message}</p>`;
+                document.getElementById('area-qr').innerHTML = `<p style="color:red">Erro: ${e.message}</p><button class="botao-acao" onclick="_quizApp.gerarPix()">Tentar Novamente</button>`;
             }
         },
 
