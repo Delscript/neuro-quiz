@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-const https = require('https');
+import https from 'https'; // <--- AQUI ESTAVA O ERRO (Antes era require)
 
 // Conecta ao Banco de Dados
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
@@ -26,26 +26,23 @@ export default async function handler(req, res) {
         const cobranca = await createCharge(token, valor, CREDENTIALS);
         const txid = cobranca.txid;
 
-        // --- O PULO DO GATO (AQUI ESTAVA FALTANDO) --- 😺
-        // Antes de devolver o QR Code, salvamos no Banco!
+        // 3. SALVA NO SUPABASE (A peça chave!)
         const { error: erroSupabase } = await supabase
             .from('leads')
             .insert({
-                email: email,             // Quem está pagando
-                txid: txid,               // O código de rastreio
+                email: email,             
+                txid: txid,               
                 status_pagamento: 'pendente',
                 created_at: new Date()
             });
 
         if (erroSupabase) {
             console.error("❌ Erro ao salvar no Supabase:", erroSupabase);
-            // Não vamos travar, mas fica o alerta no log
         } else {
             console.log("✅ Pagamento registrado no Supabase com TXID:", txid);
         }
-        // ---------------------------------------------
 
-        // 3. Gera o Desenho do QR Code
+        // 4. Gera o Desenho do QR Code
         const qr = await getQRCode(token, cobranca.loc.id, CREDENTIALS);
 
         return res.status(200).json({
@@ -56,11 +53,12 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error("Erro Pix:", error.message);
+        // Retorna o erro em JSON para você ver na tela, em vez de travar
         return res.status(500).json({ erro: error.message });
     }
 }
 
-// --- MOTORES INTERNOS DA EFÍ (MANTIVE IGUAL) ---
+// --- FUNÇÕES AUXILIARES (Tudo certo aqui) ---
 function getAgent(creds) {
     let certLimpo = creds.cert_base64 || "";
     certLimpo = certLimpo.replace(/^data:.*;base64,/, "").replace(/\s/g, "");
@@ -102,7 +100,7 @@ function createCharge(token, valor, creds) {
         const dataCob = JSON.stringify({
             calendario: { expiracao: 3600 },
             valor: { original: valor.toFixed(2) },
-            chave: "65e5f3c3-b7d1-4757-a955-d6fc20519dce", // Sua chave aleatória
+            chave: "65e5f3c3-b7d1-4757-a955-d6fc20519dce", // SUA CHAVE ALEATÓRIA (Certo!)
             solicitacaoPagador: "Avaliacao Neuro-Cognitiva"
         });
         const options = {
