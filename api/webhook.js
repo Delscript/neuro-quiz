@@ -1,38 +1,27 @@
-import { createClient } from '@supabase/supabase-js';
+            
+            if (txid) {
+                console.log(`🔎 Procurando TXID: ${txid}`);
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+                // Atualiza o status para 'pago' onde o txid for igual
+                const { data, error } = await supabase
+                    .from('leads')
+                    .update({ status_pagamento: 'pago' })
+                    .eq('txid', txid)
+                    .select();
 
-export default async function handler(req, res) {
-  // Se não for POST, ignora
-  if (req.method !== 'POST') {
-    return res.status(200).send('OK');
-  }
+                if (error) {
+                    console.error("❌ Erro ao salvar no Supabase:", error);
+                } else {
+                    console.log("✅ SUCESSO! Pagamento confirmado para:", data);
+                }
+            }
+        }
 
-  // PEÇA CHAVE: O Banco Efí manda um teste antes. 
-  // Se não houver a palavra "pix" no que o banco enviou, 
-  // nós apenas respondemos "Tô vivo" com código 200.
-  if (!req.body || !req.body.pix) {
-    return res.status(200).json({ status: "Webhook Ativo" });
-  }
+        // 6. RESPOSTA FINAL (Sempre responder 200 pro Banco Efí não ficar bravo)
+        return res.status(200).json({ status: 'Recebido e Processado' });
 
-  try {
-    const { pix } = req.body;
-
-    for (const pagamento of pix) {
-      const { txid } = pagamento;
-      
-      if (txid) {
-        await supabase
-          .from('leads')
-          .update({ status_pagamento: 'pago' })
-          .eq('txid', txid);
-      }
+    } catch (error) {
+        console.error("💥 Erro Geral:", error);
+        return res.status(500).json({ erro: error.message });
     }
-
-    return res.status(200).json({ recebido: true });
-  } catch (error) {
-    // Mesmo se der erro no banco, respondemos 200 para a Efí não desativar o webhook
-    console.error("Erro interno:", error);
-    return res.status(200).json({ erro: "Processado com ressalva" });
-  }
 }
