@@ -42,22 +42,16 @@ module.exports = async (req, res) => {
         const cobranca = await createCharge(token, valor, CREDENTIALS);
         const txid = cobranca.txid;
 
-        // C. SALVA NO SUPABASE (Agora com as chaves diretas, TEM que funcionar)
+       // C. SALVA NO SUPABASE (Modo Simplificado - INSERT)
         const { error: erroSupabase } = await supabase
             .from('leads')
-            .upsert({
+            .insert({
                 email: email || 'usuario_anonimo',
                 txid: txid,
                 status_pagamento: 'pendente',
                 created_at: new Date()
-            }, { onConflict: 'txid' });
-
-        if (erroSupabase) {
-            console.error("❌ Erro ao salvar no Supabase:", erroSupabase.message);
-        } else {
-            console.log("✅ SUCESSO! Pix salvo no banco com TXID:", txid);
-        }
-
+            }); // <--- Removemos o 'upsert' e o 'onConflict'
+        
         // D. Gera o desenho do QR Code
         const qr = await getQRCode(token, cobranca.loc.id, CREDENTIALS);
 
