@@ -6,7 +6,7 @@ module.exports = async (req, res) => {
     const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
     // ------------------------------------------
 
-    // 1. Validação de Segurança (Verifica se você colocou as chaves)
+    // 1. Validação de Segurança
     if (!sbUrl || sbUrl.includes("COLE_SUA")) {
         console.error("🚨 Chaves não configuradas no status.js");
         return res.status(500).json({ erro: 'Faltam chaves no servidor' });
@@ -38,5 +38,4 @@ module.exports = async (req, res) => {
     } catch (err) {
         return res.status(500).json({ error: err.message });
     }
-}; 
-// 👆 ESSA CHAVE E PONTO E VÍRGULA AQUI EM CIMA SÃO O SEGREDO! NÃO APAGUE!
+};
