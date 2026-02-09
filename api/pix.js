@@ -1,12 +1,16 @@
+import { createClient } from '@supabase/supabase-js';
 const https = require('https');
 
+// Conecta ao Banco de Dados
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+
 export default async function handler(req, res) {
-    // Pega as senhas da Vercel
+    // Configurações da Efí
     const CREDENTIALS = {
         client_id: process.env.EFI_CLIENT_ID,
         client_secret: process.env.EFI_CLIENT_SECRET,
         cert_base64: process.env.EFI_CERT_BASE64, 
-        sandbox: false // Produção
+        sandbox: false
     };
 
     if (req.method !== 'POST') return res.status(405).json({ erro: 'Use POST' });
@@ -15,20 +19,39 @@ export default async function handler(req, res) {
         const { email, valor } = req.body;
         if (!valor) throw new Error('Valor é obrigatório');
 
-        // 1. Autenticação
+        // 1. Autenticação na Efí
         const token = await getToken(CREDENTIALS);
         
-        // 2. Cria a Cobrança (Sem CPF para não travar)
+        // 2. Cria a Cobrança
         const cobranca = await createCharge(token, valor, CREDENTIALS);
+        const txid = cobranca.txid;
+
+        // --- O PULO DO GATO (AQUI ESTAVA FALTANDO) --- 😺
+        // Antes de devolver o QR Code, salvamos no Banco!
+        const { error: erroSupabase } = await supabase
+            .from('leads')
+            .insert({
+                email: email,             // Quem está pagando
+                txid: txid,               // O código de rastreio
+                status_pagamento: 'pendente',
+                created_at: new Date()
+            });
+
+        if (erroSupabase) {
+            console.error("❌ Erro ao salvar no Supabase:", erroSupabase);
+            // Não vamos travar, mas fica o alerta no log
+        } else {
+            console.log("✅ Pagamento registrado no Supabase com TXID:", txid);
+        }
+        // ---------------------------------------------
 
         // 3. Gera o Desenho do QR Code
         const qr = await getQRCode(token, cobranca.loc.id, CREDENTIALS);
 
-        // Retorna tudo para o site (inclusive o TXID para o robô saber quem pagou)
         return res.status(200).json({
             img: qr.imagemQrcode,
             code: qr.qrcode,
-            txid: cobranca.txid 
+            txid: txid 
         });
 
     } catch (error) {
@@ -37,7 +60,7 @@ export default async function handler(req, res) {
     }
 }
 
-// --- MOTORES INTERNOS (NÃO MEXER) ---
+// --- MOTORES INTERNOS DA EFÍ (MANTIVE IGUAL) ---
 function getAgent(creds) {
     let certLimpo = creds.cert_base64 || "";
     certLimpo = certLimpo.replace(/^data:.*;base64,/, "").replace(/\s/g, "");
@@ -79,7 +102,7 @@ function createCharge(token, valor, creds) {
         const dataCob = JSON.stringify({
             calendario: { expiracao: 3600 },
             valor: { original: valor.toFixed(2) },
-            chave: "65e5f3c3-b7d1-4757-a955-d6fc20519dce", // (A Efí ignora isso e usa a do certificado, pode deixar assim)
+            chave: "65e5f3c3-b7d1-4757-a955-d6fc20519dce", // Sua chave aleatória
             solicitacaoPagador: "Avaliacao Neuro-Cognitiva"
         });
         const options = {
