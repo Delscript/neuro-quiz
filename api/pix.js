@@ -1,3 +1,4 @@
+// Forçando atualização das chaves - Tentativa Final 
 const { createClient } = require('@supabase/supabase-js');
 const https = require('https');
 
