@@ -1,36 +1,38 @@
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-module.exports = async (req, res) => {
-  // 1. Responde rápido ao Banco Efí para o Webhook ser aceito
-  if (req.method === 'POST') {
+export default async function handler(req, res) {
+  // Se não for POST, ignora
+  if (req.method !== 'POST') {
+    return res.status(200).send('OK');
+  }
+
+  // PEÇA CHAVE: O Banco Efí manda um teste antes. 
+  // Se não houver a palavra "pix" no que o banco enviou, 
+  // nós apenas respondemos "Tô vivo" com código 200.
+  if (!req.body || !req.body.pix) {
+    return res.status(200).json({ status: "Webhook Ativo" });
+  }
+
+  try {
     const { pix } = req.body;
 
-    // Handshake: Se não tem dados de pix, é apenas o teste da Efí
-    if (!pix || pix.length === 0) {
-      console.log("Teste de conexão recebido");
-      return res.status(200).json({ status: "OK" });
-    }
-
-    // 2. Processa o pagamento real
-    try {
-      for (const pagamento of pix) {
-        const txid = pagamento.txid;
-        
+    for (const pagamento of pix) {
+      const { txid } = pagamento;
+      
+      if (txid) {
         await supabase
           .from('leads')
           .update({ status_pagamento: 'pago' })
           .eq('txid', txid);
-          
-        console.log(`Sucesso para o TXID: ${txid}`);
       }
-      return res.status(200).json({ status: "Processado" });
-    } catch (err) {
-      console.error("Erro no processamento:", err);
-      return res.status(200).json({ status: "Erro capturado mas 200 enviado" });
     }
-  }
 
-  return res.status(405).send('Método não permitido');
-};
+    return res.status(200).json({ recebido: true });
+  } catch (error) {
+    // Mesmo se der erro no banco, respondemos 200 para a Efí não desativar o webhook
+    console.error("Erro interno:", error);
+    return res.status(200).json({ erro: "Processado com ressalva" });
+  }
+}
