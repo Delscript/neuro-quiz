@@ -119,7 +119,7 @@ function createCharge(token, valor, creds) {
         const dataCob = JSON.stringify({
             calendario: { expiracao: 3600 },
             valor: { original: valor.toFixed(2) },
-            chave: "65e5f3c3-b7d1-4757-a955-d6fc20519dce", // SUA CHAVE
+            chave: '65e5f3c3-b7d1-4757-a955-d6fc20519dce', // SUA CHAVE
             solicitacaoPagador: "Avaliacao Neuro-Cognitiva"
         });
         const options = {
