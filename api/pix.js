@@ -1,11 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import https from 'https'; // <--- AQUI ESTAVA O ERRO (Antes era require)
-
-// Conecta ao Banco de Dados
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+import https from 'https';
 
 export default async function handler(req, res) {
-    // Configurações da Efí
+    // --- 1. CONFIGURAÇÃO DE SEGURANÇA (Dentro da função para garantir) ---
     const CREDENTIALS = {
         client_id: process.env.EFI_CLIENT_ID,
         client_secret: process.env.EFI_CLIENT_SECRET,
@@ -13,24 +10,31 @@ export default async function handler(req, res) {
         sandbox: false
     };
 
+    // Validação Inicial
     if (req.method !== 'POST') return res.status(405).json({ erro: 'Use POST' });
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
+        return res.status(500).json({ erro: 'Faltam chaves do Supabase na Vercel' });
+    }
+
+    // --- 2. CONEXÃO BLINDADA (Agora aqui dentro!) ---
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
     try {
         const { email, valor } = req.body;
         if (!valor) throw new Error('Valor é obrigatório');
 
-        // 1. Autenticação na Efí
+        // A. Autenticação na Efí
         const token = await getToken(CREDENTIALS);
         
-        // 2. Cria a Cobrança
+        // B. Cria a Cobrança
         const cobranca = await createCharge(token, valor, CREDENTIALS);
         const txid = cobranca.txid;
 
-        // 3. SALVA NO SUPABASE (A peça chave!)
+        // C. SALVA NO SUPABASE (Agora vai funcionar!)
         const { error: erroSupabase } = await supabase
             .from('leads')
             .insert({
-                email: email,             
+                email: email || 'anônimo', // Garante que não quebra se vier sem email
                 txid: txid,               
                 status_pagamento: 'pendente',
                 created_at: new Date()
@@ -42,7 +46,7 @@ export default async function handler(req, res) {
             console.log("✅ Pagamento registrado no Supabase com TXID:", txid);
         }
 
-        // 4. Gera o Desenho do QR Code
+        // D. Gera o Desenho do QR Code
         const qr = await getQRCode(token, cobranca.loc.id, CREDENTIALS);
 
         return res.status(200).json({
@@ -53,12 +57,11 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error("Erro Pix:", error.message);
-        // Retorna o erro em JSON para você ver na tela, em vez de travar
         return res.status(500).json({ erro: error.message });
     }
 }
 
-// --- FUNÇÕES AUXILIARES (Tudo certo aqui) ---
+// --- FUNÇÕES AUXILIARES (MANTIVE IGUAL) ---
 function getAgent(creds) {
     let certLimpo = creds.cert_base64 || "";
     certLimpo = certLimpo.replace(/^data:.*;base64,/, "").replace(/\s/g, "");
@@ -100,7 +103,7 @@ function createCharge(token, valor, creds) {
         const dataCob = JSON.stringify({
             calendario: { expiracao: 3600 },
             valor: { original: valor.toFixed(2) },
-            chave: "65e5f3c3-b7d1-4757-a955-d6fc20519dce", // SUA CHAVE ALEATÓRIA (Certo!)
+            chave: "65e5f3c3-b7d1-4757-a955-d6fc20519dce", 
             solicitacaoPagador: "Avaliacao Neuro-Cognitiva"
         });
         const options = {
