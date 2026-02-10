@@ -9,8 +9,6 @@ const CLIENT_SECRET = process.env.EFI_CLIENT_SECRET;
 const CERTIFICADO_BASE64 = process.env.EFI_CERT_BASE64;
 // --------------
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
 const agentOptions = { rejectUnauthorized: false };
 if (CERTIFICADO_BASE64) {
     agentOptions.pfx = Buffer.from(CERTIFICADO_BASE64, 'base64');
@@ -23,7 +21,7 @@ async function getEfiToken() {
     const credenciais = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
     return new Promise((resolve, reject) => {
         const options = {
-            hostname: 'pix.api.efipay.com.br',
+            hostname: 'pix.api.efipay.com.br', // PRODUÇÃO
             path: '/oauth/token',
             method: 'POST',
             headers: { 'Authorization': `Basic ${credenciais}`, 'Content-Type': 'application/json' },
@@ -35,8 +33,7 @@ async function getEfiToken() {
             res.on('end', () => {
                 try {
                     const json = JSON.parse(data);
-                    if(json.access_token) resolve(json.access_token);
-                    else resolve(null); // Retorna null se falhar auth
+                    resolve(json.access_token);
                 } catch (e) { resolve(null); }
             });
         });
@@ -46,12 +43,17 @@ async function getEfiToken() {
     });
 }
 
-// 2. Status com Detalhe
-async function checkEfiStatus(token, txid) {
+// 2. LISTAR OS PIX DE HOJE (O Grande Truque)
+async function listarPixRecentes(token) {
+    // Pega a data de hoje e ontem para garantir
+    const hoje = new Date().toISOString(); 
+    const ontem = new Date(new Date().getTime() - (24 * 60 * 60 * 1000)).toISOString();
+
     return new Promise((resolve, reject) => {
         const options = {
             hostname: 'pix.api.efipay.com.br',
-            path: `/v2/pix/${txid}`,
+            // Pede tudo de ontem pra hoje
+            path: `/v2/pix?inicio=${ontem}&fim=${hoje}`,
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` },
             agent: httpsAgent
@@ -62,8 +64,8 @@ async function checkEfiStatus(token, txid) {
             res.on('end', () => {
                 try {
                     const json = JSON.parse(data);
-                    resolve(json); // Retorna o JSON completo do banco!
-                } catch (e) { resolve({ erro: "Falha ao ler JSON do banco" }); }
+                    resolve(json); 
+                } catch (e) { resolve({ erro: "Erro JSON" }); }
             });
         });
         req.on('error', e => resolve({ erro: e.message }));
@@ -73,35 +75,18 @@ async function checkEfiStatus(token, txid) {
 
 export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store');
-    const { txid } = req.query;
-
-    if (!txid) return res.status(400).json({ erro: 'TXID faltando' });
-
+    
     try {
-        // 1. Pega Token
         const token = await getEfiToken();
-        if (!token) {
-            return res.status(200).json({ 
-                status: 'erro_auth', 
-                mensagem: 'Não consegui autenticar na Efí. Verifique Client_ID e Secret.' 
-            });
-        }
+        if (!token) return res.json({ erro: "Falha Auth" });
 
-        // 2. Pergunta ao Banco
-        const respostaBanco = await checkEfiStatus(token, txid);
-        const statusReal = respostaBanco.status; // Pode ser ATIVA, CONCLUIDA, etc.
+        // Aqui está a mágica: Traz a lista completa
+        const listaPix = await listarPixRecentes(token);
 
-        // 3. Atualiza se for CONCLUIDA
-        if (statusReal === 'CONCLUIDA') {
-            await supabase.from('leads').update({ status_pagamento: 'pago' }).eq('txid', txid);
-            return res.status(200).json({ status: 'pago', debug_banco: statusReal });
-        }
-
-        // 4. Se não for pago, MOSTRA O PORQUÊ (O Segredo!)
         return res.status(200).json({ 
-            status: 'aguardando', 
-            motivo_real: statusReal, 
-            detalhe_banco: respostaBanco 
+            mensagem: "LISTA DE PIX ENCONTRADOS NA CONTA",
+            quantidade: listaPix.pix ? listaPix.pix.length : 0,
+            lista: listaPix
         });
 
     } catch (error) {
