@@ -1,41 +1,136 @@
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
+import https from 'https';
 
-module.exports = async (req, res) => {
-    // --- ☢️ SUAS CHAVES AQUI ☢️ ---
-    const sbUrl = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
-    const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-    // ------------------------------------------
+// --- PUXANDO AS CHAVES DO COFRE DA VERCEL ---
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
+const CLIENT_ID = process.env.EFI_CLIENT_ID;
+const CLIENT_SECRET = process.env.EFI_CLIENT_SECRET;
+const CERTIFICADO_BASE64 = process.env.EFI_CERT_BASE64; // Nome exato da sua imagem
+// --------------------------------------------
 
-    // 1. Validação de Segurança
-    if (!sbUrl || sbUrl.includes("COLE_SUA")) {
-        console.error("🚨 Chaves não configuradas no status.js");
-        return res.status(500).json({ erro: 'Faltam chaves no servidor' });
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Configura o Agente HTTPS com o seu Certificado
+const agentOptions = {
+    rejectUnauthorized: false // Aceita conexão
+};
+
+if (CERTIFICADO_BASE64) {
+    agentOptions.pfx = Buffer.from(CERTIFICADO_BASE64, 'base64');
+    agentOptions.passphrase = ""; 
+}
+
+const httpsAgent = new https.Agent(agentOptions);
+
+// 1. Função para pegar o Token da Efí
+async function getEfiToken() {
+    const credenciais = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
+    
+    return new Promise((resolve, reject) => {
+        const options = {
+            hostname: 'pix-api.gerencianet.com.br',
+            path: '/oauth/token',
+            method: 'POST',
+            headers: {
+                'Authorization': `Basic ${credenciais}`,
+                'Content-Type': 'application/json'
+            },
+            agent: httpsAgent
+        };
+
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => data += chunk);
+            res.on('end', () => {
+                try {
+                    const json = JSON.parse(data);
+                    if(json.access_token) resolve(json.access_token);
+                    else reject("Efí não devolveu o Token. Verifique as chaves.");
+                } catch (e) { reject(e); }
+            });
+        });
+        req.on('error', (e) => reject(e));
+        req.write(JSON.stringify({ grant_type: 'client_credentials' }));
+        req.end();
+    });
+}
+
+// 2. Função para consultar o Status na Efí
+async function checkEfiStatus(token, txid) {
+    return new Promise((resolve, reject) => {
+        const options = {
+            hostname: 'pix-api.gerencianet.com.br',
+            path: `/v2/pix/${txid}`,
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` },
+            agent: httpsAgent
+        };
+
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => data += chunk);
+            res.on('end', () => {
+                try {
+                    const json = JSON.parse(data);
+                    resolve(json.status); 
+                } catch (e) { reject(e); }
+            });
+        });
+        req.on('error', (e) => reject(e));
+        req.end();
+    });
+}
+
+export default async function handler(req, res) {
+    // Permissões de acesso (CORS)
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    );
+
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
     }
 
-    const supabase = createClient(sbUrl, sbKey);
     const { txid } = req.query;
 
-    if (!txid) {
-        return res.status(400).json({ error: 'Faltou o txid' });
-    }
+    if (!txid) return res.status(400).json({ erro: 'TXID faltando' });
 
     try {
-        // 2. Busca no banco
-        const { data, error } = await supabase
+        // A. Verifica no Supabase
+        const { data: lead } = await supabase
             .from('leads')
             .select('status_pagamento')
             .eq('txid', txid)
             .single();
 
-        // 3. Se não achar ou der erro, assume pendente
-        if (error || !data) {
-            return res.status(200).json({ status: 'pendente' });
+        if (lead && lead.status_pagamento === 'pago') {
+            return res.status(200).json({ status: 'pago' });
         }
 
-        // 4. Devolve o status real
-        return res.status(200).json({ status: data.status_pagamento });
+        // B. Verifica na Efí (Tira-Teima)
+        console.log(`Consultando Efí para TXID: ${txid}`);
+        const token = await getEfiToken();
+        const statusEfi = await checkEfiStatus(token, txid);
 
-    } catch (err) {
-        return res.status(500).json({ error: err.message });
+        if (statusEfi === 'CONCLUIDA') {
+            await supabase
+                .from('leads')
+                .update({ status_pagamento: 'pago' })
+                .eq('txid', txid);
+            
+            return res.status(200).json({ status: 'pago' });
+        }
+
+        return res.status(200).json({ status: 'aguardando' });
+
+    } catch (error) {
+        console.error("Erro Status:", error);
+        return res.status(500).json({ erro: error.message });
     }
-};
+}
