@@ -5,12 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relatório SierComp4ny</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .assinatura { font-family: 'Dancing Script', cursive; transform: rotate(-2deg); }
+        /* Updated signature font and style */
+        .assinatura {
+            font-family: 'Allura', cursive;
+            font-size: 3.5rem; /* Increased font size */
+            color: #1e3a8a; /* Dark blue color */
+            transform: rotate(-2deg);
+            line-height: 1;
+        }
         .marca-dagua {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg);
             font-size: 80px; color: rgba(0,0,0,0.03); font-weight: 900; white-space: nowrap; pointer-events: none;
@@ -97,9 +104,9 @@
                     <p class="text-xs text-gray-400 mt-1">Certificado de Autoconhecimento<br>ID: <span id="txid-display"></span></p>
                 </div>
                 <div class="text-right">
-                    <div class="assinatura text-3xl text-blue-900 mb-2">Dias Anderson</div>
+                    <div class="assinatura mb-2">Anderson Dias</div>
                     <div class="h-px w-40 bg-gray-400 ml-auto mb-1"></div>
-                    <p class="text-xs text-gray-500 font-bold uppercase">Criado por Dias Anderson</p>
+                    <p class="text-xs text-gray-500 font-bold uppercase">Criado por Anderson Dias</p>
                     <p class="text-[10px] text-gray-400">CEO & Founder SierComp4ny</p>
                 </div>
             </div>
@@ -108,9 +115,15 @@
         <div class="bg-gray-900 h-4 w-full"></div>
     </div>
 
-    <button onclick="gerarPDF()" id="btn-download" class="hidden fixed bottom-8 right-8 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full shadow-lg items-center gap-2 transform hover:scale-105 transition">
-        📥 Baixar PDF
-    </button>
+    <div class="fixed bottom-8 right-8 flex flex-col gap-4 z-50">
+        <a href="https://wa.me/5511999999999?text=Olá,%20gostaria%20de%20saber%20mais%20sobre%20o%20meu%20relatório%20NeuroQuiz." target="_blank" class="hidden flex items-center justify-center w-14 h-14 bg-green-500 rounded-full shadow-lg hover:bg-green-600 transition-transform hover:scale-110" id="btn-whatsapp">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" class="w-8 h-8">
+        </a>
+        
+        <button onclick="gerarPDF()" id="btn-download" class="hidden bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg flex items-center gap-2 transform hover:scale-105 transition">
+            📥 Baixar PDF
+        </button>
+    </div>
 
     <script>
         // --- LÓGICA DO RELATÓRIO ---
@@ -194,14 +207,19 @@
             document.getElementById('texto-acao').innerText = p.acao;
             document.getElementById('texto-frase').innerText = p.frase;
 
-            // Mostra a tela
+            // Mostra a tela e os botões
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('relatorio').classList.remove('hidden');
             document.getElementById('btn-download').classList.remove('hidden');
+            document.getElementById('btn-whatsapp').classList.remove('hidden'); // Mostra o botão do WhatsApp
         }
 
         function gerarPDF() {
             const element = document.getElementById('relatorio');
+            // Oculta os botões flutuantes antes de gerar o PDF
+            document.getElementById('btn-download').classList.add('hidden');
+            document.getElementById('btn-whatsapp').classList.add('hidden');
+
             const opt = {
                 margin: 0,
                 filename: 'Relatorio_SierComp4ny.pdf',
@@ -209,7 +227,12 @@
                 html2canvas: { scale: 2 },
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
-            html2pdf().set(opt).from(element).save();
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Mostra os botões novamente após gerar o PDF
+                document.getElementById('btn-download').classList.remove('hidden');
+                document.getElementById('btn-whatsapp').classList.remove('hidden');
+            });
         }
 
         // Inicia
