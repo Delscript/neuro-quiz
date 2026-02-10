@@ -1,219 +1,280 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório SierComp4ny</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
+    <title>Avaliação Neuro-Cognitiva</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .assinatura { font-family: 'Dancing Script', cursive; transform: rotate(-2deg); }
-        .marca-dagua {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 80px; color: rgba(0,0,0,0.03); font-weight: 900; white-space: nowrap; pointer-events: none;
-        }
+        :root { --cor-principal: #2563eb; --fundo: #f8fafc; --texto: #1e293b; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--fundo); color: var(--texto); padding: 20px; text-align: center; margin: 0; }
+        .cx-container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #0f172a; font-size: 1.8rem; }
+        .botao-acao { display: block; width: 100%; padding: 16px; background: var(--cor-principal); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.2s; }
+        .botao-acao:active { transform: scale(0.98); }
+        input { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; margin-top: 10px; box-sizing: border-box; font-size: 1rem; }
+        
+        /* Telas */
+        .tela-app { display: none; animation: aparecer 0.4s; }
+        .tela-app.ativa { display: block; }
+        @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Quiz */
+        .opcao-quiz { padding: 15px; border: 2px solid #f1f5f9; margin: 10px 0; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; font-weight: 500; }
+        .opcao-quiz:hover { background: #eff6ff; border-color: var(--cor-principal); }
+        .barra-fundo { width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 20px; }
+        .barra-progresso { height: 100%; background: var(--cor-principal); width: 0%; border-radius: 4px; transition: width 0.3s; }
+        .caixa-pix { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin: 20px 0; }
+
+        /* Relatório */
+        .box-relatorio { text-align: left; border: 2px solid #2563eb; padding: 20px; border-radius: 10px; background: #eff6ff; margin-top: 20px; }
+        .box-relatorio h2 { color: #2563eb; margin-top: 0; }
+        .box-relatorio h3 { color: #1e293b; margin-top: 15px; border-bottom: 1px solid #bfdbfe; padding-bottom: 5px; }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body>
 
-    <div id="loading" class="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50 text-white">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 mb-4"></div>
-        <h2 class="text-xl font-bold">Gerando Relatório de Inteligência...</h2>
+<div class="cx-container">
+    
+    <div id="tela-inicio" class="tela-app ativa">
+        <h1>Avaliação Neuro-Cognitiva</h1>
+        <p>Descubra seu perfil exato de QI e QE e receba um plano de carreira.</p>
+        <div style="background: #ecfdf5; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #065f46; margin-bottom: 20px;">
+            🔒 Teste Oficial Sier Growth
+        </div>
+        <input type="email" id="email-usuario" placeholder="Seu melhor e-mail...">
+        <button class="botao-acao" onclick="_quizApp.iniciar()">Iniciar Avaliação</button>
     </div>
 
-    <div id="relatorio" class="bg-white w-full max-w-3xl shadow-2xl rounded-lg overflow-hidden relative hidden">
-        
-        <div class="bg-gray-900 text-white p-8 flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold tracking-widest">SIERCOMP4NY</h1>
-                <p class="text-xs text-gray-400 uppercase">Intelligence & Growth</p>
-            </div>
-            <div class="text-right">
-                <p class="text-sm opacity-75">Relatório Confidencial</p>
-                <p class="text-xs text-gray-500" id="data-hoje"></p>
-            </div>
-        </div>
-
-        <div class="p-8 relative">
-            <div class="marca-dagua">SIERCOMP4NY</div>
-
-            <div class="text-center mb-10">
-                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Resultado da Análise</span>
-                <h2 id="titulo-perfil" class="text-4xl font-black text-gray-800 mt-4 mb-2">...</h2>
-                <p id="subtitulo-perfil" class="text-xl text-gray-500 italic">...</p>
-            </div>
-
-            <div class="flex justify-center gap-6 mb-10">
-                <div class="text-center w-32">
-                    <div class="text-sm font-bold text-gray-400 uppercase mb-1">Razão (QI)</div>
-                    <div class="bg-gray-50 border-2 border-blue-100 rounded-xl p-3">
-                        <span id="score-qi" class="text-4xl font-black text-blue-600">0</span>
-                        <span class="text-gray-400 text-sm">/10</span>
-                    </div>
-                </div>
-                <div class="text-center w-32">
-                    <div class="text-sm font-bold text-gray-400 uppercase mb-1">Emoção (QE)</div>
-                    <div class="bg-gray-50 border-2 border-purple-100 rounded-xl p-3">
-                        <span id="score-qe" class="text-4xl font-black text-purple-600">0</span>
-                        <span class="text-gray-400 text-sm">/10</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="space-y-8">
-                
-                <div class="flex gap-4">
-                    <div class="text-3xl">👁️</div>
-                    <div>
-                        <h3 class="font-bold text-gray-900 text-lg">O que ninguém vê em você</h3>
-                        <p id="texto-analise" class="text-gray-600 leading-relaxed mt-1">...</p>
-                    </div>
-                </div>
-
-                <div class="flex gap-4">
-                    <div class="text-3xl">🚀</div>
-                    <div>
-                        <h3 class="font-bold text-gray-900 text-lg">Seu Potencial Máximo</h3>
-                        <p id="texto-exemplo" class="text-gray-600 leading-relaxed mt-1">...</p>
-                    </div>
-                </div>
-
-                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
-                    <h3 class="font-bold text-blue-900 text-lg mb-1">⚡ Sua Ação Imediata</h3>
-                    <p id="texto-acao" class="text-blue-800">...</p>
-                </div>
-
-                <div class="text-center py-6">
-                    <p id="texto-frase" class="text-xl font-serif italic text-gray-500">...</p>
-                </div>
-            </div>
-
-            <div class="mt-12 pt-8 border-t border-gray-200 flex justify-between items-end">
-                <div>
-                    <p class="font-bold text-gray-800">SierComp4ny</p>
-                    <p class="text-xs text-gray-400 mt-1">Certificado de Autoconhecimento<br>ID: <span id="txid-display"></span></p>
-                </div>
-                <div class="text-right">
-                    <div class="assinatura text-3xl text-blue-900 mb-2">Dias Anderson</div>
-                    <div class="h-px w-40 bg-gray-400 ml-auto mb-1"></div>
-                    <p class="text-xs text-gray-500 font-bold uppercase">Criado por Dias Anderson</p>
-                    <p class="text-[10px] text-gray-400">CEO & Founder SierComp4ny</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-gray-900 h-4 w-full"></div>
+    <div id="tela-perguntas" class="tela-app">
+        <div class="barra-fundo"><div id="barra-progresso" class="barra-progresso"></div></div>
+        <p style="text-align: right; font-size: 0.8rem; color: #64748b;">Pergunta <span id="num-pergunta">1</span> de 19</p>
+        <h2 id="texto-pergunta" style="min-height: 50px;">...</h2>
+        <div id="area-opcoes"></div>
     </div>
 
-    <button onclick="gerarPDF()" id="btn-download" class="hidden fixed bottom-8 right-8 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full shadow-lg items-center gap-2 transform hover:scale-105 transition">
-        📥 Baixar PDF
-    </button>
+    <div id="tela-carregando" class="tela-app">
+        <div style="font-size: 3rem; margin-bottom: 20px;">🧠</div>
+        <h2>Processando Respostas...</h2>
+        <p>Cruzando métricas de lógica e inteligência emocional...</p>
+    </div>
 
-    <script>
-        // --- LÓGICA DO RELATÓRIO ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const txid = urlParams.get('txid');
-        document.getElementById('txid-display').innerText = txid ? txid.slice(0, 8) + '...' : 'N/A';
-        document.getElementById('data-hoje').innerText = new Date().toLocaleDateString();
+    <div id="tela-pagamento" class="tela-app">
+        <h2 style="color: #10b981">Análise Concluída!</h2>
+        <p>Identificamos um perfil de alto potencial.</p>
+        
+        <div style="text-align: left; background: #fff; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            <p><strong>Seu Perfil Base:</strong> <span id="preview-perfil">Calculando...</span></p>
+            <p style="filter: blur(4px); opacity: 0.5;">Sua capacidade de liderança é notável, porém a gestão de tempo...</p>
+        </div>
 
-        // TEXTOS DO PERFIL
-        const perfis = {
-            visionario: {
-                titulo: "O Visionário (Potência Expansiva)",
-                sub: "Equilíbrio raro entre Razão e Emoção.",
-                analise: "Você tem a capacidade rara de processar dados frios sem perder o tato humano. Onde a maioria vê problemas isolados, você enxerga o sistema inteiro. Seu cérebro funciona como um radar que detecta oportunidades invisíveis para mentes comuns.",
-                exemplo: "Pense em Steve Jobs: ele não vendia apenas computadores (Lógica), vendia sonhos e status (Emoção). Você tem esse mesmo potencial de unir o útil ao desejável.",
-                acao: "Pare de fazer o operacional. Sua mente vale ouro na estratégia. Delegue as tarefas repetitivas hoje mesmo.",
-                frase: "“A inovação distingue um líder de um seguidor.”"
-            },
-            tecnico: {
-                titulo: "O Executor (Técnico)",
-                sub: "Mente afiada, execução impecável.",
-                analise: "Sua lógica é sua fortaleza. Você enxerga erros em processos que custariam fortunas se passassem despercebidos. Porém, seu ponto cego é esperar que as pessoas funcionem como máquinas – e elas não funcionam.",
-                exemplo: "Como um engenheiro de Fórmula 1, você ajusta o carro perfeitamente, mas se esquecer de motivar o piloto, a corrida está perdida. Seu desafio não é técnico, é humano.",
-                acao: "Você já é excelente na execução. Seu próximo nível exige treinar um 'braço direito' para lidar com a parte humana.",
-                frase: "“A disciplina é a ponte entre metas e realizações.”"
-            },
-            diplomata: {
-                titulo: "O Diplomata (Conector)",
-                sub: "Influência magnética e alta percepção.",
-                analise: "Você lê ambientes melhor que ninguém. Sabe o que as pessoas querem antes delas falarem. Seu risco é decidir com o coração para não desagradar, ignorando planilhas que gritam perigo.",
-                exemplo: "Como Oprah Winfrey, você move multidões. Mas lembre-se: até a Oprah tem um diretor financeiro implacável. Você precisa de dados frios para proteger seu império.",
-                acao: "Use seu carisma para vender e liderar, mas nunca tome decisões financeiras importantes sozinho.",
-                frase: "“As pessoas esquecerão o que você disse, mas nunca esquecerão como você as fez sentir.”"
-            },
-            analista: {
-                titulo: "O Analista (Estrategista)",
-                sub: "Prudência e visão de longo prazo.",
-                analise: "Você joga xadrez enquanto os outros jogam damas. Sua cautela evita catástrofes, mas o medo de errar pode estar travando seu crescimento. Você vê riscos que ninguém vê, e isso é um superpoder se não virar paralisia.",
-                exemplo: "O mercado premia a velocidade. Às vezes, um projeto 'nota 7' lançado hoje vale mais que um 'nota 10' que nunca sai do papel.",
-                acao: "O feito é melhor que o perfeito. Lance a versão beta do seu projeto ainda esta semana.",
-                frase: "“O maior risco é não correr nenhum risco.”"
+        <h1 style="color: #2563eb; font-size: 2.5rem; margin: 10px 0;">R$ 1,00</h1>
+        
+        <div id="area-qr" class="caixa-pix">
+            <p>Gerando Pix Seguro...</p>
+        </div>
+        
+        <p style="font-size: 0.8rem; color: #64748b;">Relatório liberado automaticamente após pagamento.</p>
+    </div>
+
+    <div id="tela-resultado" class="tela-app">
+        <h1 style="color: #2563eb">Relatório Liberado ✅</h1>
+        <div id="conteudo-final"></div>
+        <button class="botao-acao" style="background: #25D366" onclick="_quizApp.abrirZap()">Falar com Anderson Dias</button>
+    </div>
+
+</div>
+
+<script>
+    // --- ⚙️ ÁREA DE CONFIGURAÇÃO (COLOQUE SUAS CHAVES AQUI) ---
+    
+    var _URL_BANCO = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
+    var _CHAVE_BANCO = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
+
+    // ----------------------------------------------------------
+
+    var _TEXTOS_PERFIL = {
+        "Potência Expansiva": {
+            titulo: "🧠 Potência Expansiva (O Visionário)",
+            resumo: "Equilíbrio raro entre Lógica e Emoção.",
+            texto: `<h3>Análise</h3><p>Seu cérebro opera em alta performance. Você vê o que ninguém vê.</p><h3>Ação</h3><p>Delegue o operacional e foque na estratégia.</p>`
+        },
+        "Executor Solitário": {
+            titulo: "⚙️ Executor Solitário (O Técnico)",
+            resumo: "Alta capacidade lógica, mas centralizador.",
+            texto: `<h3>Análise</h3><p>Você resolve tudo, mas sofre por não confiar na equipe.</p><h3>Ação</h3><p>Treine um braço direito urgente.</p>`
+        },
+        "Conector Nato": {
+            titulo: "🤝 Conector Nato (O Comunicador)",
+            resumo: "Excelente em vendas, fraco em processos.",
+            texto: `<h3>Análise</h3><p>Você abre portas, mas tem dificuldade em fechar ciclos.</p><h3>Ação</h3><p>Use ferramentas de gestão (CRM).</p>`
+        },
+        "Em Construção": {
+            titulo: "🚧 Perfil em Análise",
+            resumo: "Respostas rápidas detectadas.",
+            texto: `<h3>Diagnóstico</h3><p>Refaça o teste com mais calma para um resultado preciso.</p>`
+        }
+    };
+
+    var _clienteSupabase = null;
+    try {
+        // Inicializa o Supabase apenas se as chaves estiverem preenchidas
+        if (_URL_BANCO && _CHAVE_BANCO && !_URL_BANCO.includes("COLE_SUA") && window.supabase) {
+            _clienteSupabase = window.supabase.createClient(_URL_BANCO, _CHAVE_BANCO);
+        }
+    } catch (e) { console.error("Erro Supabase:", e); }
+
+    var _quizApp = {
+        dados: { email: '', qi: 0, qe: 0, idx: 0, perfil: null },
+        
+        perguntas: [
+            { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
+            { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
+            { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
+            { q: "Cliente gritou. Reação:", opts: ["Resolve calmo", "Grita", "Chora"], type: "QE", c: 0 },
+            { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
+            { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
+            { q: "Em grupo prefere:", opts: ["Liderar", "Esperar", "Fazer só"], type: "QE", c: 0 },
+            { q: "Erro na empresa:", opts: ["Assume", "Esconde", "Culpa outro"], type: "QE", c: 0 },
+            { q: "20% de 500 é:", opts: ["100", "50", "200"], type: "QI", c: 0 },
+            { q: "Se ontem fosse amanhã, hoje seria sábado. Hoje é:", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
+            { q: "Feedback duro:", opts: ["Cresce", "Raiva", "Desiste"], type: "QE", c: 0 },
+            { q: "Médico : Hospital :: Professor : ?", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
+            { q: "Colega triste:", opts: ["Ajuda", "Ignora", "Piada"], type: "QE", c: 0 },
+            { q: "Negociação:", opts: ["Acordo", "Vencer", "Não perder"], type: "QE", c: 0 },
+            { q: "Carro 80km/h em 30min:", opts: ["40km", "80km", "60km"], type: "QI", c: 0 },
+            { q: "Inteligência Emocional:", opts: ["Gerir emoções", "Nada", "Feliz"], type: "QE", c: 0 },
+            { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
+            { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
+            { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 }
+        ],
+
+        iniciar: async () => {
+            const email = document.getElementById('email-usuario').value.trim();
+            if(!email.includes('@')) return alert('E-mail inválido!');
+            
+            _quizApp.dados.email = email;
+            
+            // Salva o lead inicial (se o Supabase estiver configurado)
+            if(_clienteSupabase) {
+                try {
+                    await _clienteSupabase.from('leads').insert([{ email: email, status_pagamento: 'aguardando' }]);
+                } catch(e) { console.log("Erro ao salvar lead inicial (sem impacto no quiz):", e); }
             }
-        };
+            
+            _quizApp.mostrarTela('tela-perguntas');
+            _quizApp.renderizar();
+        },
 
-        async function carregarRelatorio() {
-            if (!txid) {
-                alert("Link inválido. Faça o teste novamente.");
-                return;
+        renderizar: () => {
+            if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
+            const q = _quizApp.perguntas[_quizApp.dados.idx];
+            document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
+            document.getElementById('texto-pergunta').innerText = q.q;
+            document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / _quizApp.perguntas.length) * 100) + '%';
+            const div = document.getElementById('area-opcoes');
+            div.innerHTML = '';
+            q.opts.forEach((opt, i) => {
+                const btn = document.createElement('div');
+                btn.className = 'opcao-quiz';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
+                    _quizApp.dados.idx++;
+                    _quizApp.renderizar();
+                };
+                div.appendChild(btn);
+            });
+        },
+
+        finalizar: async () => {
+            _quizApp.mostrarTela('tela-carregando');
+            let chave = "Em Construção";
+            if(_quizApp.dados.qi > 6 && _quizApp.dados.qe > 6) chave = "Potência Expansiva";
+            else if(_quizApp.dados.qi > 6) chave = "Executor Solitário";
+            else if(_quizApp.dados.qe > 6) chave = "Conector Nato";
+            
+            _quizApp.dados.perfil = _TEXTOS_PERFIL[chave];
+            document.getElementById('preview-perfil').innerText = _quizApp.dados.perfil.titulo;
+
+            // Tenta atualizar a pontuação no banco
+            if(_clienteSupabase) {
+                try {
+                    await _clienteSupabase.from('leads').update({ qi_score: _quizApp.dados.qi, qe_score: _quizApp.dados.qe }).eq('email', _quizApp.dados.email);
+                } catch(e) { console.log("Erro ao salvar pontuação:", e); }
             }
+            _quizApp.gerarPix();
+        },
 
+        // --- AQUI ESTÁ A MÁGICA DO PAGAMENTO 🎩✨ ---
+        gerarPix: async () => {
             try {
-                // Chama a API para pegar status E AS NOTAS
-                const response = await fetch(`/api/status?txid=${txid}`);
-                const data = await response.json();
+                // 1. Gera o Pix no Backend
+                const res = await fetch('/api/pix', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: _quizApp.dados.email, valor: 1.00 })
+                });
+                const data = await res.json();
+                
+                if(!res.ok) throw new Error(data.erro || "Erro ao gerar Pix");
 
-                if (data.status === 'pago') {
-                    renderizar(data.qi || 0, data.qe || 0);
-                } else {
-                    document.getElementById('loading').innerHTML = '<h2 class="text-xl">Pagamento não confirmado. <br>Atualize a página após pagar.</h2>';
-                }
-            } catch (error) {
-                console.error(error);
-                alert("Erro ao carregar.");
+                // 2. Mostra QR Code
+                document.getElementById('area-qr').innerHTML = `
+                    <img src="${data.img}" style="width:200px; mix-blend-mode: multiply; margin:0 auto; display:block;">
+                    <textarea style="width:100%; font-size:0.8rem; margin-top:10px;" rows="3" readonly>${data.code}</textarea>
+                    <button class="botao-acao" style="background:#333; margin-top:10px;" onclick="navigator.clipboard.writeText('${data.code}');alert('Copiado!')">Copiar Pix</button>
+                    <p style="margin-top:10px; font-size:0.9rem; color:#2563eb;">⏳ Aguardando pagamento...</p>
+                    <div style="font-size:0.7rem; color:#999; margin-top:5px;">ID: ${data.txid}</div>
+                `;
+                _quizApp.mostrarTela('tela-pagamento');
+
+                // 3. INICIA O LOOP DE VERIFICAÇÃO (Consulta a cada 3 segundos)
+                if (window.loopVerificacao) clearInterval(window.loopVerificacao);
+                
+                window.loopVerificacao = setInterval(async () => {
+                    try {
+                        const reqStatus = await fetch('/api/status?txid=' + data.txid);
+                        const jsonStatus = await reqStatus.json();
+                        
+                        console.log("Verificando pagamento...", jsonStatus.status);
+
+                        if (jsonStatus.status === 'pago') {
+                            clearInterval(window.loopVerificacao);
+                            _quizApp.mostrarResultado(); // <--- LIBERA O PDF AQUI!
+                        }
+                    } catch (erroLoop) {
+                        console.error("Erro na verificação:", erroLoop);
+                    }
+                }, 3000);
+
+            } catch(e) {
+                console.error(e);
+                _quizApp.mostrarTela('tela-pagamento');
+                document.getElementById('area-qr').innerHTML = `<p style="color:red">Erro: ${e.message}</p><button class="botao-acao" onclick="_quizApp.gerarPix()">Tentar Novamente</button>`;
             }
+        },
+
+        mostrarResultado: () => {
+            const p = _quizApp.dados.perfil;
+            document.getElementById('conteudo-final').innerHTML = `
+                <div class="box-relatorio">
+                    <h2>${p.titulo}</h2>
+                    <p><em>"${p.resumo}"</em></p>
+                    <hr>${p.texto}
+                </div>
+                <button class="botao-acao" style="background:#333; margin-top:20px;" onclick="window.print()">🖨️ Salvar PDF</button>
+            `;
+            _quizApp.mostrarTela('tela-resultado');
+        },
+
+        abrirZap: () => window.open("https://wa.me/5571999466243", "_blank"),
+        
+        mostrarTela: (id) => {
+            document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
+            document.getElementById(id).classList.add('ativa');
         }
-
-        function renderizar(qi, qe) {
-            // Define o perfil
-            let p = perfis.analista; // Padrão
-            if (qi >= 6 && qe >= 6) p = perfis.visionario;
-            else if (qi >= 6 && qe < 6) p = perfis.tecnico;
-            else if (qi < 6 && qe >= 6) p = perfis.diplomata;
-
-            // Preenche o HTML
-            document.getElementById('titulo-perfil').innerText = p.titulo;
-            document.getElementById('subtitulo-perfil').innerText = p.sub;
-            document.getElementById('score-qi').innerText = qi;
-            document.getElementById('score-qe').innerText = qe;
-            document.getElementById('texto-analise').innerText = p.analise;
-            document.getElementById('texto-exemplo').innerText = p.exemplo;
-            document.getElementById('texto-acao').innerText = p.acao;
-            document.getElementById('texto-frase').innerText = p.frase;
-
-            // Mostra a tela
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('relatorio').classList.remove('hidden');
-            document.getElementById('btn-download').classList.remove('hidden');
-        }
-
-        function gerarPDF() {
-            const element = document.getElementById('relatorio');
-            const opt = {
-                margin: 0,
-                filename: 'Relatorio_SierComp4ny.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save();
-        }
-
-        // Inicia
-        carregarRelatorio();
-    </script>
+    };
+</script>
 </body>
 </html>
