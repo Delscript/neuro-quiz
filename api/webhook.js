@@ -1,57 +1,61 @@
 import { createClient } from '@supabase/supabase-js';
 
-// --- COLOQUE SUAS CHAVES AQUI ---
-const SUPABASE_URL = 'https://oabcppkojfmmmqhevjpq.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw'; // Use a service_role!
-// --------------------------------
+// --- SUAS CHAVES AQUI (NÃO DEIXE VAZIO!) ---
+const SUPABASE_URL = 'https://oabcppkojfmmmqhevjpq.supabase.co'; 
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw'; 
+// --------------------------------------------
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 export default async function handler(req, res) {
-    console.log("Recebendo Webhook...");
+    console.log("🔔 WEBHOOK ACIONADO!");
 
-    // 1. Validação Básica
-    if (req.method !== 'POST') {
-        return res.status(405).json({ erro: 'Método não permitido' });
+    if (req.method === 'GET') {
+        return res.status(200).json({ status: "Webhook Online e pronto para receber POST!" });
     }
 
     try {
         const corpo = req.body;
-        console.log("Corpo recebido:", JSON.stringify(corpo));
+        console.log("📦 PACOTE RECEBIDO:", JSON.stringify(corpo));
 
-        // 2. Validação do Formato da Efí
-        // A Efí manda assim: { pix: [ { txid: "...", ... } ] }
-        if (!corpo.pix || !corpo.pix[0] || !corpo.pix[0].txid) {
-            console.log("Erro: O aviso não tem o formato de Pix da Efí.");
-            // Retornamos 200 para a Efí não ficar tentando de novo, mas avisamos que foi ignorado
-            return res.status(200).json({ mensagem: "Formato ignorado ou teste" });
+        // Tenta encontrar o TXID em vários lugares possíveis do pacote
+        let txid = null;
+        
+        if (corpo.pix && corpo.pix[0] && corpo.pix[0].txid) {
+            txid = corpo.pix[0].txid; // Formato Padrão Efí
+        } else if (corpo.txid) {
+            txid = corpo.txid; // Formato alternativo
         }
 
-        const txidRecebido = corpo.pix[0].txid;
-        console.log(`TXID Identificado: ${txidRecebido}`);
+        if (!txid) {
+            console.log("⚠️ Nenhum TXID encontrado no pacote.");
+            return res.status(200).json({ msg: "Ignorado: Sem TXID" });
+        }
 
-        // 3. Atualizar o Supabase
+        console.log(`🎯 TXID Identificado: ${txid}`);
+
+        // ATUALIZAÇÃO NO BANCO (Força minúsculo 'pago')
         const { data, error } = await supabase
             .from('leads')
-            .update({ status_pagamento: 'pago' }) // Confirme se sua coluna chama 'status_pagamento'
-            .eq('txid', txidRecebido)
+            .update({ status_pagamento: 'pago' }) 
+            .eq('txid', txid)
             .select();
 
         if (error) {
-            console.error("Erro no Supabase:", error);
+            console.error("❌ Erro ao gravar no Supabase:", error);
             return res.status(500).json({ erro: error.message });
         }
 
-        if (data && data.length === 0) {
-            console.log("Alerta: Nenhum lead encontrado com esse TXID.");
-            return res.status(200).json({ aviso: "TXID não encontrado no banco" });
+        if (data.length === 0) {
+            console.log("⚠️ O Banco recebeu, mas não achou esse TXID na tabela leads.");
+        } else {
+            console.log("✅ SUCESSO! Status atualizado para 'pago'.");
         }
 
-        console.log("Sucesso! Lead atualizado:", data);
-        return res.status(200).json({ mensagem: "Status atualizado para PAGO" });
+        return res.status(200).json({ status: "Recebido" });
 
     } catch (err) {
-        console.error("Erro Geral:", err);
+        console.error("🔥 Erro Crítico:", err);
         return res.status(500).json({ erro: err.message });
     }
 }
