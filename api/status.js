@@ -6,21 +6,17 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 const CLIENT_ID = process.env.EFI_CLIENT_ID;
 const CLIENT_SECRET = process.env.EFI_CLIENT_SECRET;
-const CERTIFICADO_BASE64 = process.env.EFI_CERT_BASE64; 
+const CERTIFICADO_BASE64 = process.env.EFI_CERT_BASE64;
 // --------------------------------------------
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Configura o Agente HTTPS
-const agentOptions = {
-    rejectUnauthorized: false // Aceita conexão
-};
-
+// Configura o Agente HTTPS com o seu Certificado
+const agentOptions = { rejectUnauthorized: false };
 if (CERTIFICADO_BASE64) {
     agentOptions.pfx = Buffer.from(CERTIFICADO_BASE64, 'base64');
     agentOptions.passphrase = ""; 
 }
-
 const httpsAgent = new https.Agent(agentOptions);
 
 // 1. Função para pegar o Token da Efí
@@ -29,7 +25,7 @@ async function getEfiToken() {
     
     return new Promise((resolve, reject) => {
         const options = {
-            hostname: 'pix.api.efipay.com.br', // <--- ENDEREÇO CORRIGIDO AQUI!
+            hostname: 'pix.api.efipay.com.br', // <--- ENDEREÇO NOVO (CORRIGIDO)
             path: '/oauth/token',
             method: 'POST',
             headers: {
@@ -46,7 +42,7 @@ async function getEfiToken() {
                 try {
                     const json = JSON.parse(data);
                     if(json.access_token) resolve(json.access_token);
-                    else reject("Erro Efí: " + JSON.stringify(json));
+                    else reject("Efí não devolveu o Token. Verifique as chaves.");
                 } catch (e) { reject(e); }
             });
         });
@@ -60,7 +56,7 @@ async function getEfiToken() {
 async function checkEfiStatus(token, txid) {
     return new Promise((resolve, reject) => {
         const options = {
-            hostname: 'pix.api.efipay.com.br', // <--- ENDEREÇO CORRIGIDO AQUI TAMBÉM!
+            hostname: 'pix.api.efipay.com.br', // <--- ENDEREÇO NOVO (CORRIGIDO)
             path: `/v2/pix/${txid}`,
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` },
@@ -98,7 +94,6 @@ export default async function handler(req, res) {
     }
 
     const { txid } = req.query;
-
     if (!txid) return res.status(400).json({ erro: 'TXID faltando' });
 
     try {
@@ -113,19 +108,13 @@ export default async function handler(req, res) {
             return res.status(200).json({ status: 'pago' });
         }
 
-        // B. Verifica na Efí (Tira-Teima)
+        // B. Verifica na Efí (Tira-Teima com endereço novo)
         console.log(`Consultando Efí para TXID: ${txid}`);
         const token = await getEfiToken();
         const statusEfi = await checkEfiStatus(token, txid);
-        console.log(`Status retornado da Efí: ${statusEfi}`);
 
-        // Aceita 'CONCLUIDA' ou 'ATIVA' (dependendo do caso)
         if (statusEfi === 'CONCLUIDA') {
-            await supabase
-                .from('leads')
-                .update({ status_pagamento: 'pago' })
-                .eq('txid', txid);
-            
+            await supabase.from('leads').update({ status_pagamento: 'pago' }).eq('txid', txid);
             return res.status(200).json({ status: 'pago' });
         }
 
