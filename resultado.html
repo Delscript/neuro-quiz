@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório SierComp4ny</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .assinatura { font-family: 'Dancing Script', cursive; transform: rotate(-2deg); }
+        .marca-dagua {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 80px; color: rgba(0,0,0,0.03); font-weight: 900; white-space: nowrap; pointer-events: none;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="loading" class="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50 text-white">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 mb-4"></div>
+        <h2 class="text-xl font-bold">Gerando Relatório de Inteligência...</h2>
+    </div>
+
+    <div id="relatorio" class="bg-white w-full max-w-3xl shadow-2xl rounded-lg overflow-hidden relative hidden">
+        
+        <div class="bg-gray-900 text-white p-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold tracking-widest">SIERCOMP4NY</h1>
+                <p class="text-xs text-gray-400 uppercase">Intelligence & Growth</p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm opacity-75">Relatório Confidencial</p>
+                <p class="text-xs text-gray-500" id="data-hoje"></p>
+            </div>
+        </div>
+
+        <div class="p-8 relative">
+            <div class="marca-dagua">SIERCOMP4NY</div>
+
+            <div class="text-center mb-10">
+                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Resultado da Análise</span>
+                <h2 id="titulo-perfil" class="text-4xl font-black text-gray-800 mt-4 mb-2">...</h2>
+                <p id="subtitulo-perfil" class="text-xl text-gray-500 italic">...</p>
+            </div>
+
+            <div class="flex justify-center gap-6 mb-10">
+                <div class="text-center w-32">
+                    <div class="text-sm font-bold text-gray-400 uppercase mb-1">Razão (QI)</div>
+                    <div class="bg-gray-50 border-2 border-blue-100 rounded-xl p-3">
+                        <span id="score-qi" class="text-4xl font-black text-blue-600">0</span>
+                        <span class="text-gray-400 text-sm">/10</span>
+                    </div>
+                </div>
+                <div class="text-center w-32">
+                    <div class="text-sm font-bold text-gray-400 uppercase mb-1">Emoção (QE)</div>
+                    <div class="bg-gray-50 border-2 border-purple-100 rounded-xl p-3">
+                        <span id="score-qe" class="text-4xl font-black text-purple-600">0</span>
+                        <span class="text-gray-400 text-sm">/10</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-8">
+                
+                <div class="flex gap-4">
+                    <div class="text-3xl">👁️</div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-lg">O que ninguém vê em você</h3>
+                        <p id="texto-analise" class="text-gray-600 leading-relaxed mt-1">...</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="text-3xl">🚀</div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-lg">Seu Potencial Máximo</h3>
+                        <p id="texto-exemplo" class="text-gray-600 leading-relaxed mt-1">...</p>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                    <h3 class="font-bold text-blue-900 text-lg mb-1">⚡ Sua Ação Imediata</h3>
+                    <p id="texto-acao" class="text-blue-800">...</p>
+                </div>
+
+                <div class="text-center py-6">
+                    <p id="texto-frase" class="text-xl font-serif italic text-gray-500">...</p>
+                </div>
+            </div>
+
+            <div class="mt-12 pt-8 border-t border-gray-200 flex justify-between items-end">
+                <div>
+                    <p class="font-bold text-gray-800">SierComp4ny</p>
+                    <p class="text-xs text-gray-400 mt-1">Certificado de Autoconhecimento<br>ID: <span id="txid-display"></span></p>
+                </div>
+                <div class="text-right">
+                    <div class="assinatura text-3xl text-blue-900 mb-2">Dias Anderson</div>
+                    <div class="h-px w-40 bg-gray-400 ml-auto mb-1"></div>
+                    <p class="text-xs text-gray-500 font-bold uppercase">Criado por Dias Anderson</p>
+                    <p class="text-[10px] text-gray-400">CEO & Founder SierComp4ny</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-gray-900 h-4 w-full"></div>
+    </div>
+
+    <button onclick="gerarPDF()" id="btn-download" class="hidden fixed bottom-8 right-8 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full shadow-lg items-center gap-2 transform hover:scale-105 transition">
+        📥 Baixar PDF
+    </button>
+
+    <script>
+        // --- LÓGICA DO RELATÓRIO ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const txid = urlParams.get('txid');
+        document.getElementById('txid-display').innerText = txid ? txid.slice(0, 8) + '...' : 'N/A';
+        document.getElementById('data-hoje').innerText = new Date().toLocaleDateString();
+
+        // TEXTOS DO PERFIL
+        const perfis = {
+            visionario: {
+                titulo: "O Visionário (Potência Expansiva)",
+                sub: "Equilíbrio raro entre Razão e Emoção.",
+                analise: "Você tem a capacidade rara de processar dados frios sem perder o tato humano. Onde a maioria vê problemas isolados, você enxerga o sistema inteiro. Seu cérebro funciona como um radar que detecta oportunidades invisíveis para mentes comuns.",
+                exemplo: "Pense em Steve Jobs: ele não vendia apenas computadores (Lógica), vendia sonhos e status (Emoção). Você tem esse mesmo potencial de unir o útil ao desejável.",
+                acao: "Pare de fazer o operacional. Sua mente vale ouro na estratégia. Delegue as tarefas repetitivas hoje mesmo.",
+                frase: "“A inovação distingue um líder de um seguidor.”"
+            },
+            tecnico: {
+                titulo: "O Executor (Técnico)",
+                sub: "Mente afiada, execução impecável.",
+                analise: "Sua lógica é sua fortaleza. Você enxerga erros em processos que custariam fortunas se passassem despercebidos. Porém, seu ponto cego é esperar que as pessoas funcionem como máquinas – e elas não funcionam.",
+                exemplo: "Como um engenheiro de Fórmula 1, você ajusta o carro perfeitamente, mas se esquecer de motivar o piloto, a corrida está perdida. Seu desafio não é técnico, é humano.",
+                acao: "Você já é excelente na execução. Seu próximo nível exige treinar um 'braço direito' para lidar com a parte humana.",
+                frase: "“A disciplina é a ponte entre metas e realizações.”"
+            },
+            diplomata: {
+                titulo: "O Diplomata (Conector)",
+                sub: "Influência magnética e alta percepção.",
+                analise: "Você lê ambientes melhor que ninguém. Sabe o que as pessoas querem antes delas falarem. Seu risco é decidir com o coração para não desagradar, ignorando planilhas que gritam perigo.",
+                exemplo: "Como Oprah Winfrey, você move multidões. Mas lembre-se: até a Oprah tem um diretor financeiro implacável. Você precisa de dados frios para proteger seu império.",
+                acao: "Use seu carisma para vender e liderar, mas nunca tome decisões financeiras importantes sozinho.",
+                frase: "“As pessoas esquecerão o que você disse, mas nunca esquecerão como você as fez sentir.”"
+            },
+            analista: {
+                titulo: "O Analista (Estrategista)",
+                sub: "Prudência e visão de longo prazo.",
+                analise: "Você joga xadrez enquanto os outros jogam damas. Sua cautela evita catástrofes, mas o medo de errar pode estar travando seu crescimento. Você vê riscos que ninguém vê, e isso é um superpoder se não virar paralisia.",
+                exemplo: "O mercado premia a velocidade. Às vezes, um projeto 'nota 7' lançado hoje vale mais que um 'nota 10' que nunca sai do papel.",
+                acao: "O feito é melhor que o perfeito. Lance a versão beta do seu projeto ainda esta semana.",
+                frase: "“O maior risco é não correr nenhum risco.”"
+            }
+        };
+
+        async function carregarRelatorio() {
+            if (!txid) {
+                alert("Link inválido. Faça o teste novamente.");
+                return;
+            }
+
+            try {
+                // Chama a API para pegar status E AS NOTAS
+                const response = await fetch(`/api/status?txid=${txid}`);
+                const data = await response.json();
+
+                if (data.status === 'pago') {
+                    renderizar(data.qi || 0, data.qe || 0);
+                } else {
+                    document.getElementById('loading').innerHTML = '<h2 class="text-xl">Pagamento não confirmado. <br>Atualize a página após pagar.</h2>';
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Erro ao carregar.");
+            }
+        }
+
+        function renderizar(qi, qe) {
+            // Define o perfil
+            let p = perfis.analista; // Padrão
+            if (qi >= 6 && qe >= 6) p = perfis.visionario;
+            else if (qi >= 6 && qe < 6) p = perfis.tecnico;
+            else if (qi < 6 && qe >= 6) p = perfis.diplomata;
+
+            // Preenche o HTML
+            document.getElementById('titulo-perfil').innerText = p.titulo;
+            document.getElementById('subtitulo-perfil').innerText = p.sub;
+            document.getElementById('score-qi').innerText = qi;
+            document.getElementById('score-qe').innerText = qe;
+            document.getElementById('texto-analise').innerText = p.analise;
+            document.getElementById('texto-exemplo').innerText = p.exemplo;
+            document.getElementById('texto-acao').innerText = p.acao;
+            document.getElementById('texto-frase').innerText = p.frase;
+
+            // Mostra a tela
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('relatorio').classList.remove('hidden');
+            document.getElementById('btn-download').classList.remove('hidden');
+        }
+
+        function gerarPDF() {
+            const element = document.getElementById('relatorio');
+            const opt = {
+                margin: 0,
+                filename: 'Relatorio_SierComp4ny.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // Inicia
+        carregarRelatorio();
+    </script>
+</body>
+</html>
