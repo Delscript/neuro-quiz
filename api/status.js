@@ -1,13 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import https from 'https';
 
-// --- CHAVES DO COFRE ---
+// --- CHAVES BLINDADAS (Vercel) ---
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 const CLIENT_ID = process.env.EFI_CLIENT_ID;
 const CLIENT_SECRET = process.env.EFI_CLIENT_SECRET;
 const CERTIFICADO_BASE64 = process.env.EFI_CERT_BASE64;
-// -----------------------
+// ---------------------------------
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -18,10 +18,10 @@ if (CERTIFICADO_BASE64) {
 }
 const httpsAgent = new https.Agent(agentOptions);
 
-// 1. Pega Token
+// 1. Pega Token (Silencioso)
 async function getEfiToken() {
     const credenciais = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const options = {
             hostname: 'pix.api.efipay.com.br',
             path: '/oauth/token',
@@ -35,27 +35,26 @@ async function getEfiToken() {
             res.on('end', () => {
                 try {
                     const json = JSON.parse(data);
-                    if(json.access_token) resolve(json.access_token);
-                    else resolve(null);
-                } catch (e) { resolve(null); }
+                    resolve(json.access_token || null);
+                } catch { resolve(null); }
             });
         });
-        req.on('error', e => resolve(null));
+        req.on('error', () => resolve(null));
         req.write(JSON.stringify({ grant_type: 'client_credentials' }));
         req.end();
     });
 }
 
-// 2. Busca na Lista de Recebidos (O MÉTODO QUE FUNCIONOU!)
-async function buscarPixNaLista(token, txid) {
-    // Procura nos últimos 4 dias para garantir
+// 2. Busca na Lista (Filtro de Segurança)
+async function verificarPagamentoSeguro(token, txid) {
+    // Busca apenas nos últimos 2 dias para ser rápido
     const fim = new Date().toISOString(); 
-    const inicio = new Date(new Date().getTime() - (4 * 24 * 60 * 60 * 1000)).toISOString();
+    const inicio = new Date(new Date().getTime() - (48 * 60 * 60 * 1000)).toISOString();
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const options = {
             hostname: 'pix.api.efipay.com.br',
-            // Filtra direto pelo TXID na lista de recebidos
+            // O segredo: txid=${txid} já filtra direto no banco
             path: `/v2/pix?inicio=${inicio}&fim=${fim}&txid=${txid}`,
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` },
@@ -67,33 +66,34 @@ async function buscarPixNaLista(token, txid) {
             res.on('end', () => {
                 try {
                     const json = JSON.parse(data);
-                    // Se tiver algum item na lista "pix", é porque PAGOU!
+                    // Se a lista "pix" tiver algo, é porque PAGOU.
+                    // Retornamos APENAS true ou false. Nada de dados.
                     if (json.pix && json.pix.length > 0) {
                         resolve(true);
                     } else {
                         resolve(false);
                     }
-                } catch (e) { resolve(false); }
+                } catch { resolve(false); }
             });
         });
-        req.on('error', e => resolve(false));
+        req.on('error', () => resolve(false));
         req.end();
     });
 }
 
 export default async function handler(req, res) {
-    // Mata o Cache para sempre consultar o real
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    // Cabeçalhos de Segurança (Não Cachear)
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
 
     if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
     const { txid } = req.query;
-    if (!txid) return res.status(400).json({ erro: 'TXID faltando' });
+    if (!txid) return res.status(400).json({ erro: 'Dados inválidos' });
 
     try {
-        // A. Verifica Banco de Dados (Supabase)
+        // A. Verifica Banco de Dados Local (Mais Rápido)
         const { data: lead } = await supabase
             .from('leads').select('status_pagamento').eq('txid', txid).single();
 
@@ -101,21 +101,24 @@ export default async function handler(req, res) {
             return res.status(200).json({ status: 'pago' });
         }
 
-        // B. Verifica na Efí (Usando o método de Lista)
+        // B. Verifica no Banco Efí (Blindado)
         const token = await getEfiToken();
         if (token) {
-            const pagou = await buscarPixNaLista(token, txid);
+            const estaPago = await verificarPagamentoSeguro(token, txid);
             
-            if (pagou) {
-                // SUCESSO! Atualiza o banco e libera
+            if (estaPago) {
+                // Atualiza o banco e libera
                 await supabase.from('leads').update({ status_pagamento: 'pago' }).eq('txid', txid);
                 return res.status(200).json({ status: 'pago' });
             }
         }
 
+        // Se não achou, responde apenas "aguardando" (Sem detalhes de erro)
         return res.status(200).json({ status: 'aguardando' });
 
     } catch (error) {
-        return res.status(500).json({ erro: error.message });
+        // Log interno na Vercel (só você vê), usuário vê mensagem genérica
+        console.error("Erro interno:", error);
+        return res.status(500).json({ erro: 'Erro interno no servidor' });
     }
-                        }
+}
