@@ -1,13 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import https from 'https';
 
-// --- CHAVES DO COFRE ---
+// --- CHAVES ---
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 const CLIENT_ID = process.env.EFI_CLIENT_ID;
 const CLIENT_SECRET = process.env.EFI_CLIENT_SECRET;
 const CERTIFICADO_BASE64 = process.env.EFI_CERT_BASE64;
-// -----------------------
+// --------------
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -18,12 +18,12 @@ if (CERTIFICADO_BASE64) {
 }
 const httpsAgent = new https.Agent(agentOptions);
 
-// 1. Token Efí
+// 1. Token
 async function getEfiToken() {
     const credenciais = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
     return new Promise((resolve, reject) => {
         const options = {
-            hostname: 'pix.api.efipay.com.br', // Endereço Oficial
+            hostname: 'pix.api.efipay.com.br',
             path: '/oauth/token',
             method: 'POST',
             headers: { 'Authorization': `Basic ${credenciais}`, 'Content-Type': 'application/json' },
@@ -36,17 +36,17 @@ async function getEfiToken() {
                 try {
                     const json = JSON.parse(data);
                     if(json.access_token) resolve(json.access_token);
-                    else reject("Sem Token Efí");
-                } catch (e) { reject(e); }
+                    else resolve(null); // Retorna null se falhar auth
+                } catch (e) { resolve(null); }
             });
         });
-        req.on('error', e => reject(e));
+        req.on('error', e => resolve(null));
         req.write(JSON.stringify({ grant_type: 'client_credentials' }));
         req.end();
     });
 }
 
-// 2. Status Efí
+// 2. Status com Detalhe
 async function checkEfiStatus(token, txid) {
     return new Promise((resolve, reject) => {
         const options = {
@@ -62,58 +62,49 @@ async function checkEfiStatus(token, txid) {
             res.on('end', () => {
                 try {
                     const json = JSON.parse(data);
-                    console.log(`Efí Respondeu: ${json.status}`); // Log para a gente ver
-                    resolve(json.status); 
-                } catch (e) { reject(e); }
+                    resolve(json); // Retorna o JSON completo do banco!
+                } catch (e) { resolve({ erro: "Falha ao ler JSON do banco" }); }
             });
         });
-        req.on('error', e => reject(e));
+        req.on('error', e => resolve({ erro: e.message }));
         req.end();
     });
 }
 
 export default async function handler(req, res) {
-    // 🛑 COMANDO PARA MATAR O CACHE E FORÇAR CHECAGEM REAL 🛑
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.setHeader('Surrogate-Control', 'no-store');
-
-    // Permissões CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-    if (req.method === 'OPTIONS') { res.status(200).end(); return; }
-
+    res.setHeader('Cache-Control', 'no-store');
     const { txid } = req.query;
+
     if (!txid) return res.status(400).json({ erro: 'TXID faltando' });
 
     try {
-        console.log(`Verificando TXID: ${txid}`);
-
-        // A. Verifica no Supabase
-        const { data: lead } = await supabase
-            .from('leads').select('status_pagamento').eq('txid', txid).single();
-
-        if (lead && lead.status_pagamento === 'pago') {
-            console.log("JÁ PAGO NO BANCO!");
-            return res.status(200).json({ status: 'pago' });
-        }
-
-        // B. Verifica na Efí (Tira-Teima)
+        // 1. Pega Token
         const token = await getEfiToken();
-        const statusEfi = await checkEfiStatus(token, txid);
-
-        if (statusEfi === 'CONCLUIDA') {
-            console.log("PAGO NA EFÍ! Atualizando banco...");
-            await supabase.from('leads').update({ status_pagamento: 'pago' }).eq('txid', txid);
-            return res.status(200).json({ status: 'pago' });
+        if (!token) {
+            return res.status(200).json({ 
+                status: 'erro_auth', 
+                mensagem: 'Não consegui autenticar na Efí. Verifique Client_ID e Secret.' 
+            });
         }
 
-        console.log("Ainda não pago.");
-        return res.status(200).json({ status: 'aguardando' });
+        // 2. Pergunta ao Banco
+        const respostaBanco = await checkEfiStatus(token, txid);
+        const statusReal = respostaBanco.status; // Pode ser ATIVA, CONCLUIDA, etc.
+
+        // 3. Atualiza se for CONCLUIDA
+        if (statusReal === 'CONCLUIDA') {
+            await supabase.from('leads').update({ status_pagamento: 'pago' }).eq('txid', txid);
+            return res.status(200).json({ status: 'pago', debug_banco: statusReal });
+        }
+
+        // 4. Se não for pago, MOSTRA O PORQUÊ (O Segredo!)
+        return res.status(200).json({ 
+            status: 'aguardando', 
+            motivo_real: statusReal, 
+            detalhe_banco: respostaBanco 
+        });
 
     } catch (error) {
-        console.error("Erro Fatal:", error);
         return res.status(500).json({ erro: error.message });
     }
 }
