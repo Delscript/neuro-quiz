@@ -1,17 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 import https from 'https';
 
-// --- CHAVES E CONFIGURAÇÕES ---
+// --- CONFIGURAÇÕES ---
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 const CLIENT_ID = process.env.EFI_CLIENT_ID;
 const CLIENT_SECRET = process.env.EFI_CLIENT_SECRET;
 const CERTIFICADO_BASE64 = process.env.EFI_CERT_BASE64;
-const CHAVE_PIX = process.env.CHAVE_PIX_EFI; // A chave Pix cadastrada na Efí
+
+// ⚠️ COLOQUE SUA CHAVE PIX AQUI DENTRO DAS ASPAS (Ex: "12345678900" ou "email@teste.com")
+const CHAVE_PIX = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; 
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Configuração do Certificado SSL
 const agentOptions = { rejectUnauthorized: false };
 if (CERTIFICADO_BASE64) {
     agentOptions.pfx = Buffer.from(CERTIFICADO_BASE64, 'base64');
@@ -19,10 +20,9 @@ if (CERTIFICADO_BASE64) {
 }
 const httpsAgent = new https.Agent(agentOptions);
 
-// 1. Função para pegar Token da Efí
 async function getEfiToken() {
     const credenciais = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const options = {
             hostname: 'pix.api.efipay.com.br',
             path: '/oauth/token',
@@ -37,20 +37,19 @@ async function getEfiToken() {
                 try { resolve(JSON.parse(data).access_token); } catch { resolve(null); }
             });
         });
-        req.on('error', (e) => { console.error(e); resolve(null); });
+        req.on('error', (e) => { console.error("Erro Auth:", e); resolve(null); });
         req.write(JSON.stringify({ grant_type: 'client_credentials' }));
         req.end();
     });
 }
 
-// 2. Função para Criar Cobrança Imediata
 async function criarCobranca(token, cpf, nome) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const dados = {
             calendario: { expiracao: 3600 },
             devedor: { cpf: cpf, nome: nome },
-            valor: { original: "1.00" }, // VALOR FIXO R$ 1,00
-            chave: CHAVE_PIX // Sua chave Pix
+            valor: { original: "1.00" },
+            chave: CHAVE_PIX
         };
         
         const options = {
@@ -68,15 +67,14 @@ async function criarCobranca(token, cpf, nome) {
                 try { resolve(JSON.parse(data)); } catch { resolve(null); }
             });
         });
-        req.on('error', (e) => { console.error(e); resolve(null); });
+        req.on('error', (e) => { console.error("Erro Cob:", e); resolve(null); });
         req.write(JSON.stringify(dados));
         req.end();
     });
 }
 
-// 3. Função para Gerar QR Code
 async function gerarQRCode(token, locId) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const options = {
             hostname: 'pix.api.efipay.com.br',
             path: `/v2/loc/${locId}/qrcode`,
@@ -97,46 +95,49 @@ async function gerarQRCode(token, locId) {
 }
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).send('Método não permitido');
+    // Permite CORS para evitar bloqueios
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+    if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
     try {
-        // Recebe os dados do index.html (INCLUINDO AS NOTAS)
         const { nome, email, cpf, qi_score, qe_score } = req.body;
 
-        // Validação básica
-        if (!cpf || !nome) return res.status(400).json({ erro: 'Dados incompletos' });
+        if (!CHAVE_PIX || CHAVE_PIX === "SUA_CHAVE_PIX_AQUI") {
+            return res.status(500).json({ erro: 'Chave Pix não configurada no código.' });
+        }
 
-        // A. Autentica na Efí
+        // 1. Autenticação
         const token = await getEfiToken();
-        if (!token) return res.status(500).json({ erro: 'Falha na autenticação bancária' });
+        if (!token) return res.status(500).json({ erro: 'Falha ao conectar no Banco (Token).' });
 
-        // B. Cria a Cobrança
+        // 2. Cobrança
         const cobranca = await criarCobranca(token, cpf, nome);
-        if (!cobranca || !cobranca.txid) return res.status(500).json({ erro: 'Falha ao criar cobrança Pix', detalhe: cobranca });
+        if (!cobranca || !cobranca.txid) {
+            console.error("Erro Efí:", cobranca); // Mostra o erro real no log
+            return res.status(500).json({ erro: 'Erro ao criar cobrança.', detalhe: cobranca });
+        }
 
-        // C. Gera o QR Code
+        // 3. QR Code
         const qrcode = await gerarQRCode(token, cobranca.loc.id);
-        
-        // D. SALVA NO SUPABASE (AGORA COM AS NOTAS!)
-        const { error } = await supabase.from('leads').insert([
+
+        // 4. Salva no Supabase (Agora com as Notas!)
+        // O insert não usa 'await' bloqueante para garantir que o Pix apareça logo
+        supabase.from('leads').insert([
             {
                 nome: nome,
                 email: email,
-                whatsapp: cpf, // Usando CPF como ID/Whats provisório se quiser
+                whatsapp: cpf,
                 txid: cobranca.txid,
                 pix_copia_cola: qrcode.qrcode,
                 status_pagamento: 'aguardando',
-                qi_score: qi_score || 0, // Salva a nota QI
-                qe_score: qe_score || 0  // Salva a nota QE
+                qi_score: qi_score || 0,
+                qe_score: qe_score || 0
             }
-        ]);
+        ]).then(({ error }) => {
+            if (error) console.error("Erro ao salvar no banco (mas Pix foi gerado):", error);
+        });
 
-        if (error) {
-            console.error("Erro Supabase:", error);
-            // Mesmo se der erro no banco, retornamos o Pix para não perder a venda
-        }
-
-        // Retorna para o front-end
         return res.status(200).json({
             txid: cobranca.txid,
             copia_cola: qrcode.qrcode,
@@ -144,7 +145,7 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error("Erro Geral:", error);
-        return res.status(500).json({ erro: 'Erro interno no servidor' });
+        console.error("Erro Crítico:", error);
+        return res.status(500).json({ erro: error.message });
     }
-                                  }
+}
