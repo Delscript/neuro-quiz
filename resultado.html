@@ -10,17 +10,14 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        
-        /* Estilo da Assinatura Ajustado */
+        /* Updated signature font and style */
         .assinatura {
             font-family: 'Allura', cursive;
-            font-size: 2.5rem; /* Tamanho ideal */
-            color: #1e3a8a; /* Azul escuro */
+            font-size: 3.5rem; /* Increased font size */
+            color: #1e3a8a; /* Dark blue color */
             transform: rotate(-2deg);
             line-height: 1;
-            margin-bottom: 0.5rem;
         }
-
         .marca-dagua {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg);
             font-size: 80px; color: rgba(0,0,0,0.03); font-weight: 900; white-space: nowrap; pointer-events: none;
@@ -107,7 +104,7 @@
                     <p class="text-xs text-gray-400 mt-1">Certificado de Autoconhecimento<br>ID: <span id="txid-display"></span></p>
                 </div>
                 <div class="text-right">
-                    <div class="assinatura">Anderson Dias</div>
+                    <div class="assinatura mb-2">Anderson Dias</div>
                     <div class="h-px w-40 bg-gray-400 ml-auto mb-1"></div>
                     <p class="text-xs text-gray-500 font-bold uppercase">Criado por Anderson Dias</p>
                     <p class="text-[10px] text-gray-400">CEO & Founder SierComp4ny</p>
@@ -135,7 +132,7 @@
         document.getElementById('txid-display').innerText = txid ? txid.slice(0, 8) + '...' : 'N/A';
         document.getElementById('data-hoje').innerText = new Date().toLocaleDateString();
 
-        // TEXTOS DOS PERFIS
+        // TEXTOS DO PERFIL
         const perfis = {
             visionario: {
                 titulo: "O Visionário (Potência Expansiva)",
@@ -173,7 +170,7 @@
 
         async function carregarRelatorio() {
             if (!txid) {
-                alert("Link inválido.");
+                alert("Link inválido. Faça o teste novamente.");
                 return;
             }
 
@@ -183,20 +180,19 @@
                 const data = await response.json();
 
                 if (data.status === 'pago') {
-                    // SE AS NOTAS VIEREM VAZIAS (ERRO DO FANTASMA), FORÇA ZERO PARA NÃO QUEBRAR
                     renderizar(data.qi || 0, data.qe || 0);
                 } else {
-                    document.getElementById('loading').innerHTML = '<h2 class="text-xl p-4 text-center">Pagamento não confirmado ou em processamento.<br>Atualize a página em alguns segundos.</h2>';
+                    document.getElementById('loading').innerHTML = '<h2 class="text-xl">Pagamento não confirmado. <br>Atualize a página após pagar.</h2>';
                 }
             } catch (error) {
                 console.error(error);
-                alert("Erro ao carregar dados.");
+                alert("Erro ao carregar.");
             }
         }
 
         function renderizar(qi, qe) {
             // Define o perfil
-            let p = perfis.analista; 
+            let p = perfis.analista; // Padrão
             if (qi >= 6 && qe >= 6) p = perfis.visionario;
             else if (qi >= 6 && qe < 6) p = perfis.tecnico;
             else if (qi < 6 && qe >= 6) p = perfis.diplomata;
@@ -211,16 +207,16 @@
             document.getElementById('texto-acao').innerText = p.acao;
             document.getElementById('texto-frase').innerText = p.frase;
 
-            // Mostra a tela e botões
+            // Mostra a tela e os botões
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('relatorio').classList.remove('hidden');
             document.getElementById('btn-download').classList.remove('hidden');
-            document.getElementById('btn-whatsapp').classList.remove('hidden');
+            document.getElementById('btn-whatsapp').classList.remove('hidden'); // Mostra o botão do WhatsApp
         }
 
         function gerarPDF() {
             const element = document.getElementById('relatorio');
-            // Esconde botões antes do Print
+            // Oculta os botões flutuantes antes de gerar o PDF
             document.getElementById('btn-download').classList.add('hidden');
             document.getElementById('btn-whatsapp').classList.add('hidden');
 
@@ -233,7 +229,7 @@
             };
             
             html2pdf().set(opt).from(element).save().then(() => {
-                // Volta os botões
+                // Mostra os botões novamente após gerar o PDF
                 document.getElementById('btn-download').classList.remove('hidden');
                 document.getElementById('btn-whatsapp').classList.remove('hidden');
             });
