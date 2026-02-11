@@ -226,11 +226,16 @@
 
         gerarPix: async () => {
             try {
-                // ATENÇÃO: Isso requer que você tenha criado o arquivo /api/pix.js no seu projeto Vercel
+                // Envia EMAIL + VALOR + NOTAS (QI/QE) tudo junto
                 const res = await fetch('/api/pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: _quizApp.dados.email, valor: 1.00 })
+                    body: JSON.stringify({ 
+                        email: _quizApp.dados.email, 
+                        valor: 1.00,
+                        qi: _quizApp.dados.qi, // Enviando nota
+                        qe: _quizApp.dados.qe  // Enviando nota
+                    })
                 });
 
                 if(!res.ok) throw new Error("Falha na API de Pagamento");
@@ -238,6 +243,31 @@
                 const data = await res.json();
                 
                 if(!data.qrcode_base64 && !data.img) throw new Error("QR Code não recebido");
+
+                const imagemQr = data.qrcode_base64 || data.img;
+                
+                document.getElementById('area-qr').innerHTML = `
+                    <img src="${imagemQr}" style="width:200px; margin:0 auto; display:block; border-radius:8px;">
+                    <p style="font-size:0.8rem; margin:10px 0;">Copie e cole no app do banco:</p>
+                    <textarea style="width:100%; font-size:0.7rem; background:#eee; border:none; padding:10px; border-radius:5px;" rows="3" readonly>${data.copia_cola || data.code}</textarea>
+                    <button class="botao-acao" style="background:#333; margin-top:10px;" onclick="navigator.clipboard.writeText('${data.copia_cola || data.code}');alert('Código Pix copiado!')">Copiar Código Pix</button>
+                    <div style="font-size:0.7rem; color:#999; margin-top:15px;">ID Transação: ${data.txid}</div>
+                    <p style="margin-top:10px; font-size:0.9rem; color:#2563eb; font-weight:bold;">⏳ Aguardando confirmação...</p>
+                `;
+                _quizApp.mostrarTela('tela-pagamento');
+
+                _quizApp.monitorarPagamento(data.txid);
+
+            } catch(e) {
+                console.error(e);
+                _quizApp.mostrarTela('tela-pagamento');
+                document.getElementById('area-qr').innerHTML = `
+                    <p style="color:red">⚠️ Erro ao gerar Pix.</p>
+                    <p style="font-size:0.8rem">${e.message}</p>
+                    <button class="botao-acao" onclick="_quizApp.gerarPix()">Tentar Novamente</button>
+                `;
+            }
+        },
 
                 // Renderiza o Pix
                 const imagemQr = data.qrcode_base64 || data.img; // Suporta formatos diferentes de API
