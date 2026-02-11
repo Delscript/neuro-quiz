@@ -12,7 +12,6 @@
         h1 { color: #0f172a; font-size: 1.8rem; }
         .botao-acao { display: block; width: 100%; padding: 16px; background: var(--cor-principal); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.2s; }
         .botao-acao:active { transform: scale(0.98); }
-        .botao-acao:disabled { background: #ccc; cursor: not-allowed; }
         input { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; margin-top: 10px; box-sizing: border-box; font-size: 1rem; }
         
         /* Telas */
@@ -125,7 +124,7 @@
         if (_URL_BANCO && _CHAVE_BANCO && !_URL_BANCO.includes("SUA_URL") && window.supabase) {
             _clienteSupabase = window.supabase.createClient(_URL_BANCO, _CHAVE_BANCO);
         } else {
-            console.warn("Supabase não configurado. Os leads não serão salvos, mas o quiz funcionará.");
+            console.warn("Supabase não configurado corretamente. O salvamento no banco será ignorado.");
         }
     } catch (e) { console.error("Erro Supabase:", e); }
 
@@ -161,11 +160,11 @@
             
             _quizApp.dados.email = email;
             
-            // Salva o lead inicial
+            // Tenta salvar, mas não bloqueia se der erro
             if(_clienteSupabase) {
                 try {
                     await _clienteSupabase.from('leads').insert([{ email: email, status_pagamento: 'aguardando' }]);
-                } catch(e) { console.log("Erro ao salvar lead (banco off?):", e); }
+                } catch(e) { console.log("Erro banco (segue o jogo):", e); }
             }
             
             document.getElementById('total-perguntas').innerText = _quizApp.perguntas.length;
@@ -187,7 +186,6 @@
                 btn.className = 'opcao-quiz';
                 btn.innerText = opt;
                 btn.onclick = () => {
-                    // Lógica de pontuação simples
                     if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
                     _quizApp.dados.idx++;
                     _quizApp.renderizar();
@@ -208,17 +206,14 @@
             _quizApp.dados.perfil = _TEXTOS_PERFIL[chave];
             document.getElementById('preview-perfil').innerText = _quizApp.dados.perfil.titulo;
 
-            // Atualiza pontuação no Supabase
             if(_clienteSupabase) {
                 try {
-                    // Nota: O ideal é atualizar pelo ID retornado no insert, mas email serve para teste
                     await _clienteSupabase.from('leads')
                         .update({ qi_score: _quizApp.dados.qi, qe_score: _quizApp.dados.qe })
                         .eq('email', _quizApp.dados.email);
                 } catch(e) { console.log("Erro ao atualizar lead:", e); }
             }
             
-            // Delay pequeno para simular processamento
             setTimeout(() => {
                 _quizApp.gerarPix();
             }, 1500);
@@ -233,8 +228,8 @@
                     body: JSON.stringify({ 
                         email: _quizApp.dados.email, 
                         valor: 1.00,
-                        qi: _quizApp.dados.qi, // Enviando nota
-                        qe: _quizApp.dados.qe  // Enviando nota
+                        qi: _quizApp.dados.qi,
+                        qe: _quizApp.dados.qe 
                     })
                 });
 
@@ -269,39 +264,11 @@
             }
         },
 
-                // Renderiza o Pix
-                const imagemQr = data.qrcode_base64 || data.img; // Suporta formatos diferentes de API
-                
-                document.getElementById('area-qr').innerHTML = `
-                    <img src="${imagemQr}" style="width:200px; margin:0 auto; display:block; border-radius:8px;">
-                    <p style="font-size:0.8rem; margin:10px 0;">Copie e cole no app do banco:</p>
-                    <textarea style="width:100%; font-size:0.7rem; background:#eee; border:none; padding:10px; border-radius:5px;" rows="3" readonly>${data.copia_cola || data.code}</textarea>
-                    <button class="botao-acao" style="background:#333; margin-top:10px;" onclick="navigator.clipboard.writeText('${data.copia_cola || data.code}');alert('Código Pix copiado!')">Copiar Código Pix</button>
-                    <div style="font-size:0.7rem; color:#999; margin-top:15px;">ID Transação: ${data.txid}</div>
-                    <p style="margin-top:10px; font-size:0.9rem; color:#2563eb; font-weight:bold;">⏳ Aguardando confirmação...</p>
-                `;
-                _quizApp.mostrarTela('tela-pagamento');
-
-                // Inicia verificação
-                _quizApp.monitorarPagamento(data.txid);
-
-            } catch(e) {
-                console.error(e);
-                _quizApp.mostrarTela('tela-pagamento');
-                document.getElementById('area-qr').innerHTML = `
-                    <p style="color:red">⚠️ Erro ao gerar Pix.</p>
-                    <p style="font-size:0.8rem">${e.message}</p>
-                    <button class="botao-acao" onclick="_quizApp.gerarPix()">Tentar Novamente</button>
-                `;
-            }
-        },
-
         monitorarPagamento: (txid) => {
             if (window.loopVerificacao) clearInterval(window.loopVerificacao);
             
             window.loopVerificacao = setInterval(async () => {
                 try {
-                    // Requer arquivo /api/status.js na Vercel
                     const reqStatus = await fetch('/api/status?txid=' + txid);
                     const jsonStatus = await reqStatus.json();
                     
@@ -314,7 +281,7 @@
                 } catch (erroLoop) {
                     console.log("Aguardando...");
                 }
-            }, 3000); // Verifica a cada 3 segundos
+            }, 3000); 
         },
 
         mostrarResultado: () => {
