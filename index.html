@@ -160,7 +160,7 @@
             
             _quizApp.dados.email = email;
             
-            // Tenta salvar, mas não bloqueia se der erro
+            // Tenta salvar o lead inicial (se Supabase estiver configurado)
             if(_clienteSupabase) {
                 try {
                     await _clienteSupabase.from('leads').insert([{ email: email, status_pagamento: 'aguardando' }]);
@@ -205,7 +205,9 @@
             
             _quizApp.dados.perfil = _TEXTOS_PERFIL[chave];
             document.getElementById('preview-perfil').innerText = _quizApp.dados.perfil.titulo;
-
+            
+            // Tenta atualizar a pontuação no banco (se Supabase estiver configurado)
+            // OBS: Se isso falhar, o pix.js fará o backup
             if(_clienteSupabase) {
                 try {
                     await _clienteSupabase.from('leads')
@@ -222,6 +224,7 @@
         gerarPix: async () => {
             try {
                 // Envia EMAIL + VALOR + NOTAS (QI/QE) tudo junto
+                // Isso garante que a API salve as notas mesmo se o front falhar
                 const res = await fetch('/api/pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
