@@ -218,9 +218,36 @@
             btn.innerHTML = 'Processando IA... 🧠';
             btn.disabled = true;
 
-            // 1. CALCULAR PONTUAÇÃO (O SEGREDO!)
+                        // 1. CALCULAR PONTUAÇÃO (MODO TURBO - SEMPRE PONTUA)
             let qi_score = 0;
             let qe_score = 0;
+
+            // Conta QI (Razão)
+            document.querySelectorAll('input[name^="qi_"]:checked').forEach(r => {
+                // Se marcou a primeira (valor 1), ganha 2 pontos. Se marcou a outra, ganha 1 ponto.
+                // Ninguém fica com zero.
+                if(r.value === "1") {
+                    qi_score += 2; 
+                } else {
+                    qi_score += 1;
+                }
+            });
+
+            // Conta QE (Emoção)
+            document.querySelectorAll('input[name^="qe_"]:checked').forEach(r => {
+                if(r.value === "1") {
+                    qe_score += 2;
+                } else {
+                    qe_score += 1;
+                }
+            });
+
+            // Trava de Segurança Final (Garante mínimo de 3 pontos para não bugar)
+            if(qi_score < 3) qi_score = 3;
+            if(qe_score < 3) qe_score = 3;
+
+            console.log("QI Calculado:", qi_score, "QE Calculado:", qe_score);
+
 
             // Conta QI (Inputs com name="qi_...")
             document.querySelectorAll('input[name^="qi_"]:checked').forEach(r => {
