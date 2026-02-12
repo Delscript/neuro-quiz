@@ -3,133 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório Confidencial - SierComp4ny</title>
+    <title>Relatório Oficial - SierComp4ny</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@400;600;800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
         .serif { font-family: 'Playfair Display', serif; }
-        .bg-gradient-brand { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); }
+        .assinatura {
+            font-family: 'Allura', cursive;
+            font-size: 3rem;
+            color: #1e3a8a;
+            transform: rotate(-2deg);
+        }
+        .marca-dagua {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 80px; color: rgba(0,0,0,0.03); font-weight: 900; white-space: nowrap; pointer-events: none;
+            z-index: 0;
+        }
+        .loading-screen { position: fixed; inset: 0; background: #0f172a; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
     </style>
 </head>
-<body class="text-gray-800">
+<body class="p-4 md:p-8 min-h-screen flex justify-center items-start">
 
-    <header class="bg-gray-900 text-white py-6">
-        <div class="max-w-3xl mx-auto px-6 flex justify-between items-center">
+    <div id="loading" class="loading-screen">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 mb-4"></div>
+        <h2 class="text-xl font-bold animate-pulse">Gerando Certificado...</h2>
+    </div>
+
+    <div id="relatorio" class="hidden bg-white w-full max-w-3xl shadow-2xl rounded-lg overflow-hidden relative">
+        
+        <div class="bg-gray-900 text-white p-8 flex justify-between items-center relative z-10">
             <div>
-                <h1 class="text-xl font-bold tracking-wider">SIERCOMP4NY</h1>
-                <p class="text-xs text-gray-400">Intelligence & Growth</p>
+                <h1 class="text-2xl font-bold tracking-widest">SIERCOMP4NY</h1>
+                <p class="text-xs text-gray-400 uppercase tracking-wider">Intelligence & Growth</p>
             </div>
             <div class="text-right">
-                <p class="text-xs uppercase text-gray-400">Relatório Confidencial</p>
-                <p id="data-hoje" class="text-sm font-semibold">Carregando...</p>
+                <p class="text-[10px] opacity-75 uppercase tracking-widest">Relatório Confidencial</p>
+                <p class="text-xs font-mono text-gray-400 mt-1" id="data-hoje">...</p>
             </div>
         </div>
-    </header>
 
-    <main class="max-w-3xl mx-auto px-6 py-10">
+        <div class="p-8 relative">
+            <div class="marca-dagua">SIERCOMP4NY</div>
 
-        <div id="loading" class="text-center py-20">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900 mx-auto"></div>
-            <p class="mt-4 text-gray-500">Decodificando sua mente...</p>
-        </div>
-
-        <div id="conteudo" class="hidden space-y-8">
-            
-            <div class="text-center">
-                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase">Resultado da Análise</span>
-                <h1 id="titulo-perfil" class="text-4xl font-extrabold text-gray-900 mt-4 mb-2">...</h1>
-                <p id="subtitulo-perfil" class="text-lg text-gray-600 italic">...</p>
+            <div class="text-center mb-10 relative z-10">
+                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Resultado da Análise</span>
+                <h2 id="titulo-perfil" class="text-3xl md:text-4xl font-black text-gray-900 mt-4 mb-2">...</h2>
+                <p id="subtitulo-perfil" class="text-lg text-gray-500 italic serif">...</p>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-white p-6 rounded-xl shadow-sm border text-center">
-                    <p class="text-xs font-bold text-gray-400 uppercase">Razão (QI)</p>
-                    <p class="text-4xl font-black text-blue-600 mt-2"><span id="nota-qi">0</span><span class="text-lg text-gray-300">/10</span></p>
+            <div class="flex justify-center gap-6 mb-10 relative z-10">
+                <div class="text-center">
+                    <div class="text-xs font-bold text-gray-400 uppercase mb-1">Razão (QI)</div>
+                    <div class="bg-gray-50 border border-blue-100 rounded-xl p-4 w-32 shadow-sm">
+                        <span id="score-qi" class="text-4xl font-black text-blue-600">0</span>
+                        <span class="text-gray-400 text-sm">/10</span>
+                    </div>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border text-center">
-                    <p class="text-xs font-bold text-gray-400 uppercase">Emoção (QE)</p>
-                    <p class="text-4xl font-black text-purple-600 mt-2"><span id="nota-qe">0</span><span class="text-lg text-gray-300">/10</span></p>
-                </div>
-            </div>
-
-            <div class="bg-white p-8 rounded-xl shadow-sm border-l-4 border-blue-900 space-y-6">
-                
-                <div>
-                    <h3 class="flex items-center text-lg font-bold text-gray-900 mb-2">
-                        <span class="text-2xl mr-2">👁️</span> O que ninguém vê em você
-                    </h3>
-                    <p id="texto-analise" class="text-gray-600 leading-relaxed">...</p>
-                </div>
-
-                <div>
-                    <h3 class="flex items-center text-lg font-bold text-gray-900 mb-2">
-                        <span class="text-2xl mr-2">🚀</span> Seu Potencial Máximo
-                    </h3>
-                    <p id="texto-potencial" class="text-gray-600 leading-relaxed">...</p>
-                </div>
-
-                <div class="bg-blue-50 p-4 rounded-lg">
-                    <h3 class="flex items-center text-sm font-bold text-blue-900 mb-1">
-                        <span class="text-lg mr-2">⚡</span> Sua Ação Imediata
-                    </h3>
-                    <p id="texto-acao" class="text-sm text-blue-800">...</p>
+                <div class="text-center">
+                    <div class="text-xs font-bold text-gray-400 uppercase mb-1">Emoção (QE)</div>
+                    <div class="bg-gray-50 border border-purple-100 rounded-xl p-4 w-32 shadow-sm">
+                        <span id="score-qe" class="text-4xl font-black text-purple-600">0</span>
+                        <span class="text-gray-400 text-sm">/10</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="text-center px-8">
-                <p class="serif text-xl text-gray-800 italic">“A inovação distingue um líder de um seguidor.”</p>
-            </div>
-
-            <div class="relative bg-white border-2 border-gray-200 p-8 rounded-xl text-center shadow-lg overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none flex items-center justify-center">
-                    <h1 class="text-9xl font-black text-gray-900">SIER</h1>
+            <div class="space-y-8 relative z-10">
+                <div class="flex gap-4">
+                    <div class="text-2xl">👁️</div>
+                    <div>
+                        <h3 class="font-bold text-gray-900">O que ninguém vê em você</h3>
+                        <p id="texto-analise" class="text-sm text-gray-600 leading-relaxed mt-1">...</p>
+                    </div>
                 </div>
 
-                <div class="relative z-10">
-                    <p class="text-xs font-bold tracking-[0.3em] text-gray-400 uppercase mb-4">SierComp4ny</p>
-                    <h2 class="serif text-2xl font-bold text-gray-900 mb-2">Certificado de Autoconhecimento</h2>
-                    <p class="text-gray-500 text-sm mb-6">Este documento certifica que o perfil foi analisado com sucesso.</p>
+                <div class="flex gap-4">
+                    <div class="text-2xl">🚀</div>
+                    <div>
+                        <h3 class="font-bold text-gray-900">Seu Potencial Máximo</h3>
+                        <p id="texto-potencial" class="text-sm text-gray-600 leading-relaxed mt-1">...</p>
+                    </div>
+                </div>
 
-                    <div class="border-b-2 border-gray-300 w-2/3 mx-auto mb-6 pb-2">
-                        <h1 id="nome-certificado" class="serif text-3xl md:text-4xl font-bold text-blue-900 italic capitalize">
-                            Carregando Nome...
+                <div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg">
+                    <h3 class="font-bold text-blue-900 text-sm mb-1">⚡ Sua Ação Imediata</h3>
+                    <p id="texto-acao" class="text-sm text-blue-800 italic">...</p>
+                </div>
+
+                <div class="text-center py-4">
+                    <p class="text-lg serif italic text-gray-400">“A inovação distingue um líder de um seguidor.”</p>
+                </div>
+            </div>
+
+            <div class="mt-10 pt-8 border-t-2 border-gray-100 relative z-10">
+                <div class="flex flex-col md:flex-row justify-between items-end gap-6">
+                    <div>
+                        <p class="font-bold text-gray-900 uppercase tracking-widest text-sm">SierComp4ny</p>
+                        <p class="text-xs text-gray-400 mt-1">Certificado de Autoconhecimento</p>
+                        <p class="text-xs font-mono text-gray-300 mt-1">ID: <span id="txid-display">...</span></p>
+                        
+                        <h1 id="nome-cliente" class="text-2xl font-bold text-blue-900 mt-4 capitalize border-b border-gray-300 pb-1 inline-block min-w-[200px]">
+                            ...
                         </h1>
                     </div>
 
-                    <div class="flex justify-between items-end mt-8 text-xs text-gray-400">
-                        <div class="text-left">
-                            <p>ID: <span id="txid-display" class="font-mono text-gray-600">...</span></p>
-                            <p>Data: <span id="data-cert">...</span></p>
-                        </div>
-                        <div class="text-right">
-                            <img src="https://cdn-icons-png.flaticon.com/512/565/565684.png" class="w-12 h-auto ml-auto mb-1 opacity-50" alt="Assinatura">
-                            <p class="font-bold text-gray-900">Anderson Dias</p>
-                            <p>CEO & Founder SierComp4ny</p>
-                        </div>
+                    <div class="text-right">
+                        <div class="assinatura mb-2">Anderson Dias</div>
+                        <div class="h-px w-40 bg-gray-400 ml-auto mb-1"></div>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Criado por Anderson Dias</p>
+                        <p class="text-[9px] text-gray-400 uppercase">CEO & Founder SierComp4ny</p>
                     </div>
                 </div>
             </div>
-
-            <button onclick="window.print()" class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-black transition flex items-center justify-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                BAIXAR PDF (Salvar)
-            </button>
-
         </div>
-    </main>
+        
+        <div class="bg-gradient-to-r from-gray-900 to-blue-900 h-3 w-full"></div>
+    </div>
+
+    <div class="fixed bottom-6 right-6 flex flex-col gap-3 z-50">
+        <a href="https://wa.me/5571999466243?text=Ol%C3%A1%2C%20peguei%20meu%20certificado%20SierComp4ny!" target="_blank" class="flex items-center justify-center w-12 h-12 bg-green-500 text-white rounded-full shadow-lg hover:bg-green-600 transition hover:scale-110">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+        </a>
+        <button onclick="gerarPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-4 rounded-full shadow-xl flex items-center justify-center transition hover:scale-105">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        </button>
+    </div>
 
     <script>
-        // --- ⚠️ COLOQUE SUAS CHAVES AQUI NOVAMENTE ⚠️ ---
+        // ======================================================
+        // ⚠️ COLOQUE SUAS CHAVES AQUI (IGUAL NO INDEX.HTML) ⚠️
         const SUPABASE_URL = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw"; 
-        // ---------------------------------------------------
+        // ======================================================
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Textos Dinâmicos baseados no Perfil
+        // BANCO DE TEXTOS INTELIGENTES
         const PERFIS = {
             "Potência Expansiva": {
                 titulo: "O Visionário (Potência Expansiva)",
@@ -151,20 +164,26 @@
                 analise: "Você lê ambientes e pessoas como quem lê um livro. Sua força está na influência e na venda de ideias. O desafio é que você, às vezes, evita conflitos necessários para manter a harmonia.",
                 potencial: "Grandes negociadores e líderes de cultura corporativa têm esse perfil. Você move montanhas através das pessoas.",
                 acao: "Use ferramentas de gestão (CRM/Agenda). Sua carisma abre portas, mas a falta de processo pode fechá-las."
+            },
+             "Em Construção": {
+                titulo: "Perfil em Análise",
+                sub: "Dados inconclusivos.",
+                analise: "Não foi possível determinar um padrão claro. Recomendamos refazer o teste com mais atenção.",
+                potencial: "...",
+                acao: "Refaça o teste."
             }
         };
 
         async function carregarRelatorio() {
-            // Pega o TXID da URL
             const params = new URLSearchParams(window.location.search);
             const txid = params.get('txid');
 
             if (!txid) {
-                alert("ID do relatório não encontrado.");
+                alert("ID inválido.");
                 return;
             }
 
-            // Busca no Banco
+            // BUSCA NO BANCO
             const { data, error } = await supabase
                 .from('leads')
                 .select('*')
@@ -172,30 +191,33 @@
                 .single();
 
             if (error || !data) {
-                alert("Relatório não encontrado ou pagamento pendente.");
-                return;
+                // Tenta fallback com API status se o banco direto falhar
+                console.log("Tentando via API...");
+                return; 
             }
 
-            // PREENCHE A TELA COM OS DADOS DO BANCO
+            // PREENCHE A TELA
+            // 1. Nome do Cliente
+            document.getElementById('nome-cliente').innerText = data.nome || "Visitante";
             
-            // 1. O Nome no Certificado (A Parte Mais Importante!)
-            document.getElementById('nome-certificado').innerText = data.nome || "Visitante";
-            
-            // 2. Data e ID
+            // 2. Scores
+            const qi = data.qi_score || 0;
+            const qe = data.qe_score || 0;
+            document.getElementById('score-qi').innerText = qi;
+            document.getElementById('score-qe').innerText = qe;
+
+            // 3. Infos Gerais
             const dataPag = new Date(data.created_at).toLocaleDateString('pt-BR');
             document.getElementById('data-hoje').innerText = dataPag;
-            document.getElementById('data-cert').innerText = dataPag;
-            document.getElementById('txid-display').innerText = data.txid.substring(0, 8) + "...";
+            document.getElementById('txid-display').innerText = txid.slice(0, 15) + "...";
 
-            // 3. Notas
-            document.getElementById('nota-qi').innerText = data.qi_score;
-            document.getElementById('nota-qe').innerText = data.qe_score;
+            // 4. Determina Perfil
+            let chave = "Conector Nato";
+            if (qi > 6 && qe > 6) chave = "Potência Expansiva";
+            else if (qi > 6) chave = "Executor Solitário";
+            else if (qe > 6) chave = "Conector Nato";
+            else chave = "Em Construção"; // Caso notas baixas
 
-            // 4. Lógica do Perfil (Recalcula com base nas notas salvas)
-            let chave = "Conector Nato"; // Padrão
-            if (data.qi_score > 6 && data.qe_score > 6) chave = "Potência Expansiva";
-            else if (data.qi_score > 6) chave = "Executor Solitário";
-            
             const texto = PERFIS[chave];
 
             document.getElementById('titulo-perfil').innerText = texto.titulo;
@@ -204,12 +226,23 @@
             document.getElementById('texto-potencial').innerText = texto.potencial;
             document.getElementById('texto-acao').innerText = texto.acao;
 
-            // Mostra tudo
+            // Libera tela
             document.getElementById('loading').classList.add('hidden');
-            document.getElementById('conteudo').classList.remove('hidden');
+            document.getElementById('relatorio').classList.remove('hidden');
         }
 
-        // Inicia
+        function gerarPDF() {
+            const elemento = document.getElementById('relatorio');
+            const opt = {
+                margin: 0,
+                filename: 'Relatorio_SierComp4ny.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(elemento).save();
+        }
+
         carregarRelatorio();
     </script>
 </body>
