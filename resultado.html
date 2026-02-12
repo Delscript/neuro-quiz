@@ -45,38 +45,44 @@
             z-index: -100;
         }
 
-        /* --- MÁGICA DO LAYOUT HÍBRIDO --- */
-        /* Na tela é coluna, mas no PDF vira linha para aproveitar a largura */
-        .modo-pdf .layout-inteligente {
+        /* --- ORGANIZAÇÃO INTELIGENTE --- */
+        
+        /* Área Central: No Celular é coluna, no PDF é linha */
+        .modo-pdf .area-central {
             display: flex !important;
             flex-direction: row !important;
             align-items: flex-start;
             gap: 40px;
-            padding: 0 40px; /* Margem lateral interna */
+            padding: 0 40px;
+            margin-bottom: 20px;
         }
 
-        /* Coluna da Esquerda no PDF (Notas) */
-        .modo-pdf .coluna-esquerda {
+        /* Coluna Esquerda (Notas) */
+        .modo-pdf .coluna-notas {
             width: 30% !important;
-            text-align: center;
             padding-top: 20px;
         }
-
-        /* Coluna da Direita no PDF (Textos) */
-        .modo-pdf .coluna-direita {
+        /* Coluna Direita (Textos) */
+        .modo-pdf .coluna-textos {
             width: 70% !important;
         }
 
-        /* Ajuste do rodapé fixo para Paisagem */
+        /* Área Inferior (Certificado) - Sempre no fundo */
+        .modo-pdf .area-certificado {
+            position: absolute;
+            bottom: 30px; /* Fica preso no fundo da folha */
+            left: 0;
+            width: 100%;
+            padding-bottom: 20px;
+        }
+
+        /* Rodapé colorido */
         .modo-pdf .rodape-fixo {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
         }
-        
-        /* Esconde elementos desnecessários no PDF para ganhar espaço */
-        .modo-pdf .hide-on-pdf { display: none !important; }
     </style>
 </head>
 <body class="p-4 md:p-8 min-h-screen flex justify-center items-start">
@@ -87,7 +93,7 @@
         <p id="msg-erro" class="text-red-400 mt-4 text-sm hidden"></p>
     </div>
 
-    <div id="relatorio" class="hidden bg-white w-full max-w-3xl shadow-2xl rounded-lg overflow-hidden relative min-h-[800px]">
+    <div id="relatorio" class="hidden bg-white w-full max-w-3xl shadow-2xl rounded-lg overflow-hidden relative min-h-[900px]">
         
         <div class="bg-gray-900 text-white p-6 flex justify-between items-start relative z-10">
             <div>
@@ -102,7 +108,8 @@
             </div>
         </div>
 
-        <div class="relative pt-6 pb-16"> <div class="marca-dagua">SIERCOMP4NY</div>
+        <div class="relative pt-6 pb-4"> 
+            <div class="marca-dagua">SIERCOMP4NY</div>
 
             <div class="text-center mb-6 relative z-10">
                 <span class="bg-blue-50 text-blue-900 text-[10px] font-bold px-2 py-1 rounded border border-blue-100 uppercase tracking-wide">Resultado da Análise</span>
@@ -110,10 +117,11 @@
                 <p id="subtitulo-perfil" class="text-md text-gray-500 italic serif">...</p>
             </div>
 
-            <div class="layout-inteligente flex flex-col gap-6 px-8">
+            <div class="area-central flex flex-col gap-6 px-8">
                 
-                <div class="coluna-esquerda w-full relative z-10">
-                    <div class="flex justify-center gap-4 mb-4 modo-pdf-block"> <div class="text-center mb-4">
+                <div class="coluna-notas w-full relative z-10">
+                    <div class="flex justify-center gap-4 mb-2"> 
+                        <div class="text-center">
                             <div class="text-[10px] font-bold text-gray-400 uppercase mb-1">Razão (QI)</div>
                             <div class="bg-gray-50 border border-gray-100 rounded-lg p-3 w-28 mx-auto">
                                 <span id="score-qi" class="text-3xl font-black text-blue-700">0</span>
@@ -128,17 +136,9 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="mt-8 pt-6 border-t border-gray-100 text-center hide-on-pdf-mobile">
-                        <p class="font-bold text-gray-900 uppercase tracking-[0.2em] text-[10px]">SierComp4ny</p>
-                        <p class="serif text-sm text-gray-600 mt-1 italic">Certificado Oficial</p>
-                        <p class="text-[9px] font-mono text-gray-300 mt-1 mb-2">ID: <span id="txid-display">...</span></p>
-                        <div class="assinatura mt-2">Anderson Dias</div>
-                        <p class="text-[8px] text-gray-400 uppercase mt-1">Founder SierComp4ny</p>
-                    </div>
                 </div>
 
-                <div class="coluna-direita w-full space-y-5 relative z-10">
+                <div class="coluna-textos w-full space-y-5 relative z-10">
                     <div class="flex gap-3">
                         <div class="text-xl mt-1">👁️</div>
                         <div>
@@ -168,16 +168,30 @@
                 </div>
             </div>
 
-            <div class="mt-4 text-center relative z-10 w-full px-8">
+            <div class="h-10 md:h-20"></div>
+
+            <div class="area-certificado text-center relative z-10 w-full px-8 mt-6">
                 <div class="border-t border-gray-100 pt-4 w-full"></div>
-                <h1 id="nome-cliente" class="text-3xl md:text-4xl font-bold text-blue-900 capitalize inline-block border-b-2 border-gray-100 pb-2 px-10">
+                
+                <p class="font-bold text-gray-900 uppercase tracking-[0.2em] text-[10px]">SierComp4ny</p>
+                <p class="serif text-sm text-gray-600 mt-1 italic">Certificado Oficial</p>
+                <p class="text-[9px] font-mono text-gray-300 mt-1 mb-2">ID: <span id="txid-display">...</span></p>
+
+                <h1 id="nome-cliente" class="text-3xl md:text-4xl font-bold text-blue-900 capitalize inline-block border-b-2 border-gray-100 pb-2 px-10 mb-4">
                     ...
                 </h1>
+
+                <div class="flex flex-col items-center justify-center">
+                    <div class="assinatura">Anderson Dias</div>
+                    <div class="h-px w-32 bg-gray-400 mt-2 mb-1"></div>
+                    <p class="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Criado por Anderson Dias</p>
+                    <p class="text-[8px] text-gray-400 uppercase mt-0.5">Dias Anderson • Founder & Lead Developer SierComp4ny</p>
+                </div>
             </div>
 
         </div>
         
-        <div class="rodape-fixo bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 h-4 w-full"></div>
+        <div class="rodape-fixo bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 h-4 w-full mt-8"></div>
     </div>
 
     <div class="fixed bottom-6 right-6 flex flex-col gap-3 z-50 no-print">
