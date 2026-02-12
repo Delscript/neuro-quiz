@@ -7,7 +7,8 @@ module.exports = async (req, res) => {
     const sbUrl = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
     const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
     // ---------------------------------------------------------
-1. Verificação de Segurança Básica
+
+    // 1. Verificação de Segurança Básica
     if (req.method !== 'POST') {
         return res.status(405).json({ erro: 'Método não permitido. Use POST.' });
     }
@@ -30,7 +31,7 @@ module.exports = async (req, res) => {
     };
 
     try {
-        // === CORREÇÃO AQUI: Agora estamos lendo TODOS os dados ===
+        // === MUDANÇA AQUI: Recebendo todos os dados ===
         const { email, valor, nome, telefone, qi, qe } = req.body;
         
         if (!valor) throw new Error('O valor do Pix é obrigatório.');
@@ -42,37 +43,32 @@ module.exports = async (req, res) => {
         const cobranca = await createCharge(token, valor, CREDENTIALS);
         const txid = cobranca.txid;
 
-        // C. Gera o desenho do QR Code (Puxamos pra cá para salvar o código no banco também)
-        const qr = await getQRCode(token, cobranca.loc.id, CREDENTIALS);
-
-       // D. SALVA NO SUPABASE (Modo Completo)
-       // Aqui estava o erro: antes só salvava email e txid. Agora salva tudo.
+       // C. SALVA NO SUPABASE (Com Nome, Zap e Notas)
         const { error: erroSupabase } = await supabase
             .from('leads')
-            .insert([{
-                nome: nome || 'Cliente Sem Nome', // Salva o Nome
-                email: email || 'sem_email',
-                whatsapp: telefone || null,       // Salva o Telefone na coluna whatsapp
-                qi_score: qi || 0,                // Salva Nota QI
-                qe_score: qe || 0,                // Salva Nota QE
+            .insert({
+                email: email || 'usuario_anonimo',
+                nome: nome || 'Sem Nome',
+                whatsapp: telefone || null,
+                qi_score: qi || 0,
+                qe_score: qe || 0,
                 txid: txid,
-                pix_copia_cola: qr.qrcode,        // Salva o código pix para segurança
-                status_pagamento: 'aguardando',
+                status_pagamento: 'aguardando', // Mudei de 'pendente' para 'aguardando' pra padronizar
                 created_at: new Date()
-            }]);
+            });
         
-        if (erroSupabase) {
-            console.error("Erro ao salvar no Supabase:", erroSupabase);
-            // Não paramos o código, pois o Pix foi gerado com sucesso
-        }
+        if (erroSupabase) console.error("Erro Supabase:", erroSupabase);
+
+        // D. Gera o desenho do QR Code
+        const qr = await getQRCode(token, cobranca.loc.id, CREDENTIALS);
 
         // E. Devolve tudo para o site
         return res.status(200).json({
             img: qr.imagemQrcode,
-            code: qr.qrcode, // 'copia e cola'
-            copia_cola: qr.qrcode, // garantindo compatibilidade com o front
-            txid: txid,
-            qrcode_base64: qr.imagemQrcode // garantindo compatibilidade
+            code: qr.qrcode,
+            qrcode_base64: qr.imagemQrcode, // Compatibilidade
+            copia_cola: qr.qrcode,          // Compatibilidade
+            txid: txid
         });
 
     } catch (error) {
@@ -81,7 +77,7 @@ module.exports = async (req, res) => {
     }
 };
 
-// --- FUNÇÕES AUXILIARES (NÃO MEXI EM NADA AQUI) ---
+// --- FUNÇÕES AUXILIARES (NÃO MEXA DAQUI PARA BAIXO) ---
 
 function getAgent(creds) {
     let certLimpo = creds.cert_base64 || "";
@@ -124,7 +120,7 @@ function createCharge(token, valor, creds) {
         const dataCob = JSON.stringify({
             calendario: { expiracao: 3600 },
             valor: { original: valor.toFixed(2) },
-            chave: "65e5f3c3-b7d1-4757-a955-d6fc20519dce", // SUA CHAVE ALEATÓRIA MANTIDA
+            chave: "65e5f3c3-b7d1-4757-a955-d6fc20519dce", // SUA CHAVE ALEATÓRIA
             solicitacaoPagador: "Avaliacao Neuro-Cognitiva"
         });
         const options = {
