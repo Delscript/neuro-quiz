@@ -18,7 +18,7 @@
         .serif { font-family: 'Playfair Display', serif; }
         .assinatura {
             font-family: 'Allura', cursive;
-            font-size: 2.2rem;
+            font-size: 1.0 rem; /* Ajustado para caber melhor */
             color: #1e3a8a;
             transform: rotate(-2deg);
             margin-bottom: -5px;
@@ -30,10 +30,10 @@
         }
         .loading-screen { position: fixed; inset: 0; background: #0f172a; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
         
-        /* CLASSE ESPECÍFICA PARA O PDF (FORÇA A4) */
+        /* MODO PDF A4 EXATO */
         .modo-pdf {
-            width: 794px !important; /* Largura exata A4 em pixels (96dpi) */
-            min-height: 1123px !important; /* Altura A4 */
+            width: 794px !important;
+            height: 1123px !important; /* Altura fixa A4 */
             margin: 0 !important;
             padding: 0 !important;
             border-radius: 0 !important;
@@ -42,7 +42,8 @@
             position: absolute;
             top: 0;
             left: 0;
-            z-index: -100; /* Fica escondido atrás */
+            z-index: -100;
+            overflow: hidden; /* Corta qualquer coisa que passar */
         }
     </style>
 </head>
@@ -56,10 +57,10 @@
 
     <div id="relatorio" class="hidden bg-white w-full max-w-3xl shadow-2xl rounded-lg overflow-hidden relative">
         
-        <div class="bg-gray-900 text-white p-6 flex justify-between items-start relative z-10">
+        <div class="bg-gray-900 text-white px-8 py-5 flex justify-between items-start relative z-10">
             <div>
                 <h1 class="text-xl font-bold tracking-widest">SIERCOMP4NY</h1>
-                <p class="text-[10px] text-gray-400 uppercase tracking-wider mt-1">
+                <p class="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">
                     Intelligence & <span class="text-orange-500 font-bold">Sier Growth</span>
                 </p>
             </div>
@@ -69,70 +70,68 @@
             </div>
         </div>
 
-        <div class="p-8 relative">
-            <div class="marca-dagua">SIERCOMP4NY</div>
+        <div class="px-8 py-6 relative"> <div class="marca-dagua">SIERCOMP4NY</div>
 
-            <div class="text-center mb-6 relative z-10">
-                <span class="bg-blue-50 text-blue-900 text-[10px] font-bold px-2 py-1 rounded border border-blue-100 uppercase tracking-wide">Resultado da Análise</span>
-                <h2 id="titulo-perfil" class="text-3xl font-black text-gray-900 mt-3 mb-1">...</h2>
-                <p id="subtitulo-perfil" class="text-md text-gray-500 italic serif">...</p>
+            <div class="text-center mb-5 relative z-10">
+                <span class="bg-blue-50 text-blue-900 text-[9px] font-bold px-2 py-0.5 rounded border border-blue-100 uppercase tracking-wide">Resultado da Análise</span>
+                <h2 id="titulo-perfil" class="text-3xl font-black text-gray-900 mt-2 mb-1">...</h2>
+                <p id="subtitulo-perfil" class="text-sm text-gray-500 italic serif">...</p>
             </div>
 
             <div class="flex justify-center gap-4 mb-6 relative z-10">
                 <div class="text-center">
-                    <div class="text-[10px] font-bold text-gray-400 uppercase mb-1">Razão (QI)</div>
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-2 w-24">
-                        <span id="score-qi" class="text-2xl font-black text-blue-700">0</span>
-                        <span class="text-gray-400 text-xs">/10</span>
+                    <div class="text-[9px] font-bold text-gray-400 uppercase mb-1">Razão (QI)</div>
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-2 w-20">
+                        <span id="score-qi" class="text-xl font-black text-blue-700">0</span>
+                        <span class="text-gray-400 text-[10px]">/10</span>
                     </div>
                 </div>
                 <div class="text-center">
-                    <div class="text-[10px] font-bold text-gray-400 uppercase mb-1">Emoção (QE)</div>
-                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-2 w-24">
-                        <span id="score-qe" class="text-2xl font-black text-purple-700">0</span>
-                        <span class="text-gray-400 text-xs">/10</span>
+                    <div class="text-[9px] font-bold text-gray-400 uppercase mb-1">Emoção (QE)</div>
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-2 w-20">
+                        <span id="score-qe" class="text-xl font-black text-purple-700">0</span>
+                        <span class="text-gray-400 text-[10px]">/10</span>
                     </div>
                 </div>
             </div>
 
-            <div class="space-y-5 relative z-10">
+            <div class="space-y-4 relative z-10">
                 <div class="flex gap-3">
-                    <div class="text-xl mt-1">👁️</div>
+                    <div class="text-lg mt-0.5">👁️</div>
                     <div>
-                        <h3 class="font-bold text-gray-900 text-sm">O que ninguém vê em você</h3>
-                        <p id="texto-analise" class="text-xs text-gray-600 leading-relaxed mt-1 text-justify">...</p>
+                        <h3 class="font-bold text-gray-900 text-xs">O que ninguém vê em você</h3>
+                        <p id="texto-analise" class="text-[11px] text-gray-600 leading-snug mt-0.5 text-justify">...</p>
                     </div>
                 </div>
                 <div class="flex gap-3">
-                    <div class="text-xl mt-1">🚀</div>
+                    <div class="text-lg mt-0.5">🚀</div>
                     <div>
-                        <h3 class="font-bold text-gray-900 text-sm">Seu Potencial Máximo</h3>
-                        <p id="texto-potencial" class="text-xs text-gray-600 leading-relaxed mt-1 text-justify">...</p>
+                        <h3 class="font-bold text-gray-900 text-xs">Seu Potencial Máximo</h3>
+                        <p id="texto-potencial" class="text-[11px] text-gray-600 leading-snug mt-0.5 text-justify">...</p>
                     </div>
                 </div>
-                <div class="bg-blue-50 border-l-2 border-orange-500 p-3 rounded-r-lg">
-                    <h3 class="font-bold text-blue-900 text-xs mb-1 flex items-center">
-                        <span class="mr-2">⚡</span> Sua Ação Imediata
+                <div class="bg-blue-50 border-l-2 border-orange-500 p-2.5 rounded-r-lg">
+                    <h3 class="font-bold text-blue-900 text-[11px] mb-0.5 flex items-center">
+                        <span class="mr-1.5">⚡</span> Sua Ação Imediata
                     </h3>
-                    <p id="texto-acao" class="text-xs text-blue-800 italic">...</p>
+                    <p id="texto-acao" class="text-[11px] text-blue-800 italic leading-snug">...</p>
                 </div>
-                <div class="text-center py-2">
-                    <p class="text-sm serif italic text-gray-400">“A inovação distingue um líder de um seguidor.”</p>
+                <div class="text-center py-1">
+                    <p class="text-xs serif italic text-gray-400">“A inovação distingue um líder de um seguidor.”</p>
                 </div>
             </div>
 
-            <div class="mt-6 pt-6 border-t border-gray-100 relative z-10 text-center">
-                <p class="font-bold text-gray-900 uppercase tracking-[0.2em] text-[10px]">SierComp4ny</p>
-                <p class="serif text-lg text-gray-600 mt-1 italic">Certificado de Autoconhecimento</p>
-                <p class="text-[10px] font-mono text-gray-300 mt-1 mb-4">ID: <span id="txid-display">...</span></p>
+            <div class="mt-5 pt-4 border-t border-gray-100 relative z-10 text-center">
+                <p class="font-bold text-gray-900 uppercase tracking-[0.2em] text-[9px]">SierComp4ny</p>
+                <p class="serif text-base text-gray-600 mt-0.5 italic">Certificado de Autoconhecimento</p>
+                <p class="text-[9px] font-mono text-gray-300 mt-0.5 mb-3">ID: <span id="txid-display">...</span></p>
                 
-                <h1 id="nome-cliente" class="text-3xl font-bold text-blue-900 capitalize mb-6 inline-block border-b border-gray-200 pb-2 px-8">...</h1>
+                <h1 id="nome-cliente" class="text-2xl font-bold text-blue-900 capitalize mb-4 inline-block border-b border-gray-200 pb-1 px-6">...</h1>
 
-                <div class="flex flex-col items-center justify-center mt-2">
+                <div class="flex flex-col items-center justify-center mt-1">
                     <div class="assinatura">Anderson Dias</div>
-                    <div class="h-px w-32 bg-gray-400 mt-2 mb-1"></div>
-                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Criado por Anderson Dias</p>
-                    <p class="text-[9px] text-gray-400 uppercase mt-0.5">Dias Anderson • Founder & Lead Developer SierComp4ny</p>
+                    <div class="h-px w-28 bg-gray-400 mt-1 mb-1"></div>
+                    <p class="text-[8px] text-gray-400 uppercase mt-0.5">Dias Anderson • Founder & Lead Developer SierComp4ny</p>
                 </div>
             </div>
         </div>
@@ -144,7 +143,6 @@
         <a href="https://wa.me/5571999466243?text=Ol%C3%A1%2C%20recebi%20meu%20relat%C3%B3rio!" target="_blank" class="hidden flex items-center justify-center w-12 h-12 bg-green-500 text-white rounded-full shadow-lg hover:bg-green-600 transition hover:scale-110" id="btn-whatsapp">
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
         </a>
-
         <button onclick="gerarPDF()" class="hidden bg-blue-900 hover:bg-black text-white font-bold p-3 rounded-full shadow-xl flex items-center justify-center transition hover:scale-105" id="btn-pdf">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
         </button>
@@ -205,7 +203,6 @@
                 document.getElementById('txid-display').innerText = txid.slice(0, 8);
                 document.getElementById('data-hoje').innerText = new Date(data.created_at).toLocaleDateString('pt-BR');
 
-                // Lógica de Perfil
                 const qi = data.qi_score || 0;
                 const qe = data.qe_score || 0;
                 let p = "Conector Nato";
@@ -221,7 +218,6 @@
                 document.getElementById('texto-potencial').innerText = txt.potencial;
                 document.getElementById('texto-acao').innerText = txt.acao;
 
-                // Mostra Tela
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('relatorio').classList.remove('hidden');
                 document.getElementById('btn-pdf').classList.remove('hidden');
@@ -235,20 +231,14 @@
             }
         }
 
-        // --- MÁGICA DO PDF V2 (CLONE PARA A4 EXATO) ---
         function gerarPDF() {
-            // 1. Clona o relatório original
             const elemento = document.getElementById('relatorio');
             const clone = elemento.cloneNode(true);
             
-            // 2. Aplica a classe de A4 no clone
             clone.classList.remove('hidden', 'max-w-3xl', 'shadow-2xl', 'rounded-lg');
             clone.classList.add('modo-pdf');
-            
-            // 3. Adiciona o clone na tela (invisível pro usuário, mas visível pro script)
             document.body.appendChild(clone);
 
-            // 4. Configurações Exatas (Margem Zero é o segredo)
             const opt = {
                 margin: 0,
                 filename: 'Relatorio_SierComp4ny.pdf',
@@ -257,7 +247,6 @@
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // 5. Gera, Salva e Destrói o Clone
             html2pdf().set(opt).from(clone).save().then(() => {
                 document.body.removeChild(clone);
             });
