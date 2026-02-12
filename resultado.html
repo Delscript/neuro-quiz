@@ -18,7 +18,7 @@
         .serif { font-family: 'Playfair Display', serif; }
         .assinatura {
             font-family: 'Allura', cursive;
-            font-size: 1.0 rem; /* Ajustado para caber melhor */
+            font-size: 2rem; /* Ajustado para caber melhor */
             color: #1e3a8a;
             transform: rotate(-2deg);
             margin-bottom: -5px;
@@ -30,10 +30,10 @@
         }
         .loading-screen { position: fixed; inset: 0; background: #0f172a; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
         
-        /* MODO PDF A4 EXATO */
+        /* MODO PDF A4 EXATO (AQUI ESTÁ A CORREÇÃO DE TAMANHO) */
         .modo-pdf {
-            width: 794px !important;
-            height: 1123px !important; /* Altura fixa A4 */
+            width: 794px !important; /* Largura A4 */
+            height: 1120px !important; /* Altura A4 levemente reduzida para garantir */
             margin: 0 !important;
             padding: 0 !important;
             border-radius: 0 !important;
@@ -43,7 +43,7 @@
             top: 0;
             left: 0;
             z-index: -100;
-            overflow: hidden; /* Corta qualquer coisa que passar */
+            overflow: hidden; /* Impede criar pagina 2 */
         }
     </style>
 </head>
@@ -131,6 +131,7 @@
                 <div class="flex flex-col items-center justify-center mt-1">
                     <div class="assinatura">Anderson Dias</div>
                     <div class="h-px w-28 bg-gray-400 mt-1 mb-1"></div>
+                    <p class="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Criado por Anderson Dias</p>
                     <p class="text-[8px] text-gray-400 uppercase mt-0.5">Dias Anderson • Founder & Lead Developer SierComp4ny</p>
                 </div>
             </div>
@@ -148,7 +149,7 @@
         </button>
     </div>
 
-    <script>
+     <script>
         // ======================================================
         // ⚠️ COLOQUE SUAS CHAVES AQUI ⚠️
         const SUPABASE_URL = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
@@ -231,6 +232,7 @@
             }
         }
 
+        // --- MÁGICA DO PDF V2 (CLONE PARA A4 EXATO) ---
         function gerarPDF() {
             const elemento = document.getElementById('relatorio');
             const clone = elemento.cloneNode(true);
