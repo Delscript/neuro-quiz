@@ -1,280 +1,170 @@
-            <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8"> 
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avaliação Neuro-Cognitiva</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>NeuroQuiz - Avaliação Oficial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --cor-principal: #2563eb; --fundo: #f8fafc; --texto: #1e293b; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--fundo); color: var(--texto); padding: 20px; text-align: center; margin: 0; }
-        .cx-container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { color: #0f172a; font-size: 1.8rem; }
-        .botao-acao { display: block; width: 100%; padding: 16px; background: var(--cor-principal); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.2s; }
-        .botao-acao:active { transform: scale(0.98); }
-        input { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; margin-top: 10px; box-sizing: border-box; font-size: 1rem; }
-        
-        /* Telas */
-        .tela-app { display: none; animation: aparecer 0.4s; }
-        .tela-app.ativa { display: block; }
-        @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Quiz */
-        .opcao-quiz { padding: 15px; border: 2px solid #f1f5f9; margin: 10px 0; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; font-weight: 500; }
-        .opcao-quiz:hover { background: #eff6ff; border-color: var(--cor-principal); }
-        .barra-fundo { width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 20px; }
-        .barra-progresso { height: 100%; background: var(--cor-principal); width: 0%; border-radius: 4px; transition: width 0.3s; }
-        .caixa-pix { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin: 20px 0; }
-
-        /* Relatório */
-        .box-relatorio { text-align: left; border: 2px solid #2563eb; padding: 20px; border-radius: 10px; background: #eff6ff; margin-top: 20px; }
-        .box-relatorio h2 { color: #2563eb; margin-top: 0; }
-        .box-relatorio h3 { color: #1e293b; margin-top: 15px; border-bottom: 1px solid #bfdbfe; padding-bottom: 5px; }
+        body { font-family: sans-serif; background-color: #f3f4f6; }
+        .hidden { display: none !important; }
+        .loading { opacity: 0.5; pointer-events: none; }
     </style>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800 p-4">
 
-<div class="cx-container">
-    
-    <div id="tela-inicio" class="tela-app ativa">
-        <h1>Avaliação Neuro-Cognitiva</h1>
-        <p>Descubra seu perfil exato de QI e QE e receba um plano de carreira.</p>
-        <div style="background: #ecfdf5; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #065f46; margin-bottom: 20px;">
-            🔒 Teste Oficial Sier Growth
-        </div>
-        <input type="email" id="email-usuario" placeholder="Seu melhor e-mail...">
-        <button class="botao-acao" onclick="_quizApp.iniciar()">Iniciar Avaliação</button>
-    </div>
-
-    <div id="tela-perguntas" class="tela-app">
-        <div class="barra-fundo"><div id="barra-progresso" class="barra-progresso"></div></div>
-        <p style="text-align: right; font-size: 0.8rem; color: #64748b;">Pergunta <span id="num-pergunta">1</span> de 19</p>
-        <h2 id="texto-pergunta" style="min-height: 50px;">...</h2>
-        <div id="area-opcoes"></div>
-    </div>
-
-    <div id="tela-carregando" class="tela-app">
-        <div style="font-size: 3rem; margin-bottom: 20px;">🧠</div>
-        <h2>Processando Respostas...</h2>
-        <p>Cruzando métricas de lógica e inteligência emocional...</p>
-    </div>
-
-    <div id="tela-pagamento" class="tela-app">
-        <h2 style="color: #10b981">Análise Concluída!</h2>
-        <p>Identificamos um perfil de alto potencial.</p>
-        
-        <div style="text-align: left; background: #fff; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-            <p><strong>Seu Perfil Base:</strong> <span id="preview-perfil">Calculando...</span></p>
-            <p style="filter: blur(4px); opacity: 0.5;">Sua capacidade de liderança é notável, porém a gestão de tempo...</p>
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden md:max-w-2xl mt-10 p-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-900">NeuroQuiz</h1>
+            <p class="text-gray-500">Descubra seu perfil comportamental</p>
         </div>
 
-        <h1 style="color: #2563eb; font-size: 2.5rem; margin: 10px 0;">R$ 1,00</h1>
-        
-        <div id="area-qr" class="caixa-pix">
-            <p>Gerando Pix Seguro...</p>
+        <div id="quiz-container">
+            <form id="formQuiz" class="space-y-6">
+                
+                <div>
+                    <p class="font-bold mb-2">1. Como você toma decisões?</p>
+                    <label class="flex items-center space-x-3 p-3 border rounded hover:bg-blue-50 cursor-pointer">
+                        <input type="radio" name="p1" value="A" required class="h-5 w-5 text-blue-600">
+                        <span>Baseado em Lógica e Fatos</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-3 border rounded hover:bg-blue-50 cursor-pointer mt-2">
+                        <input type="radio" name="p1" value="B" required class="h-5 w-5 text-blue-600">
+                        <span>Baseado em Intuição e Emoção</span>
+                    </label>
+                </div>
+
+                <div>
+                    <p class="font-bold mb-2">2. Em conflitos, você:</p>
+                    <label class="flex items-center space-x-3 p-3 border rounded hover:bg-blue-50 cursor-pointer">
+                        <input type="radio" name="p2" value="A" required class="h-5 w-5 text-blue-600">
+                        <span>Argumenta com razão</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-3 border rounded hover:bg-blue-50 cursor-pointer mt-2">
+                        <input type="radio" name="p2" value="B" required class="h-5 w-5 text-blue-600">
+                        <span>Tenta apaziguar os sentimentos</span>
+                    </label>
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <h3 class="font-bold text-blue-900 mb-3">Seus Dados</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="nome" placeholder="Nome Completo (Para o Certificado)" class="w-full p-3 border rounded" required>
+                        <input type="email" id="email" placeholder="Seu Melhor E-mail" class="w-full p-3 border rounded" required>
+                        <input type="tel" id="telefone" placeholder="WhatsApp / Celular" class="w-full p-3 border rounded" required>
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg text-lg transition duration-200">
+                    GERAR CERTIFICADO 🚀
+                </button>
+            </form>
         </div>
-        
-        <p style="font-size: 0.8rem; color: #64748b;">Relatório liberado automaticamente após pagamento.</p>
+
+        <div id="pagamento-container" class="hidden text-center">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Análise Concluída!</h2>
+            <p class="text-gray-600 mb-6">Taxa única para emissão do certificado.</p>
+
+            <div class="bg-gray-50 p-6 rounded-xl border-2 border-blue-500 mb-6">
+                <p class="text-4xl font-black text-blue-600 my-2">R$ 1,00</p>
+                
+                <div id="qr-loading" class="text-sm text-gray-500 py-4">Gerando Pix...</div>
+                <img id="qr-imagem" class="hidden w-48 h-48 mx-auto border p-2 rounded bg-white">
+                
+                <div class="mt-4">
+                    <input type="text" id="pix-copia-cola" class="w-full text-xs p-2 bg-gray-200 rounded text-center mb-2" readonly>
+                    <button onclick="copiarCodigo()" class="bg-blue-600 text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-blue-700">
+                        Copiar Código Pix
+                    </button>
+                </div>
+            </div>
+            <div id="status-pagamento" class="mt-4 font-bold text-orange-500 animate-pulse">Aguardando pagamento...</div>
+        </div>
+
     </div>
 
-    <div id="tela-resultado" class="tela-app">
-        <h1 style="color: #2563eb">Relatório Liberado ✅</h1>
-        <div id="conteudo-final"></div>
-        <button class="botao-acao" style="background: #25D366" onclick="_quizApp.abrirZap()">Falar com Anderson Dias</button>
-    </div>
-
-</div>
-
-<script>
-    // --- ⚙️ ÁREA DE CONFIGURAÇÃO (COLOQUE SUAS CHAVES AQUI) ---
-    
-    var _URL_BANCO = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
-    var _CHAVE_BANCO = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-
-    // ----------------------------------------------------------
-
-    var _TEXTOS_PERFIL = {
-        "Potência Expansiva": {
-            titulo: "🧠 Potência Expansiva (O Visionário)",
-            resumo: "Equilíbrio raro entre Lógica e Emoção.",
-            texto: `<h3>Análise</h3><p>Seu cérebro opera em alta performance. Você vê o que ninguém vê.</p><h3>Ação</h3><p>Delegue o operacional e foque na estratégia.</p>`
-        },
-        "Executor Solitário": {
-            titulo: "⚙️ Executor Solitário (O Técnico)",
-            resumo: "Alta capacidade lógica, mas centralizador.",
-            texto: `<h3>Análise</h3><p>Você resolve tudo, mas sofre por não confiar na equipe.</p><h3>Ação</h3><p>Treine um braço direito urgente.</p>`
-        },
-        "Conector Nato": {
-            titulo: "🤝 Conector Nato (O Comunicador)",
-            resumo: "Excelente em vendas, fraco em processos.",
-            texto: `<h3>Análise</h3><p>Você abre portas, mas tem dificuldade em fechar ciclos.</p><h3>Ação</h3><p>Use ferramentas de gestão (CRM).</p>`
-        },
-        "Em Construção": {
-            titulo: "🚧 Perfil em Análise",
-            resumo: "Respostas rápidas detectadas.",
-            texto: `<h3>Diagnóstico</h3><p>Refaça o teste com mais calma para um resultado preciso.</p>`
-        }
-    };
-
-    var _clienteSupabase = null;
-    try {
-        // Inicializa o Supabase apenas se as chaves estiverem preenchidas
-        if (_URL_BANCO && _CHAVE_BANCO && !_URL_BANCO.includes("COLE_SUA") && window.supabase) {
-            _clienteSupabase = window.supabase.createClient(_URL_BANCO, _CHAVE_BANCO);
-        }
-    } catch (e) { console.error("Erro Supabase:", e); }
-
-    var _quizApp = {
-        dados: { email: '', qi: 0, qe: 0, idx: 0, perfil: null },
-        
-        perguntas: [
-            { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
-            { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
-            { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
-            { q: "Cliente gritou. Reação:", opts: ["Resolve calmo", "Grita", "Chora"], type: "QE", c: 0 },
-            { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
-            { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
-            { q: "Em grupo prefere:", opts: ["Liderar", "Esperar", "Fazer só"], type: "QE", c: 0 },
-            { q: "Erro na empresa:", opts: ["Assume", "Esconde", "Culpa outro"], type: "QE", c: 0 },
-            { q: "20% de 500 é:", opts: ["100", "50", "200"], type: "QI", c: 0 },
-            { q: "Se ontem fosse amanhã, hoje seria sábado. Hoje é:", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
-            { q: "Feedback duro:", opts: ["Cresce", "Raiva", "Desiste"], type: "QE", c: 0 },
-            { q: "Médico : Hospital :: Professor : ?", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
-            { q: "Colega triste:", opts: ["Ajuda", "Ignora", "Piada"], type: "QE", c: 0 },
-            { q: "Negociação:", opts: ["Acordo", "Vencer", "Não perder"], type: "QE", c: 0 },
-            { q: "Carro 80km/h em 30min:", opts: ["40km", "80km", "60km"], type: "QI", c: 0 },
-            { q: "Inteligência Emocional:", opts: ["Gerir emoções", "Nada", "Feliz"], type: "QE", c: 0 },
-            { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
-            { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
-            { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 }
-        ],
-
-        iniciar: async () => {
-            const email = document.getElementById('email-usuario').value.trim();
-            if(!email.includes('@')) return alert('E-mail inválido!');
+    <script>
+        document.getElementById('formQuiz').addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            _quizApp.dados.email = email;
+            const btn = document.getElementById('btn-submit');
+            btn.innerHTML = 'Gerando...';
+            btn.classList.add('loading');
+
+            // Coleta os dados
+            const nome = document.getElementById('nome').value;
+            const email = document.getElementById('email').value;
+            const telefone = document.getElementById('telefone').value;
             
-            // Salva o lead inicial (se o Supabase estiver configurado)
-            if(_clienteSupabase) {
-                try {
-                    await _clienteSupabase.from('leads').insert([{ email: email, status_pagamento: 'aguardando' }]);
-                } catch(e) { console.log("Erro ao salvar lead inicial (sem impacto no quiz):", e); }
-            }
-            
-            _quizApp.mostrarTela('tela-perguntas');
-            _quizApp.renderizar();
-        },
+            // Define notas (Exemplo)
+            const p1 = document.querySelector('input[name="p1"]:checked').value;
+            const qi = p1 === 'A' ? 7 : 4;
+            const qe = p1 === 'B' ? 8 : 5;
 
-        renderizar: () => {
-            if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
-            const q = _quizApp.perguntas[_quizApp.dados.idx];
-            document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
-            document.getElementById('texto-pergunta').innerText = q.q;
-            document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / _quizApp.perguntas.length) * 100) + '%';
-            const div = document.getElementById('area-opcoes');
-            div.innerHTML = '';
-            q.opts.forEach((opt, i) => {
-                const btn = document.createElement('div');
-                btn.className = 'opcao-quiz';
-                btn.innerText = opt;
-                btn.onclick = () => {
-                    if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
-                    _quizApp.dados.idx++;
-                    _quizApp.renderizar();
-                };
-                div.appendChild(btn);
-            });
-        },
-
-        finalizar: async () => {
-            _quizApp.mostrarTela('tela-carregando');
-            let chave = "Em Construção";
-            if(_quizApp.dados.qi > 6 && _quizApp.dados.qe > 6) chave = "Potência Expansiva";
-            else if(_quizApp.dados.qi > 6) chave = "Executor Solitário";
-            else if(_quizApp.dados.qe > 6) chave = "Conector Nato";
-            
-            _quizApp.dados.perfil = _TEXTOS_PERFIL[chave];
-            document.getElementById('preview-perfil').innerText = _quizApp.dados.perfil.titulo;
-
-            // Tenta atualizar a pontuação no banco
-            if(_clienteSupabase) {
-                try {
-                    await _clienteSupabase.from('leads').update({ qi_score: _quizApp.dados.qi, qe_score: _quizApp.dados.qe }).eq('email', _quizApp.dados.email);
-                } catch(e) { console.log("Erro ao salvar pontuação:", e); }
-            }
-            _quizApp.gerarPix();
-        },
-
-        // --- AQUI ESTÁ A MÁGICA DO PAGAMENTO 🎩✨ ---
-        gerarPix: async () => {
             try {
-                // 1. Gera o Pix no Backend
-                const res = await fetch('/api/pix', {
+                // Envia para API
+                const response = await fetch('/api/pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: _quizApp.dados.email, valor: 1.00 })
+                    body: JSON.stringify({
+                        nome: nome,
+                        email: email,
+                        telefone: telefone,
+                        valor: 1.00,
+                        qi: qi,
+                        qe: qe
+                    })
                 });
-                const data = await res.json();
-                
-                if(!res.ok) throw new Error(data.erro || "Erro ao gerar Pix");
 
-                // 2. Mostra QR Code
-                document.getElementById('area-qr').innerHTML = `
-                    <img src="${data.img}" style="width:200px; mix-blend-mode: multiply; margin:0 auto; display:block;">
-                    <textarea style="width:100%; font-size:0.8rem; margin-top:10px;" rows="3" readonly>${data.code}</textarea>
-                    <button class="botao-acao" style="background:#333; margin-top:10px;" onclick="navigator.clipboard.writeText('${data.code}');alert('Copiado!')">Copiar Pix</button>
-                    <p style="margin-top:10px; font-size:0.9rem; color:#2563eb;">⏳ Aguardando pagamento...</p>
-                    <div style="font-size:0.7rem; color:#999; margin-top:5px;">ID: ${data.txid}</div>
-                `;
-                _quizApp.mostrarTela('tela-pagamento');
+                const data = await response.json();
 
-                // 3. INICIA O LOOP DE VERIFICAÇÃO (Consulta a cada 3 segundos)
-                if (window.loopVerificacao) clearInterval(window.loopVerificacao);
-                
-                window.loopVerificacao = setInterval(async () => {
-                    try {
-                        const reqStatus = await fetch('/api/status?txid=' + data.txid);
-                        const jsonStatus = await reqStatus.json();
-                        
-                        console.log("Verificando pagamento...", jsonStatus.status);
+                if (response.ok && data.txid) {
+                    document.getElementById('quiz-container').classList.add('hidden');
+                    document.getElementById('pagamento-container').classList.remove('hidden');
 
-                        if (jsonStatus.status === 'pago') {
-                            clearInterval(window.loopVerificacao);
-                            _quizApp.mostrarResultado(); // <--- LIBERA O PDF AQUI!
-                        }
-                    } catch (erroLoop) {
-                        console.error("Erro na verificação:", erroLoop);
-                    }
-                }, 3000);
+                    document.getElementById('qr-loading').classList.add('hidden');
+                    const imgQr = document.getElementById('qr-imagem');
+                    imgQr.src = data.qrcode_base64 || data.img;
+                    imgQr.classList.remove('hidden');
+                    document.getElementById('pix-copia-cola').value = data.copia_cola;
 
-            } catch(e) {
-                console.error(e);
-                _quizApp.mostrarTela('tela-pagamento');
-                document.getElementById('area-qr').innerHTML = `<p style="color:red">Erro: ${e.message}</p><button class="botao-acao" onclick="_quizApp.gerarPix()">Tentar Novamente</button>`;
+                    iniciarMonitoramento(data.txid);
+                } else {
+                    alert('Erro: ' + (data.erro || 'Tente novamente.'));
+                    btn.innerHTML = 'TENTAR NOVAMENTE';
+                    btn.classList.remove('loading');
+                }
+
+            } catch (error) {
+                alert('Erro de conexão.');
+                btn.innerHTML = 'TENTAR NOVAMENTE';
+                btn.classList.remove('loading');
             }
-        },
+        });
 
-        mostrarResultado: () => {
-            const p = _quizApp.dados.perfil;
-            document.getElementById('conteudo-final').innerHTML = `
-                <div class="box-relatorio">
-                    <h2>${p.titulo}</h2>
-                    <p><em>"${p.resumo}"</em></p>
-                    <hr>${p.texto}
-                </div>
-                <button class="botao-acao" style="background:#333; margin-top:20px;" onclick="window.print()">🖨️ Salvar PDF</button>
-            `;
-            _quizApp.mostrarTela('tela-resultado');
-        },
-
-        abrirZap: () => window.open("https://wa.me/5571999466243", "_blank"),
-        
-        mostrarTela: (id) => {
-            document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
-            document.getElementById(id).classList.add('ativa');
+        function copiarCodigo() {
+            const input = document.getElementById('pix-copia-cola');
+            input.select();
+            document.execCommand('copy');
+            alert('Pix Copiado!');
         }
-    };
-</script>
+
+        function iniciarMonitoramento(txid) {
+            const statusDiv = document.getElementById('status-pagamento');
+            const intervalo = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/status?txid=${txid}`);
+                    const data = await res.json();
+                    
+                    if (data.status === 'pago') {
+                        clearInterval(intervalo);
+                        statusDiv.innerText = 'PAGAMENTO CONFIRMADO! ✅';
+                        statusDiv.className = 'mt-4 font-bold text-green-600';
+                        setTimeout(() => { window.location.href = `/resultado.html?txid=${txid}`; }, 1000);
+                    }
+                } catch (e) {}
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
