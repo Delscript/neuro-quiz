@@ -28,15 +28,13 @@ module.exports = async (req, res) => {
     };
 
     try {
-        // === RECEBENDO DADOS (MANTIVE COMO ESTAVA + NOVO CAMPO) ===
-        // O front envia: nome, whatsapp, qi_score, qe_score, fase_profissional
+        // === RECEBENDO DADOS ===
         const body = req.body;
         
-        // Se vier como 'telefone' ou 'whatsapp', aceita os dois
         const zap = body.whatsapp || body.telefone; 
         const qi = body.qi_score || body.qi;
         const qe = body.qe_score || body.qe;
-        const fase = body.fase_profissional || 'Não Informado'; // <--- O NOVO CAMPO
+        const fase = body.fase_profissional || 'Não Informado';
 
         const valor = 1.00; 
 
@@ -47,19 +45,19 @@ module.exports = async (req, res) => {
         const cobranca = await createCharge(token, valor, CREDENTIALS);
         const txid = cobranca.txid;
 
-       // C. SALVA NO SUPABASE (DO JEITO QUE FUNCIONAVA + FASE)
+       // C. SALVA NO SUPABASE
         const { error: erroSupabase } = await supabase
             .from('leads')
             .insert({
                 nome: body.nome || 'Sem Nome',
                 whatsapp: zap || null,
-                email: body.email || 'usuario_anonimo', // Mantive caso envie
+                email: body.email || 'usuario_anonimo',
                 qi_score: qi || 0,
                 qe_score: qe || 0,
-                fase_profissional: fase, // <--- SALVANDO O NOVO DADO
+                fase_profissional: fase,
                 txid: txid,
                 pix_copia_cola: cobranca.pixCopiaECola,
-                status: 'pendente', // Mantive 'pendente' se era o que vc usava
+                status: 'pendente',
                 created_at: new Date()
             });
         
@@ -68,12 +66,11 @@ module.exports = async (req, res) => {
         // D. Gera QR Code
         const qr = await getQRCode(token, cobranca.loc.id, CREDENTIALS);
 
-        // E. Retorno
+        // E. RETORNO (CORRIGIDO AQUI)
         return res.status(200).json({
-            img: qr.imagemQrcode,
-            code: qr.qrcode,
-            qrcode_base64: qr.imagemQrcode,
-            pix_copia_cola: cobranca.pixCopiaECola, // Garante que manda o certo
+            // Agora o nome bate com o index.html (qr_code_base64)
+            qr_code_base64: qr.imagemQrcode, 
+            pix_copia_cola: cobranca.pixCopiaECola,
             txid: txid
         });
 
@@ -83,7 +80,7 @@ module.exports = async (req, res) => {
     }
 };
 
-// --- FUNÇÕES AUXILIARES (ORIGINAIS) ---
+// --- FUNÇÕES AUXILIARES ---
 
 function getAgent(creds) {
     let certLimpo = creds.cert_base64 || "";
