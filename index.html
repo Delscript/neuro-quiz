@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Avaliação Neuro-Cognitiva</title>
@@ -40,10 +43,7 @@
             🔒 Teste Oficial Sier Growth
         </div>
         
-        <input type="text" id="nome-usuario" placeholder="Seu Nome Completo">
         <input type="email" id="email-usuario" placeholder="Seu melhor e-mail...">
-        <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp (com DDD)">
-        
         <button class="botao-acao" onclick="_quizApp.iniciar()">Iniciar Avaliação</button>
     </div>
 
@@ -87,19 +87,26 @@
 </div>
 
 <script>
-    // --- SUAS CHAVES ---
     var _URL_BANCO = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
     var _CHAVE_BANCO = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
 
     var _TEXTOS_PERFIL = {
-        "Potência Expansiva": { titulo: "🧠 Potência Expansiva (O Visionário)", resumo: "Equilíbrio raro entre Lógica e Emoção.", texto: `<h3>Análise</h3><p>Seu cérebro opera em alta performance. Você vê o que ninguém vê.</p><h3>Ação</h3><p>Delegue o operacional e foque na estratégia.</p>` },
-        "Executor Solitário": { titulo: "⚙️ Executor Solitário (O Técnico)", resumo: "Alta capacidade lógica, mas centralizador.", texto: `<h3>Análise</h3><p>Você resolve tudo, mas sofre por não confiar na equipe.</p><h3>Ação</h3><p>Treine um braço direito urgente.</p>` },
-        "Conector Nato": { titulo: "🤝 Conector Nato (O Comunicador)", resumo: "Excelente em vendas, fraco em processos.", texto: `<h3>Análise</h3><p>Você abre portas, mas tem dificuldade em fechar ciclos.</p><h3>Ação</h3><p>Use ferramentas de gestão (CRM).</p>` },
-        "Em Construção": { titulo: "🚧 Perfil em Análise", resumo: "Respostas rápidas detectadas.", texto: `<h3>Diagnóstico</h3><p>Refaça o teste com mais calma para um resultado preciso.</p>` }
+        "Potência Expansiva": { titulo: "🧠 Potência Expansiva", resumo: "Equilíbrio raro entre Lógica e Emoção.", texto: `<h3>Análise</h3><p>Seu cérebro opera em alta performance.</p>` },
+        "Executor Solitário": { titulo: "⚙️ Executor Solitário", resumo: "Alta capacidade lógica, mas centralizador.", texto: `<h3>Análise</h3><p>Você resolve tudo, mas sofre por não confiar na equipe.</p>` },
+        "Conector Nato": { titulo: "🤝 Conector Nato", resumo: "Excelente em vendas, fraco em processos.", texto: `<h3>Análise</h3><p>Você abre portas, mas tem dificuldade em fechar ciclos.</p>` },
+        "Em Construção": { titulo: "🚧 Perfil em Análise", resumo: "Respostas rápidas detectadas.", texto: `<h3>Diagnóstico</h3><p>Refaça o teste com mais calma.</p>` }
     };
 
+    var _clienteSupabase = null;
+    try {
+        if (_URL_BANCO && _CHAVE_BANCO && !_URL_BANCO.includes("COLE_SUA") && window.supabase) {
+            _clienteSupabase = window.supabase.createClient(_URL_BANCO, _CHAVE_BANCO);
+            console.log("CAGUETE: Supabase conectado no Front-end.");
+        }
+    } catch (e) { console.error("Erro Supabase:", e); }
+
     var _quizApp = {
-        dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, perfil: null, fase: 'Não Informado' },
+        dados: { email: '', qi: 0, qe: 0, idx: 0, perfil: null, fase: 'Não Informado' }, // Variável fase criada
         
         perguntas: [
             { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
@@ -121,8 +128,7 @@
             { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
             { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
             { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
-            
-            // --- PERGUNTA 20 (NOVA) ---
+            // --- PERGUNTA 20 ---
             { 
                 q: "Para calibrar sua liderança: Qual sua fase atual?", 
                 opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], 
@@ -132,15 +138,20 @@
         ],
 
         iniciar: async () => {
-            const nome = document.getElementById('nome-usuario').value.trim();
             const email = document.getElementById('email-usuario').value.trim();
-            const zap = document.getElementById('whatsapp-usuario').value.trim();
+            if(!email.includes('@')) return alert('E-mail inválido!');
             
-            if(!nome || !email.includes('@') || !zap) return alert('Por favor, preencha todos os dados!');
-            
-            _quizApp.dados.nome = nome;
             _quizApp.dados.email = email;
-            _quizApp.dados.whatsapp = zap;
+            
+            // Salva lead no banco assim que coloca o e-mail
+            if(_clienteSupabase) {
+                try {
+                    console.log("CAGUETE: Tentando criar lead no Supabase pelo Front...", email);
+                    const { data, error } = await _clienteSupabase.from('leads').insert([{ email: email, status_pagamento: 'aguardando' }]).select();
+                    if(error) console.error("CAGUETE ERRO (INSERT):", error);
+                    else console.log("CAGUETE SUCESSO (INSERT):", data);
+                } catch(e) { console.error("CAGUETE CATCH (INSERT):", e); }
+            }
             
             _quizApp.mostrarTela('tela-perguntas');
             _quizApp.renderizar();
@@ -152,16 +163,19 @@
             document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
             document.getElementById('texto-pergunta').innerText = q.q;
             document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / _quizApp.perguntas.length) * 100) + '%';
+            
             const div = document.getElementById('area-opcoes');
             div.innerHTML = '';
+            
             q.opts.forEach((opt, i) => {
                 const btn = document.createElement('div');
                 btn.className = 'opcao-quiz';
                 btn.innerText = opt;
                 btn.onclick = () => {
-                    // Captura a Fase na Pergunta 20
-                    if (q.type === 'SEG') {
-                        _quizApp.dados.fase = opt; 
+                    // SE FOR A PERGUNTA 20, SALVA A RESPOSTA
+                    if(q.type === 'SEG') {
+                        _quizApp.dados.fase = opt;
+                        console.log("CAGUETE: Fase escolhida ->", opt);
                     } else {
                         if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
                     }
@@ -182,21 +196,40 @@
             _quizApp.dados.perfil = _TEXTOS_PERFIL[chave];
             document.getElementById('preview-perfil').innerText = _quizApp.dados.perfil.titulo;
 
+            // Tenta ATUALIZAR as notas e a FASE no banco
+            if(_clienteSupabase) {
+                try {
+                    console.log("CAGUETE: Tentando atualizar o lead ->", _quizApp.dados.email, "com notas e fase:", _quizApp.dados.fase);
+                    const { data, error } = await _clienteSupabase
+                        .from('leads')
+                        .update({ 
+                            qi_score: _quizApp.dados.qi, 
+                            qe_score: _quizApp.dados.qe,
+                            fase_profissional: _quizApp.dados.fase 
+                        })
+                        .eq('email', _quizApp.dados.email)
+                        .select();
+                        
+                    if(error) console.error("CAGUETE ERRO (UPDATE):", error);
+                    else console.log("CAGUETE SUCESSO (UPDATE): Banco atualizado!", data);
+                } catch(e) { console.error("CAGUETE CATCH (UPDATE):", e); }
+            }
+            
             _quizApp.gerarPix();
         },
 
         gerarPix: async () => {
             try {
-                // Prepara o pacote com TODOS os dados
+                // Seu código original: Ele mandava só email pro back. Eu adicionei a fase pra garantir.
                 const envelope = { 
-                    nome: _quizApp.dados.nome,
                     email: _quizApp.dados.email, 
-                    whatsapp: _quizApp.dados.whatsapp,
-                    qi_score: _quizApp.dados.qi,
-                    qe_score: _quizApp.dados.qe,
-                    fase_profissional: _quizApp.dados.fase,
-                    valor: 1.00 
+                    valor: 1.00,
+                    fase: _quizApp.dados.fase,
+                    qi: _quizApp.dados.qi,
+                    qe: _quizApp.dados.qe
                 };
+                
+                console.log("CAGUETE: Mandando para a API ->", envelope);
 
                 const res = await fetch('/api/pix', {
                     method: 'POST',
@@ -207,12 +240,10 @@
                 
                 if(!res.ok) throw new Error(data.erro || "Erro ao gerar Pix");
 
-                const imgQR = data.qr_code_base64 || data.qrcode_base64 || data.img;
-
                 document.getElementById('area-qr').innerHTML = `
-                    <img src="${imgQR}" style="width:200px; mix-blend-mode: multiply; margin:0 auto; display:block;">
-                    <textarea style="width:100%; font-size:0.8rem; margin-top:10px;" rows="3" readonly>${data.pix_copia_cola || data.code}</textarea>
-                    <button class="botao-acao" style="background:#333; margin-top:10px;" onclick="navigator.clipboard.writeText('${data.pix_copia_cola || data.code}');alert('Copiado!')">Copiar Pix</button>
+                    <img src="${data.img || data.qr_code_base64}" style="width:200px; mix-blend-mode: multiply; margin:0 auto; display:block;">
+                    <textarea style="width:100%; font-size:0.8rem; margin-top:10px;" rows="3" readonly>${data.code || data.pix_copia_cola}</textarea>
+                    <button class="botao-acao" style="background:#333; margin-top:10px;" onclick="navigator.clipboard.writeText('${data.code || data.pix_copia_cola}');alert('Copiado!')">Copiar Pix</button>
                     <p style="margin-top:10px; font-size:0.9rem; color:#2563eb;">⏳ Aguardando pagamento...</p>
                     <div style="font-size:0.7rem; color:#999; margin-top:5px;">ID: ${data.txid}</div>
                 `;
@@ -225,16 +256,29 @@
                         const jsonStatus = await reqStatus.json();
                         if (jsonStatus.status === 'pago') {
                             clearInterval(window.loopVerificacao);
-                            window.location.href = `resultado.html?txid=${data.txid}`;
+                            _quizApp.mostrarResultado(); // Seu original liberava a tela aqui
                         }
                     } catch (e) { }
                 }, 3000);
 
             } catch(e) {
-                console.error(e);
+                console.error("CAGUETE ERRO PIX:", e);
                 _quizApp.mostrarTela('tela-pagamento');
                 document.getElementById('area-qr').innerHTML = `<p style="color:red">Erro: ${e.message}</p><button class="botao-acao" onclick="_quizApp.gerarPix()">Tentar Novamente</button>`;
             }
+        },
+
+        mostrarResultado: () => {
+            const p = _quizApp.dados.perfil;
+            document.getElementById('conteudo-final').innerHTML = `
+                <div class="box-relatorio">
+                    <h2>${p.titulo}</h2>
+                    <p><em>"${p.resumo}"</em></p>
+                    <hr>${p.texto}
+                </div>
+                <button class="botao-acao" style="background:#333; margin-top:20px;" onclick="window.print()">🖨️ Salvar PDF</button>
+            `;
+            _quizApp.mostrarTela('tela-resultado');
         },
 
         abrirZap: () => window.open("https://wa.me/5571999466243", "_blank"),
