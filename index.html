@@ -143,7 +143,7 @@
 
         let currentQ = 0;
         let scores = { QI: 0, QE: 0 };
-        let faseProfissional = ""; // Variável para guardar a resposta 20
+        let faseProfissional = "";
 
         function startQuiz() {
             document.getElementById('intro-screen').classList.add('hidden');
@@ -156,7 +156,6 @@
             document.getElementById('q-number').innerText = (currentQ + 1).toString().padStart(2, '0');
             document.getElementById('q-title').innerText = q.t;
             
-            // Atualiza barra
             const pct = ((currentQ) / questions.length) * 100;
             document.getElementById('progress-bar').style.width = pct + "%";
 
@@ -173,11 +172,9 @@
         }
 
         function selectOption(scoreType, textValue, questionType) {
-            // Se for pergunta normal, soma ponto
             if (questionType !== "segmentation") {
                 scores[scoreType]++;
             } else {
-                // Se for a pergunta 20, salva o texto
                 faseProfissional = textValue;
             }
 
@@ -195,7 +192,7 @@
             document.getElementById('progress-bar').style.width = "100%";
         }
 
-        // --- INTEGRAÇÃO COM A API ---
+        // --- LÓGICA DE ENVIO BLINDADA ---
         async function submitLead(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-submit');
@@ -204,15 +201,14 @@
 
             const dados = {
                 nome: document.getElementById('nome').value,
-                email: document.getElementById('email').value, // <--- E-MAIL AQUI
+                email: document.getElementById('email').value,
                 whatsapp: document.getElementById('whatsapp').value,
                 qi_score: scores.QI,
                 qe_score: scores.QE,
-                fase_profissional: faseProfissional // Manda a resposta da Q20
+                fase_profissional: faseProfissional
             };
 
             try {
-                // Chama sua API na Vercel
                 const response = await fetch('/api/pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -224,14 +220,14 @@
                 if (result.txid) {
                     showCheckout(result);
                 } else {
-                    alert('Erro ao gerar Pix. Tente novamente.');
+                    alert('Erro ao gerar Pix. Verifique os dados.');
                     btn.disabled = false;
                     btn.innerHTML = "GERAR CERTIFICADO OFICIAL";
                 }
 
             } catch (error) {
                 console.error(error);
-                alert('Erro de conexão.');
+                alert('Erro de conexão com o servidor.');
                 btn.disabled = false;
                 btn.innerHTML = "GERAR CERTIFICADO OFICIAL";
             }
@@ -241,10 +237,19 @@
             document.getElementById('lead-screen').classList.add('hidden');
             document.getElementById('checkout-screen').classList.remove('hidden');
             
-            document.getElementById('qrcode-img').src = `data:image/jpeg;base64,${data.qr_code_base64}`;
+            // --- A CORREÇÃO DE OURO AQUI 👇 ---
+            // Tenta pegar a imagem de qualquer nome que a API mandar
+            // Se vier 'qr_code_base64', 'qrcode_base64' ou 'img', ele aceita.
+            const imgBase64 = data.qr_code_base64 || data.qrcode_base64 || data.img;
+
+            if (imgBase64) {
+                document.getElementById('qrcode-img').src = `data:image/jpeg;base64,${imgBase64}`;
+            } else {
+                document.getElementById('qrcode-img').alt = "Erro ao carregar imagem, use o Copia e Cola abaixo";
+            }
+
             document.getElementById('pix-code').innerText = data.pix_copia_cola;
 
-            // Inicia verificação de status
             startStatusCheck(data.txid);
         }
 
@@ -254,7 +259,6 @@
             alert("Pix Copiado! Cole no seu banco.");
         }
 
-        // Verifica se pagou a cada 3 segundos
         let checkInterval;
         function startStatusCheck(txid) {
             checkInterval = setInterval(async () => {
