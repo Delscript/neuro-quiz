@@ -2,14 +2,12 @@ const { createClient } = require('@supabase/supabase-js');
 const https = require('https');
 
 module.exports = async (req, res) => {
-    // --- SUAS CHAVES REAIS ---
+    // --- CHAVES ---
     const sbUrl = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
     const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-    // -------------------------
+    // --------------
 
-    if (req.method !== 'POST') {
-        return res.status(405).json({ erro: 'Método não permitido.' });
-    }
+    if (req.method !== 'POST') return res.status(405).json({ erro: 'Use POST' });
 
     const supabase = createClient(sbUrl, sbKey);
 
@@ -23,146 +21,42 @@ module.exports = async (req, res) => {
     try {
         const body = req.body;
         
-        // Dados do formulário
-        const nome = body.nome || 'Sem Nome';
-        const email = body.email || 'nao_informado';
-        const whatsapp = body.whatsapp || body.telefone; 
-        const qi = body.qi_score || 0;
-        const qe = body.qe_score || 0;
-        
-        // --- A ÚNICA MUDANÇA É AQUI (Pegando a fase) ---
-        const fase = body.fase_profissional || 'Não Informado'; 
-
-        const valor = 1.00; 
-
-        // 1. Autentica na Efí
+        // 1. Gera Pix
         const token = await getToken(CREDENTIALS);
-
-        // 2. Cria a Cobrança
-        const cobranca = await createCharge(token, valor, CREDENTIALS);
-        const txid = cobranca.txid;
-
-        // 3. Salva no Supabase (Lógica Original + Coluna Nova)
-        const { error: erroSupabase } = await supabase
-            .from('leads')
-            .insert({
-                nome: nome,
-                email: email,
-                whatsapp: whatsapp,
-                qi_score: qi,
-                qe_score: qe,
-                fase_profissional: fase, // <--- ADICIONADO AQUI
-                txid: txid,
-                pix_copia_cola: cobranca.pixCopiaECola,
-                status: 'pendente', // Mantendo 'pendente' como no original
-                created_at: new Date()
-            });
-        
-        if (erroSupabase) console.error("Erro Supabase:", erroSupabase);
-
-        // 4. Pega a Imagem do QR Code
+        const cobranca = await createCharge(token, 1.00, CREDENTIALS);
         const qr = await getQRCode(token, cobranca.loc.id, CREDENTIALS);
 
-        // 5. Retorna para o site (Mantendo compatibilidade total)
+        // 2. Salva TUDO no Supabase
+        const { error } = await supabase
+            .from('leads')
+            .insert({
+                nome: body.nome || 'Sem Nome',
+                email: body.email || 'sem_email',
+                whatsapp: body.whatsapp || null,
+                qi_score: body.qi_score || 0,
+                qe_score: body.qe_score || 0,
+                fase_profissional: body.fase_profissional || 'Não Informado',
+                txid: cobranca.txid,
+                pix_copia_cola: cobranca.pixCopiaECola,
+                status: 'pendente'
+            });
+
+        if (error) console.error("Erro Supabase:", error);
+
+        // 3. Retorna pro site
         return res.status(200).json({
-            // Mando com os dois nomes para garantir que o index.html não quebre
-            qr_code_base64: qr.imagemQrcode, // Nome novo
-            qrcode_base64: qr.imagemQrcode,  // Nome antigo (backup)
+            qr_code_base64: qr.imagemQrcode,
             pix_copia_cola: cobranca.pixCopiaECola,
-            txid: txid
+            txid: cobranca.txid
         });
 
-    } catch (error) {
-        console.error("Erro:", error.message);
-        return res.status(500).json({ erro: error.message });
+    } catch (e) {
+        return res.status(500).json({ erro: e.message });
     }
 };
 
-// --- FUNÇÕES AUXILIARES (ORIGINAIS INTACTAS) ---
-
-function getAgent(creds) {
-    let certLimpo = creds.cert_base64 || "";
-    certLimpo = certLimpo.replace(/^data:.*;base64,/, "").replace(/\s/g, "");
-    return new https.Agent({
-        pfx: Buffer.from(certLimpo, 'base64'),
-        passphrase: ''
-    });
-}
-
-function getToken(creds) {
-    return new Promise((resolve, reject) => {
-        const auth = Buffer.from(`${creds.client_id}:${creds.client_secret}`).toString('base64');
-        const options = {
-            hostname: creds.sandbox ? 'pix-h.api.efipay.com.br' : 'pix.api.efipay.com.br',
-            path: '/oauth/token',
-            method: 'POST',
-            headers: { 'Authorization': `Basic ${auth}`, 'Content-Type': 'application/json' },
-            agent: getAgent(creds)
-        };
-        const req = https.request(options, (res) => {
-            let data = '';
-            res.on('data', c => data += c);
-            res.on('end', () => {
-                try {
-                    const json = JSON.parse(data);
-                    if (json.access_token) resolve(json.access_token);
-                    else reject(new Error('Erro Auth Efí'));
-                } catch(e) { reject(e); }
-            });
-        });
-        req.on('error', reject);
-        req.write(JSON.stringify({ grant_type: 'client_credentials' }));
-        req.end();
-    });
-}
-
-function createCharge(token, valor, creds) {
-    return new Promise((resolve, reject) => {
-        const dataCob = JSON.stringify({
-            calendario: { expiracao: 3600 },
-            valor: { original: valor.toFixed(2) },
-            chave: "65e5f3c3-b7d1-4757-a955-d6fc20519dce", // SUA CHAVE
-            solicitacaoPagador: "NeuroQuiz Oficial"
-        });
-        const options = {
-            hostname: creds.sandbox ? 'pix-h.api.efipay.com.br' : 'pix.api.efipay.com.br',
-            path: '/v2/cob',
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            agent: getAgent(creds)
-        };
-        const req = https.request(options, (res) => {
-            let data = '';
-            res.on('data', c => data += c);
-            res.on('end', () => {
-                try {
-                    const json = JSON.parse(data);
-                    if (json.txid) resolve(json);
-                    else reject(new Error('Erro Cobrança Efí'));
-                } catch(e) { reject(e); }
-            });
-        });
-        req.on('error', reject);
-        req.write(dataCob);
-        req.end();
-    });
-}
-
-function getQRCode(token, locId, creds) {
-    return new Promise((resolve, reject) => {
-        const options = {
-            hostname: creds.sandbox ? 'pix-h.api.efipay.com.br' : 'pix.api.efipay.com.br',
-            path: `/v2/loc/${locId}/qrcode`,
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` },
-            agent: getAgent(creds)
-        };
-        const req = https.request(options, (res) => {
-            let data = '';
-            res.on('data', c => data += c);
-            res.on('end', () => resolve(JSON.parse(data)));
-        });
-        req.on('error', reject);
-        req.end();
-    });
-}
+// --- FUNÇÕES EFÍ ---
+function getAgent(c){let s=c.cert_base64.replace(/^data:.*;base64,/,"").replace(/\s/g,"");return new https.Agent({pfx:Buffer.from(s,'base64'),passphrase:''})}
+function getToken(c){return new Promise((r,j)=>{const o={hostname:c.sandbox?'pix-h.api.efipay.com.br':'pix.api.efipay.com.br',path:'/oauth/token',method:'POST',headers:{'Authorization':`Basic ${Buffer.from(c.client_id+':'+c.client_secret).toString('base64')}`,'Content-Type':'application/json'},agent:getAgent(c)};const q=https.request(o,res=>{let d='';res.on('data',k=>d+=k);res.on('end',()=>r(JSON.parse(d).access_token))});q.on('error',j);q.write(JSON.stringify({grant_type:'client_credentials'}));q.end()})}
+function createCharge(t,v,c){return new Promise((r,j)=>{const o={hostname:c.sandbox?'pix-h.api.efipay.com.br':'pix.api.efipay.com.br',path:'/v2/cob',method:'POST',headers:{'Authorization':`Bearer ${t}`,'Content-Type':'application/json'},agent:getAgent(c)};const q=https.request(o,res=>{let d='';res.on('data',k=>d+=k);res.on('end',()=>r(JSON.parse(d)))});q.on('error',j);q.write(JSON.stringify({calendario:{expiracao:3600},valor:{original:v.toFixed(2)},chave:"65e5f3c3-b7d1-4757-a955-d6fc20519dce"}));q.end()})}
+function getQRCode(t,l,c){return new Promise((r,j)=>{const o={hostname:c.sandbox?'pix-h.api.efipay.com.br':'pix.api.efipay.com.br',path:`/v2/loc/${l}/qrcode`,method:'GET',headers:{'Authorization':`Bearer ${t}`},agent:getAgent(c)};const q=https.request(o,res=>{let d='';res.on('data',k=>d+=k);res.on('end',()=>r(JSON.parse(d)))});q.on('error',j);q.end()})}
