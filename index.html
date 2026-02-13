@@ -14,19 +14,16 @@
         .botao-acao:active { transform: scale(0.98); }
         input { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; margin-top: 10px; box-sizing: border-box; font-size: 1rem; }
         
-        /* Telas */
         .tela-app { display: none; animation: aparecer 0.4s; }
         .tela-app.ativa { display: block; }
         @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Quiz */
         .opcao-quiz { padding: 15px; border: 2px solid #f1f5f9; margin: 10px 0; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; font-weight: 500; }
         .opcao-quiz:hover { background: #eff6ff; border-color: var(--cor-principal); }
         .barra-fundo { width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 20px; }
         .barra-progresso { height: 100%; background: var(--cor-principal); width: 0%; border-radius: 4px; transition: width 0.3s; }
         .caixa-pix { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin: 20px 0; }
 
-        /* Relatório */
         .box-relatorio { text-align: left; border: 2px solid #2563eb; padding: 20px; border-radius: 10px; background: #eff6ff; margin-top: 20px; }
         .box-relatorio h2 { color: #2563eb; margin-top: 0; }
         .box-relatorio h3 { color: #1e293b; margin-top: 15px; border-bottom: 1px solid #bfdbfe; padding-bottom: 5px; }
@@ -46,7 +43,7 @@
         <input type="text" id="nome-usuario" placeholder="Seu Nome Completo">
         <input type="email" id="email-usuario" placeholder="Seu melhor e-mail...">
         <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp (com DDD)">
-        
+
         <button class="botao-acao" onclick="_quizApp.iniciar()">Iniciar Avaliação</button>
     </div>
 
@@ -103,8 +100,7 @@
     };
 
     var _quizApp = {
-        // Armazena todos os dados aqui
-        dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, perfil: null, fase: 'Não informado' },
+        dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, perfil: null, fase: 'Não Informado' },
         
         perguntas: [
             { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
@@ -126,7 +122,8 @@
             { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
             { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
             { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
-            // PERGUNTA 20 - SEGMENTAÇÃO
+            
+            // --- AQUI ESTÁ A PERGUNTA 20 (SEGMENTAÇÃO) ---
             { 
                 q: "Para calibrar sua liderança: Qual sua fase atual?", 
                 opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], 
@@ -165,7 +162,7 @@
                 btn.onclick = () => {
                     // Lógica para capturar a resposta
                     if (q.type === 'SEG') {
-                        _quizApp.dados.fase = opt; // Salva o texto da resposta
+                        _quizApp.dados.fase = opt; // Salva o texto da Fase Profissional
                     } else {
                         if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
                     }
@@ -191,26 +188,28 @@
 
         gerarPix: async () => {
             try {
-                // AQUI ESTAVA FALTANDO ANTES: Preparando o pacote completo
-                const pacoteDeDados = { 
+                // --- A CORREÇÃO DE OURO ESTÁ AQUI 👇 ---
+                // Agora enviamos o envelope COMPLETO, não só o e-mail.
+                const envelope = { 
                     nome: _quizApp.dados.nome,
                     email: _quizApp.dados.email, 
                     whatsapp: _quizApp.dados.whatsapp,
                     qi_score: _quizApp.dados.qi,
                     qe_score: _quizApp.dados.qe,
-                    fase_profissional: _quizApp.dados.fase, // Manda a fase
+                    fase_profissional: _quizApp.dados.fase,
                     valor: 1.00 
                 };
 
                 const res = await fetch('/api/pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(pacoteDeDados) // Envia o pacote completo
+                    body: JSON.stringify(envelope) // Enviando envelope cheio!
                 });
                 const data = await res.json();
                 
                 if(!res.ok) throw new Error(data.erro || "Erro ao gerar Pix");
 
+                // Proteção para imagem
                 const imgQR = data.qr_code_base64 || data.qrcode_base64 || data.img;
 
                 document.getElementById('area-qr').innerHTML = `
