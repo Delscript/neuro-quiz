@@ -90,28 +90,21 @@
 </div>
 
 <script>
-    // --- ⚙️ ÁREA DE CONFIGURAÇÃO (SUAS CHAVES) ---
+    // --- ⚙️ CONFIGURAÇÃO ---
     var _URL_BANCO = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
     var _CHAVE_BANCO = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-    // ----------------------------------------------------------
+    // -----------------------
 
     var _TEXTOS_PERFIL = {
-        "Potência Expansiva": { titulo: "🧠 Potência Expansiva (O Visionário)", resumo: "Equilíbrio raro entre Lógica e Emoção.", texto: `<h3>Análise</h3><p>Seu cérebro opera em alta performance. Você vê o que ninguém vê.</p><h3>Ação</h3><p>Delegue o operacional e foque na estratégia.</p>` },
-        "Executor Solitário": { titulo: "⚙️ Executor Solitário (O Técnico)", resumo: "Alta capacidade lógica, mas centralizador.", texto: `<h3>Análise</h3><p>Você resolve tudo, mas sofre por não confiar na equipe.</p><h3>Ação</h3><p>Treine um braço direito urgente.</p>` },
-        "Conector Nato": { titulo: "🤝 Conector Nato (O Comunicador)", resumo: "Excelente em vendas, fraco em processos.", texto: `<h3>Análise</h3><p>Você abre portas, mas tem dificuldade em fechar ciclos.</p><h3>Ação</h3><p>Use ferramentas de gestão (CRM).</p>` },
+        "Potência Expansiva": { titulo: "🧠 Potência Expansiva", resumo: "Equilíbrio raro entre Lógica e Emoção.", texto: `<h3>Análise</h3><p>Seu cérebro opera em alta performance. Você vê o que ninguém vê.</p><h3>Ação</h3><p>Delegue o operacional e foque na estratégia.</p>` },
+        "Executor Solitário": { titulo: "⚙️ Executor Solitário", resumo: "Alta capacidade lógica, mas centralizador.", texto: `<h3>Análise</h3><p>Você resolve tudo, mas sofre por não confiar na equipe.</p><h3>Ação</h3><p>Treine um braço direito urgente.</p>` },
+        "Conector Nato": { titulo: "🤝 Conector Nato", resumo: "Excelente em vendas, fraco em processos.", texto: `<h3>Análise</h3><p>Você abre portas, mas tem dificuldade em fechar ciclos.</p><h3>Ação</h3><p>Use ferramentas de gestão (CRM).</p>` },
         "Em Construção": { titulo: "🚧 Perfil em Análise", resumo: "Respostas rápidas detectadas.", texto: `<h3>Diagnóstico</h3><p>Refaça o teste com mais calma para um resultado preciso.</p>` }
     };
 
-    var _clienteSupabase = null;
-    try {
-        if (_URL_BANCO && _CHAVE_BANCO && !_URL_BANCO.includes("COLE_SUA") && window.supabase) {
-            _clienteSupabase = window.supabase.createClient(_URL_BANCO, _CHAVE_BANCO);
-        }
-    } catch (e) { console.error("Erro Supabase:", e); }
-
     var _quizApp = {
-        // Adicionei fase aqui para guardar a resposta
-        dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, perfil: null, fase: '' },
+        // Armazena todos os dados aqui
+        dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, perfil: null, fase: 'Não informado' },
         
         perguntas: [
             { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
@@ -133,12 +126,11 @@
             { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
             { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
             { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
-            
-            // --- NOVA PERGUNTA 20 ---
+            // PERGUNTA 20 - SEGMENTAÇÃO
             { 
                 q: "Para calibrar sua liderança: Qual sua fase atual?", 
                 opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], 
-                type: "SEG", // Tipo especial para Segmentação
+                type: "SEG", 
                 c: 0 
             }
         ],
@@ -153,13 +145,6 @@
             _quizApp.dados.nome = nome;
             _quizApp.dados.email = email;
             _quizApp.dados.whatsapp = zap;
-            
-            // Tenta salvar o lead inicial
-            if(_clienteSupabase) {
-                try {
-                    await _clienteSupabase.from('leads').insert([{ nome: nome, email: email, whatsapp: zap, status_pagamento: 'aguardando' }]);
-                } catch(e) { console.log("Erro lead inicial:", e); }
-            }
             
             _quizApp.mostrarTela('tela-perguntas');
             _quizApp.renderizar();
@@ -178,13 +163,12 @@
                 btn.className = 'opcao-quiz';
                 btn.innerText = opt;
                 btn.onclick = () => {
-                    // Lógica para salvar pontos ou a resposta da fase
+                    // Lógica para capturar a resposta
                     if (q.type === 'SEG') {
                         _quizApp.dados.fase = opt; // Salva o texto da resposta
                     } else {
                         if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
                     }
-                    
                     _quizApp.dados.idx++;
                     _quizApp.renderizar();
                 };
@@ -207,27 +191,26 @@
 
         gerarPix: async () => {
             try {
-                // Prepara os dados COMPLETOS para enviar pra API
-                const payload = { 
+                // AQUI ESTAVA FALTANDO ANTES: Preparando o pacote completo
+                const pacoteDeDados = { 
                     nome: _quizApp.dados.nome,
                     email: _quizApp.dados.email, 
                     whatsapp: _quizApp.dados.whatsapp,
                     qi_score: _quizApp.dados.qi,
                     qe_score: _quizApp.dados.qe,
-                    fase_profissional: _quizApp.dados.fase, // Manda a fase pra API
+                    fase_profissional: _quizApp.dados.fase, // Manda a fase
                     valor: 1.00 
                 };
 
                 const res = await fetch('/api/pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(pacoteDeDados) // Envia o pacote completo
                 });
                 const data = await res.json();
                 
                 if(!res.ok) throw new Error(data.erro || "Erro ao gerar Pix");
 
-                // Correção do QR Code (aceita qualquer nome que a API mandar)
                 const imgQR = data.qr_code_base64 || data.qrcode_base64 || data.img;
 
                 document.getElementById('area-qr').innerHTML = `
@@ -240,18 +223,15 @@
                 _quizApp.mostrarTela('tela-pagamento');
 
                 if (window.loopVerificacao) clearInterval(window.loopVerificacao);
-                
                 window.loopVerificacao = setInterval(async () => {
                     try {
                         const reqStatus = await fetch('/api/status?txid=' + data.txid);
                         const jsonStatus = await reqStatus.json();
-                        
                         if (jsonStatus.status === 'pago') {
                             clearInterval(window.loopVerificacao);
-                            // Redireciona para o certificado paisagem
                             window.location.href = `resultado.html?txid=${data.txid}`;
                         }
-                    } catch (erroLoop) { console.error(erroLoop); }
+                    } catch (e) { }
                 }, 3000);
 
             } catch(e) {
@@ -262,7 +242,6 @@
         },
 
         abrirZap: () => window.open("https://wa.me/5571999466243", "_blank"),
-        
         mostrarTela: (id) => {
             document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
             document.getElementById(id).classList.add('ativa');
