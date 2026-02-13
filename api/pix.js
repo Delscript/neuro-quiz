@@ -2,72 +2,76 @@ const { createClient } = require('@supabase/supabase-js');
 const https = require('https');
 
 module.exports = async (req, res) => {
-    // --- ☢️ ÁREA DO TESTE NUCLEAR ☢️ ---
-    // Substitua ABAIXO pelas suas chaves REAIS do Supabase (mantenha as aspas!)
+    // --- SUAS CHAVES REAIS (Já configuradas) ---
     const sbUrl = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
     const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
+    const CHAVE_PIX = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; // Sua Chave Pix
     // ---------------------------------------------------------
 
-    // 1. Verificação de Segurança Básica
+    // 1. Verificação Básica
     if (req.method !== 'POST') {
         return res.status(405).json({ erro: 'Método não permitido. Use POST.' });
     }
 
-    // 2. Verifica se você colou as chaves mesmo
-    if (!sbUrl || sbUrl.includes("COLE_SUA_URL")) {
-        console.error("🚨 ERRO: Você esqueceu de colocar as chaves reais no código!");
-        return res.status(500).json({ erro: 'Edite o api/pix.js e coloque as chaves do Supabase!' });
-    }
-
-    // 3. Conecta ao Banco
+    // 2. Conecta ao Banco
     const supabase = createClient(sbUrl, sbKey);
 
-    // 4. Credenciais da Efí (Essas vêm da Vercel, não mexa)
+    // 3. Credenciais da Efí (Vêm das Variáveis de Ambiente da Vercel)
     const CREDENTIALS = {
         client_id: process.env.EFI_CLIENT_ID,
         client_secret: process.env.EFI_CLIENT_SECRET,
         cert_base64: process.env.EFI_CERT_BASE64,
-        sandbox: false
+        sandbox: false // Mude para true se for teste, false para produção
     };
 
     try {
-        // === MUDANÇA AQUI: Recebendo todos os dados ===
-        const { email, valor, nome, telefone, qi, qe } = req.body;
+        // === RECEBENDO DADOS DO NOVO INDEX.HTML ===
+        // Ajustei os nomes para baterem com o que o seu site envia
+        const { nome, whatsapp, qi_score, qe_score, fase_profissional } = req.body;
         
-        if (!valor) throw new Error('O valor do Pix é obrigatório.');
+        const valor = 1.00; // Valor fixo do Pix
 
         // A. Autentica na Efí
         const token = await getToken(CREDENTIALS);
 
         // B. Cria a Cobrança na Efí
-        const cobranca = await createCharge(token, valor, CREDENTIALS);
-        const txid = cobranca.txid;
+        const cobranca = await createCharge(token, valor, CHAVE_PIX, CREDENTIALS);
+        
+        // Verifica se a cobrança retornou o que precisamos
+        if (!cobranca.txid || !cobranca.loc || !cobranca.pixCopiaECola) {
+             throw new Error("A Efí não retornou o Pix Copia e Cola. Verifique suas credenciais.");
+        }
 
-       // C. SALVA NO SUPABASE (Com Nome, Zap e Notas)
+        const txid = cobranca.txid;
+        const pixCopiaCola = cobranca.pixCopiaECola;
+
+       // C. SALVA NO SUPABASE (AGORA COM FASE PROFISSIONAL)
         const { error: erroSupabase } = await supabase
             .from('leads')
             .insert({
-                email: email || 'usuario_anonimo',
                 nome: nome || 'Sem Nome',
-                whatsapp: telefone || null,
-                qi_score: qi || 0,
-                qe_score: qe || 0,
+                whatsapp: whatsapp || null,
+                qi_score: qi_score || 0,
+                qe_score: qe_score || 0,
+                fase_profissional: fase_profissional || 'Não Informado', // <--- AQUI ESTÁ A NOVIDADE
                 txid: txid,
-                status_pagamento: 'aguardando', // Mudei de 'pendente' para 'aguardando' pra padronizar
+                pix_copia_cola: pixCopiaCola,
+                status: 'pendente',
                 created_at: new Date()
             });
         
-        if (erroSupabase) console.error("Erro Supabase:", erroSupabase);
+        if (erroSupabase) {
+            console.error("Erro Supabase:", erroSupabase);
+            // Não paramos o processo aqui, senão o cliente não paga
+        }
 
-        // D. Gera o desenho do QR Code
+        // D. Gera o desenho do QR Code (Imagem)
         const qr = await getQRCode(token, cobranca.loc.id, CREDENTIALS);
 
         // E. Devolve tudo para o site
         return res.status(200).json({
-            img: qr.imagemQrcode,
-            code: qr.qrcode,
-            qrcode_base64: qr.imagemQrcode, // Compatibilidade
-            copia_cola: qr.qrcode,          // Compatibilidade
+            qr_code_base64: qr.imagemQrcode, // Imagem
+            pix_copia_cola: pixCopiaCola,    // Código de texto
             txid: txid
         });
 
@@ -77,10 +81,11 @@ module.exports = async (req, res) => {
     }
 };
 
-// --- FUNÇÕES AUXILIARES (NÃO MEXA DAQUI PARA BAIXO) ---
+// --- FUNÇÕES AUXILIARES DA EFÍ (NÃO MEXA) ---
 
 function getAgent(creds) {
     let certLimpo = creds.cert_base64 || "";
+    // Remove cabeçalhos se houver, deixa só o base64 puro
     certLimpo = certLimpo.replace(/^data:.*;base64,/, "").replace(/\s/g, "");
     return new https.Agent({
         pfx: Buffer.from(certLimpo, 'base64'),
@@ -115,13 +120,13 @@ function getToken(creds) {
     });
 }
 
-function createCharge(token, valor, creds) {
+function createCharge(token, valor, chavePix, creds) {
     return new Promise((resolve, reject) => {
         const dataCob = JSON.stringify({
             calendario: { expiracao: 3600 },
             valor: { original: valor.toFixed(2) },
-            chave: "65e5f3c3-b7d1-4757-a955-d6fc20519dce", // SUA CHAVE ALEATÓRIA
-            solicitacaoPagador: "Avaliacao Neuro-Cognitiva"
+            chave: chavePix,
+            solicitacaoPagador: "NeuroQuiz Oficial"
         });
         const options = {
             hostname: creds.sandbox ? 'pix-h.api.efipay.com.br' : 'pix.api.efipay.com.br',
