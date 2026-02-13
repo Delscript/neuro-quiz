@@ -22,7 +22,7 @@
         .opcao-quiz:hover { background: #eff6ff; border-color: var(--cor-principal); }
         .barra-fundo { width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 20px; }
         .barra-progresso { height: 100%; background: var(--cor-principal); width: 0%; border-radius: 4px; transition: width 0.3s; }
-        .caixa-pix { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin: 20px 0; }
+        .caixa-pix { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin: 20px 0; word-break: break-all; }
 
         .box-relatorio { text-align: left; border: 2px solid #2563eb; padding: 20px; border-radius: 10px; background: #eff6ff; margin-top: 20px; }
         .box-relatorio h2 { color: #2563eb; margin-top: 0; }
@@ -87,14 +87,15 @@
 </div>
 
 <script>
+    // --- SUAS CHAVES ---
     var _URL_BANCO = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
     var _CHAVE_BANCO = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
 
     var _TEXTOS_PERFIL = {
-        "Potência Expansiva": { titulo: "🧠 Potência Expansiva (O Visionário)", resumo: "Equilíbrio raro entre Lógica e Emoção.", texto: `<h3>Análise</h3><p>Seu cérebro opera em alta performance.</p>` },
-        "Executor Solitário": { titulo: "⚙️ Executor Solitário (O Técnico)", resumo: "Alta capacidade lógica, mas centralizador.", texto: `<h3>Análise</h3><p>Você resolve tudo, mas precisa delegar.</p>` },
-        "Conector Nato": { titulo: "🤝 Conector Nato (O Comunicador)", resumo: "Excelente em vendas, fraco em processos.", texto: `<h3>Análise</h3><p>Você abre portas facilmente.</p>` },
-        "Em Construção": { titulo: "🚧 Perfil em Análise", resumo: "Respostas rápidas detectadas.", texto: `<h3>Diagnóstico</h3><p>Refaça o teste.</p>` }
+        "Potência Expansiva": { titulo: "🧠 Potência Expansiva (O Visionário)", resumo: "Equilíbrio raro entre Lógica e Emoção.", texto: `<h3>Análise</h3><p>Seu cérebro opera em alta performance. Você vê o que ninguém vê.</p><h3>Ação</h3><p>Delegue o operacional e foque na estratégia.</p>` },
+        "Executor Solitário": { titulo: "⚙️ Executor Solitário (O Técnico)", resumo: "Alta capacidade lógica, mas centralizador.", texto: `<h3>Análise</h3><p>Você resolve tudo, mas sofre por não confiar na equipe.</p><h3>Ação</h3><p>Treine um braço direito urgente.</p>` },
+        "Conector Nato": { titulo: "🤝 Conector Nato (O Comunicador)", resumo: "Excelente em vendas, fraco em processos.", texto: `<h3>Análise</h3><p>Você abre portas, mas tem dificuldade em fechar ciclos.</p><h3>Ação</h3><p>Use ferramentas de gestão (CRM).</p>` },
+        "Em Construção": { titulo: "🚧 Perfil em Análise", resumo: "Respostas rápidas detectadas.", texto: `<h3>Diagnóstico</h3><p>Refaça o teste com mais calma para um resultado preciso.</p>` }
     };
 
     var _quizApp = {
@@ -121,7 +122,7 @@
             { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
             { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
             
-            // --- AQUI ESTÁ A PERGUNTA 20 ---
+            // --- PERGUNTA 20 (NOVA) ---
             { 
                 q: "Para calibrar sua liderança: Qual sua fase atual?", 
                 opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], 
@@ -131,7 +132,6 @@
         ],
 
         iniciar: async () => {
-            // Captura os dados que antes não existiam
             const nome = document.getElementById('nome-usuario').value.trim();
             const email = document.getElementById('email-usuario').value.trim();
             const zap = document.getElementById('whatsapp-usuario').value.trim();
@@ -159,8 +159,8 @@
                 btn.className = 'opcao-quiz';
                 btn.innerText = opt;
                 btn.onclick = () => {
-                    // Lógica para salvar a resposta 20 (Fase)
-                    if(q.type === 'SEG') {
+                    // Captura a Fase na Pergunta 20
+                    if (q.type === 'SEG') {
                         _quizApp.dados.fase = opt; 
                     } else {
                         if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
@@ -187,15 +187,14 @@
 
         gerarPix: async () => {
             try {
-                // AQUI ESTAVA O PROBLEMA DO CÓDIGO ORIGINAL
-                // Ele só mandava o email. Agora mandamos TUDO.
+                // Prepara o pacote com TODOS os dados
                 const envelope = { 
                     nome: _quizApp.dados.nome,
-                    email: _quizApp.dados.email,
+                    email: _quizApp.dados.email, 
                     whatsapp: _quizApp.dados.whatsapp,
-                    qi: _quizApp.dados.qi,
-                    qe: _quizApp.dados.qe,
-                    fase: _quizApp.dados.fase,
+                    qi_score: _quizApp.dados.qi,
+                    qe_score: _quizApp.dados.qe,
+                    fase_profissional: _quizApp.dados.fase,
                     valor: 1.00 
                 };
 
@@ -208,7 +207,6 @@
                 
                 if(!res.ok) throw new Error(data.erro || "Erro ao gerar Pix");
 
-                // Sistema de proteção para imagem
                 const imgQR = data.qr_code_base64 || data.qrcode_base64 || data.img;
 
                 document.getElementById('area-qr').innerHTML = `
@@ -216,6 +214,7 @@
                     <textarea style="width:100%; font-size:0.8rem; margin-top:10px;" rows="3" readonly>${data.pix_copia_cola || data.code}</textarea>
                     <button class="botao-acao" style="background:#333; margin-top:10px;" onclick="navigator.clipboard.writeText('${data.pix_copia_cola || data.code}');alert('Copiado!')">Copiar Pix</button>
                     <p style="margin-top:10px; font-size:0.9rem; color:#2563eb;">⏳ Aguardando pagamento...</p>
+                    <div style="font-size:0.7rem; color:#999; margin-top:5px;">ID: ${data.txid}</div>
                 `;
                 _quizApp.mostrarTela('tela-pagamento');
 
