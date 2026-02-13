@@ -160,32 +160,34 @@
             _quizApp.renderizar();
         },
 
-        renderizar: () => {
-            if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
-            const q = _quizApp.perguntas[_quizApp.dados.idx];
-            document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
-            document.getElementById('texto-pergunta').innerText = q.q;
-            document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / _quizApp.perguntas.length) * 100) + '%';
-            
-            const div = document.getElementById('area-opcoes');
-            div.innerHTML = '';
-            
-            q.opts.forEach((opt, i) => {
-                const btn = document.createElement('div');
-                btn.className = 'opcao-quiz';
-                btn.innerText = opt;
-                btn.onclick = () => {
-                    if (q.type === 'SEG') {
-                        _quizApp.dados.fase = opt; 
-                    } else {
-                        if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
-                    }
-                    _quizApp.dados.idx++;
-                    _quizApp.renderizar();
-                };
-                div.appendChild(btn);
-            });
-        },
+       renderizar: () => {
+    if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
+    const q = _quizApp.perguntas[_quizApp.dados.idx];
+    document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
+    document.getElementById('texto-pergunta').innerText = q.q;
+    document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / _quizApp.perguntas.length) * 100) + '%';
+    
+    const div = document.getElementById('area-opcoes');
+    div.innerHTML = '';
+    
+    q.opts.forEach((opt, i) => {
+        const btn = document.createElement('div');
+        btn.className = 'opcao-quiz';
+        btn.innerText = opt;
+        btn.onclick = () => {
+            // FORÇA A ATUALIZAÇÃO DA FASE A CADA CLIQUE
+            if(q.type === 'SEG') {
+                _quizApp.dados.fase = opt; // Pega o texto EXATO do botão clicado
+                console.log("CAGUETE: Fase capturada agora ->", _quizApp.dados.fase);
+            } else {
+                if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
+            }
+            _quizApp.dados.idx++;
+            _quizApp.renderizar();
+        };
+        div.appendChild(btn);
+    });
+},
 
         finalizar: async () => {
             _quizApp.mostrarTela('tela-carregando');
