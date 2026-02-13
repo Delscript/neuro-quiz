@@ -27,15 +27,16 @@ module.exports = async (req, res) => {
         const qr = await getQRCode(token, cobranca.loc.id, CREDENTIALS);
 
         // 2. Salva TUDO no Supabase
+        // Mapeando o que vem do site para as colunas do banco
         const { error } = await supabase
             .from('leads')
             .insert({
                 nome: body.nome || 'Sem Nome',
                 email: body.email || 'sem_email',
                 whatsapp: body.whatsapp || null,
-                qi_score: body.qi_score || 0,
-                qe_score: body.qe_score || 0,
-                fase_profissional: body.fase_profissional || 'Não Informado',
+                qi_score: body.qi || 0,         // Note: O site manda 'qi', banco salva em 'qi_score'
+                qe_score: body.qe || 0,         // Note: O site manda 'qe', banco salva em 'qe_score'
+                fase_profissional: body.fase || 'Não Informado',
                 txid: cobranca.txid,
                 pix_copia_cola: cobranca.pixCopiaECola,
                 status: 'pendente'
