@@ -66,6 +66,12 @@
                     <label class="text-xs text-gray-500 ml-1">Nome Completo</label>
                     <input type="text" id="nome" required class="w-full bg-gray-900/50 border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none transition">
                 </div>
+
+                <div>
+                    <label class="text-xs text-gray-500 ml-1">E-mail</label>
+                    <input type="email" id="email" required placeholder="seu@email.com" class="w-full bg-gray-900/50 border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none transition">
+                </div>
+
                 <div>
                     <label class="text-xs text-gray-500 ml-1">WhatsApp (com DDD)</label>
                     <input type="tel" id="whatsapp" required placeholder="(00) 00000-0000" class="w-full bg-gray-900/50 border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none transition">
@@ -122,7 +128,7 @@
             { t: "No futuro, você se vê:", options: [{t:"Construindo um império", s:"QI"}, {t:"Mudando vidas", s:"QE"}] },
             { t: "Dinheiro para você é:", options: [{t:"Ferramenta de poder", s:"QI"}, {t:"Segurança emocional", s:"QE"}] },
             { t: "Complete: O mundo precisa de mais...", options: [{t:"Ordem e progresso", s:"QI"}, {t:"Amor e compreensão", s:"QE"}] },
-            // PERGUNTA 20 - SEGMENTAÇÃO (Não soma pontos, salva o texto)
+            // PERGUNTA 20 - SEGMENTAÇÃO
             { 
                 t: "Para calibrarmos seu nível de liderança e QE, em qual fase você se encontra hoje?", 
                 type: "segmentation",
@@ -198,6 +204,7 @@
 
             const dados = {
                 nome: document.getElementById('nome').value,
+                email: document.getElementById('email').value, // <--- E-MAIL AQUI
                 whatsapp: document.getElementById('whatsapp').value,
                 qi_score: scores.QI,
                 qe_score: scores.QE,
