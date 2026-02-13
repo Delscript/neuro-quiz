@@ -2,22 +2,17 @@ const { createClient } = require('@supabase/supabase-js');
 const https = require('https');
 
 module.exports = async (req, res) => {
-    // --- SUAS CHAVES DO SUPABASE ---
+    // --- SUAS CHAVES REAIS ---
     const sbUrl = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
     const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-    
-    // --- SUA CHAVE PIX (Do Banco Efí) ---
-    const CHAVE_PIX = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; 
-    // ------------------------------------
+    // -------------------------
 
     if (req.method !== 'POST') {
         return res.status(405).json({ erro: 'Método não permitido.' });
     }
 
-    // Conexão Supabase
     const supabase = createClient(sbUrl, sbKey);
 
-    // Credenciais Efí (Vindas da Vercel)
     const CREDENTIALS = {
         client_id: process.env.EFI_CLIENT_ID,
         client_secret: process.env.EFI_CLIENT_SECRET,
@@ -28,73 +23,62 @@ module.exports = async (req, res) => {
     try {
         const body = req.body;
         
-        // Dados recebidos do Front
+        // Dados do formulário
         const nome = body.nome || 'Sem Nome';
         const email = body.email || 'nao_informado';
-        const zap = body.whatsapp || body.telefone; 
+        const whatsapp = body.whatsapp || body.telefone; 
         const qi = body.qi_score || 0;
         const qe = body.qe_score || 0;
-        const fase = body.fase_profissional || 'Não Informado';
+        
+        // --- A ÚNICA MUDANÇA É AQUI (Pegando a fase) ---
+        const fase = body.fase_profissional || 'Não Informado'; 
 
         const valor = 1.00; 
 
         // 1. Autentica na Efí
         const token = await getToken(CREDENTIALS);
 
-        // 2. Cria a Cobrança (TxID)
-        const cobranca = await createCharge(token, valor, CHAVE_PIX, CREDENTIALS);
-        
-        // Verifica se a cobrança foi criada mesmo
-        if (!cobranca.txid || !cobranca.loc || !cobranca.loc.id) {
-            throw new Error('Falha ao criar cobrança na Efí. Resposta incompleta.');
-        }
-
+        // 2. Cria a Cobrança
+        const cobranca = await createCharge(token, valor, CREDENTIALS);
         const txid = cobranca.txid;
-        const locId = cobranca.loc.id;
 
-        // 3. Busca a Imagem do QR Code
-        const qr = await getQRCode(token, locId, CREDENTIALS);
-
-        // --- AQUI ESTAVA O ERRO ANTES ---
-        // Verifica se a imagem realmente veio
-        if (!qr.imagemQrcode) {
-            console.error("Erro Efí QR Code:", JSON.stringify(qr)); // Loga o erro real no console da Vercel
-            throw new Error('A Efí gerou o Pix, mas falhou ao entregar a imagem do QR Code.');
-        }
-
-        // 4. Salva no Supabase
+        // 3. Salva no Supabase (Lógica Original + Coluna Nova)
         const { error: erroSupabase } = await supabase
             .from('leads')
             .insert({
                 nome: nome,
-                email: email, // Salvando e-mail
-                whatsapp: zap,
+                email: email,
+                whatsapp: whatsapp,
                 qi_score: qi,
                 qe_score: qe,
-                fase_profissional: fase, // Salvando fase
+                fase_profissional: fase, // <--- ADICIONADO AQUI
                 txid: txid,
                 pix_copia_cola: cobranca.pixCopiaECola,
-                status: 'pendente',
+                status: 'pendente', // Mantendo 'pendente' como no original
                 created_at: new Date()
             });
         
         if (erroSupabase) console.error("Erro Supabase:", erroSupabase);
 
-        // 5. Responde para o site (Com os nomes exatos que o index.html espera)
+        // 4. Pega a Imagem do QR Code
+        const qr = await getQRCode(token, cobranca.loc.id, CREDENTIALS);
+
+        // 5. Retorna para o site (Mantendo compatibilidade total)
         return res.status(200).json({
-            qr_code_base64: qr.imagemQrcode, 
+            // Mando com os dois nomes para garantir que o index.html não quebre
+            qr_code_base64: qr.imagemQrcode, // Nome novo
+            qrcode_base64: qr.imagemQrcode,  // Nome antigo (backup)
             pix_copia_cola: cobranca.pixCopiaECola,
             txid: txid
         });
 
     } catch (error) {
-        console.error("🔥 Erro Crítico:", error.message);
-        // Retorna erro 500 para o site mostrar o alerta, em vez de tentar carregar imagem quebrada
+        console.error("Erro:", error.message);
         return res.status(500).json({ erro: error.message });
     }
 };
 
-// --- FUNÇÕES AUXILIARES ---
+// --- FUNÇÕES AUXILIARES (ORIGINAIS INTACTAS) ---
 
 function getAgent(creds) {
     let certLimpo = creds.cert_base64 || "";
@@ -122,7 +106,7 @@ function getToken(creds) {
                 try {
                     const json = JSON.parse(data);
                     if (json.access_token) resolve(json.access_token);
-                    else reject(new Error('Erro Auth: ' + JSON.stringify(json)));
+                    else reject(new Error('Erro Auth Efí'));
                 } catch(e) { reject(e); }
             });
         });
@@ -132,12 +116,12 @@ function getToken(creds) {
     });
 }
 
-function createCharge(token, valor, chavePix, creds) {
+function createCharge(token, valor, creds) {
     return new Promise((resolve, reject) => {
         const dataCob = JSON.stringify({
             calendario: { expiracao: 3600 },
             valor: { original: valor.toFixed(2) },
-            chave: chavePix,
+            chave: "65e5f3c3-b7d1-4757-a955-d6fc20519dce", // SUA CHAVE
             solicitacaoPagador: "NeuroQuiz Oficial"
         });
         const options = {
@@ -153,9 +137,8 @@ function createCharge(token, valor, chavePix, creds) {
             res.on('end', () => {
                 try {
                     const json = JSON.parse(data);
-                    // Se tiver txid, deu certo
                     if (json.txid) resolve(json);
-                    else reject(new Error('Erro Cobrança: ' + JSON.stringify(json)));
+                    else reject(new Error('Erro Cobrança Efí'));
                 } catch(e) { reject(e); }
             });
         });
@@ -177,12 +160,7 @@ function getQRCode(token, locId, creds) {
         const req = https.request(options, (res) => {
             let data = '';
             res.on('data', c => data += c);
-            res.on('end', () => {
-                try {
-                    const json = JSON.parse(data);
-                    resolve(json); // Retorna o JSON (seja sucesso ou erro)
-                } catch(e) { reject(e); }
-            });
+            res.on('end', () => resolve(JSON.parse(data)));
         });
         req.on('error', reject);
         req.end();
