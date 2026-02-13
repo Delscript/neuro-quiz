@@ -1,251 +1,63 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avaliação Neuro-Cognitiva</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root { --cor-principal: #2563eb; --fundo: #f8fafc; --texto: #1e293b; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--fundo); color: var(--texto); padding: 20px; text-align: center; margin: 0; }
-        .cx-container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { color: #0f172a; font-size: 1.8rem; }
-        .botao-acao { display: block; width: 100%; padding: 16px; background: var(--cor-principal); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.2s; }
-        .botao-acao:active { transform: scale(0.98); }
-        input { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; margin-top: 10px; box-sizing: border-box; font-size: 1rem; }
-        
-        .tela-app { display: none; animation: aparecer 0.4s; }
-        .tela-app.ativa { display: block; }
-        @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+const { createClient } = require('@supabase/supabase-js');
+const https = require('https');
 
-        .opcao-quiz { padding: 15px; border: 2px solid #f1f5f9; margin: 10px 0; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; font-weight: 500; }
-        .opcao-quiz:hover { background: #eff6ff; border-color: var(--cor-principal); }
-        .barra-fundo { width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 20px; }
-        .barra-progresso { height: 100%; background: var(--cor-principal); width: 0%; border-radius: 4px; transition: width 0.3s; }
-        .caixa-pix { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin: 20px 0; }
+module.exports = async (req, res) => {
+    // --- CHAVES ---
+    const sbUrl = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
+    const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
+    // --------------
 
-        .box-relatorio { text-align: left; border: 2px solid #2563eb; padding: 20px; border-radius: 10px; background: #eff6ff; margin-top: 20px; }
-        .box-relatorio h2 { color: #2563eb; margin-top: 0; }
-        .box-relatorio h3 { color: #1e293b; margin-top: 15px; border-bottom: 1px solid #bfdbfe; padding-bottom: 5px; }
-    </style>
-</head>
-<body>
+    if (req.method !== 'POST') return res.status(405).json({ erro: 'Use POST' });
 
-<div class="cx-container">
-    
-    <div id="tela-inicio" class="tela-app ativa">
-        <h1>Avaliação Neuro-Cognitiva</h1>
-        <p>Descubra seu perfil exato de QI e QE e receba um plano de carreira.</p>
-        <div style="background: #ecfdf5; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #065f46; margin-bottom: 20px;">
-            🔒 Teste Oficial Sier Growth
-        </div>
-        
-        <input type="text" id="nome-usuario" placeholder="Seu Nome Completo">
-        <input type="email" id="email-usuario" placeholder="Seu melhor e-mail...">
-        <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp (com DDD)">
+    const supabase = createClient(sbUrl, sbKey);
 
-        <button class="botao-acao" onclick="_quizApp.iniciar()">Iniciar Avaliação</button>
-    </div>
-
-    <div id="tela-perguntas" class="tela-app">
-        <div class="barra-fundo"><div id="barra-progresso" class="barra-progresso"></div></div>
-        <p style="text-align: right; font-size: 0.8rem; color: #64748b;">Pergunta <span id="num-pergunta">1</span> de 20</p>
-        <h2 id="texto-pergunta" style="min-height: 50px;">...</h2>
-        <div id="area-opcoes"></div>
-    </div>
-
-    <div id="tela-carregando" class="tela-app">
-        <div style="font-size: 3rem; margin-bottom: 20px;">🧠</div>
-        <h2>Processando Respostas...</h2>
-        <p>Cruzando métricas de lógica e inteligência emocional...</p>
-    </div>
-
-    <div id="tela-pagamento" class="tela-app">
-        <h2 style="color: #10b981">Análise Concluída!</h2>
-        <p>Identificamos um perfil de alto potencial.</p>
-        
-        <div style="text-align: left; background: #fff; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-            <p><strong>Seu Perfil Base:</strong> <span id="preview-perfil">Calculando...</span></p>
-            <p style="filter: blur(4px); opacity: 0.5;">Sua capacidade de liderança é notável, porém a gestão de tempo...</p>
-        </div>
-
-        <h1 style="color: #2563eb; font-size: 2.5rem; margin: 10px 0;">R$ 1,00</h1>
-        
-        <div id="area-qr" class="caixa-pix">
-            <p>Gerando Pix Seguro...</p>
-        </div>
-        
-        <p style="font-size: 0.8rem; color: #64748b;">Relatório liberado automaticamente após pagamento.</p>
-    </div>
-
-    <div id="tela-resultado" class="tela-app">
-        <h1 style="color: #2563eb">Relatório Liberado ✅</h1>
-        <div id="conteudo-final"></div>
-        <button class="botao-acao" style="background: #25D366" onclick="_quizApp.abrirZap()">Falar com Anderson Dias</button>
-    </div>
-
-</div>
-
-<script>
-    // --- ⚙️ CONFIGURAÇÃO ---
-    var _URL_BANCO = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
-    var _CHAVE_BANCO = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-    // -----------------------
-
-    var _TEXTOS_PERFIL = {
-        "Potência Expansiva": { titulo: "🧠 Potência Expansiva", resumo: "Equilíbrio raro entre Lógica e Emoção.", texto: `<h3>Análise</h3><p>Seu cérebro opera em alta performance. Você vê o que ninguém vê.</p><h3>Ação</h3><p>Delegue o operacional e foque na estratégia.</p>` },
-        "Executor Solitário": { titulo: "⚙️ Executor Solitário", resumo: "Alta capacidade lógica, mas centralizador.", texto: `<h3>Análise</h3><p>Você resolve tudo, mas sofre por não confiar na equipe.</p><h3>Ação</h3><p>Treine um braço direito urgente.</p>` },
-        "Conector Nato": { titulo: "🤝 Conector Nato", resumo: "Excelente em vendas, fraco em processos.", texto: `<h3>Análise</h3><p>Você abre portas, mas tem dificuldade em fechar ciclos.</p><h3>Ação</h3><p>Use ferramentas de gestão (CRM).</p>` },
-        "Em Construção": { titulo: "🚧 Perfil em Análise", resumo: "Respostas rápidas detectadas.", texto: `<h3>Diagnóstico</h3><p>Refaça o teste com mais calma para um resultado preciso.</p>` }
+    const CREDENTIALS = {
+        client_id: process.env.EFI_CLIENT_ID,
+        client_secret: process.env.EFI_CLIENT_SECRET,
+        cert_base64: process.env.EFI_CERT_BASE64,
+        sandbox: false
     };
 
-    var _quizApp = {
-        dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, perfil: null, fase: 'Não Informado' },
+    try {
+        const body = req.body;
         
-        perguntas: [
-            { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
-            { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
-            { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
-            { q: "Cliente gritou. Reação:", opts: ["Resolve calmo", "Grita", "Chora"], type: "QE", c: 0 },
-            { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
-            { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
-            { q: "Em grupo prefere:", opts: ["Liderar", "Esperar", "Fazer só"], type: "QE", c: 0 },
-            { q: "Erro na empresa:", opts: ["Assume", "Esconde", "Culpa outro"], type: "QE", c: 0 },
-            { q: "20% de 500 é:", opts: ["100", "50", "200"], type: "QI", c: 0 },
-            { q: "Se ontem fosse amanhã, hoje seria sábado. Hoje é:", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
-            { q: "Feedback duro:", opts: ["Cresce", "Raiva", "Desiste"], type: "QE", c: 0 },
-            { q: "Médico : Hospital :: Professor : ?", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
-            { q: "Colega triste:", opts: ["Ajuda", "Ignora", "Piada"], type: "QE", c: 0 },
-            { q: "Negociação:", opts: ["Acordo", "Vencer", "Não perder"], type: "QE", c: 0 },
-            { q: "Carro 80km/h em 30min:", opts: ["40km", "80km", "60km"], type: "QI", c: 0 },
-            { q: "Inteligência Emocional:", opts: ["Gerir emoções", "Nada", "Feliz"], type: "QE", c: 0 },
-            { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
-            { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
-            { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
-            
-            // --- AQUI ESTÁ A PERGUNTA 20 (SEGMENTAÇÃO) ---
-            { 
-                q: "Para calibrar sua liderança: Qual sua fase atual?", 
-                opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], 
-                type: "SEG", 
-                c: 0 
-            }
-        ],
+        // 1. Gera Pix
+        const token = await getToken(CREDENTIALS);
+        const cobranca = await createCharge(token, 1.00, CREDENTIALS);
+        const qr = await getQRCode(token, cobranca.loc.id, CREDENTIALS);
 
-        iniciar: async () => {
-            const nome = document.getElementById('nome-usuario').value.trim();
-            const email = document.getElementById('email-usuario').value.trim();
-            const zap = document.getElementById('whatsapp-usuario').value.trim();
-            
-            if(!nome || !email.includes('@') || !zap) return alert('Por favor, preencha todos os dados!');
-            
-            _quizApp.dados.nome = nome;
-            _quizApp.dados.email = email;
-            _quizApp.dados.whatsapp = zap;
-            
-            _quizApp.mostrarTela('tela-perguntas');
-            _quizApp.renderizar();
-        },
-
-        renderizar: () => {
-            if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
-            const q = _quizApp.perguntas[_quizApp.dados.idx];
-            document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
-            document.getElementById('texto-pergunta').innerText = q.q;
-            document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / _quizApp.perguntas.length) * 100) + '%';
-            const div = document.getElementById('area-opcoes');
-            div.innerHTML = '';
-            q.opts.forEach((opt, i) => {
-                const btn = document.createElement('div');
-                btn.className = 'opcao-quiz';
-                btn.innerText = opt;
-                btn.onclick = () => {
-                    // Lógica para capturar a resposta
-                    if (q.type === 'SEG') {
-                        _quizApp.dados.fase = opt; // Salva o texto da Fase Profissional
-                    } else {
-                        if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
-                    }
-                    _quizApp.dados.idx++;
-                    _quizApp.renderizar();
-                };
-                div.appendChild(btn);
+        // 2. Salva TUDO no Supabase
+        // Mapeando o que vem do site para as colunas do banco
+        const { error } = await supabase
+            .from('leads')
+            .insert({
+                nome: body.nome || 'Sem Nome',
+                email: body.email || 'sem_email',
+                whatsapp: body.whatsapp || null,
+                qi_score: body.qi || 0,         // Note: O site manda 'qi', banco salva em 'qi_score'
+                qe_score: body.qe || 0,         // Note: O site manda 'qe', banco salva em 'qe_score'
+                fase_profissional: body.fase || 'Não Informado',
+                txid: cobranca.txid,
+                pix_copia_cola: cobranca.pixCopiaECola,
+                status: 'pendente'
             });
-        },
 
-        finalizar: async () => {
-            _quizApp.mostrarTela('tela-carregando');
-            let chave = "Em Construção";
-            if(_quizApp.dados.qi > 6 && _quizApp.dados.qe > 6) chave = "Potência Expansiva";
-            else if(_quizApp.dados.qi > 6) chave = "Executor Solitário";
-            else if(_quizApp.dados.qe > 6) chave = "Conector Nato";
-            
-            _quizApp.dados.perfil = _TEXTOS_PERFIL[chave];
-            document.getElementById('preview-perfil').innerText = _quizApp.dados.perfil.titulo;
+        if (error) console.error("Erro Supabase:", error);
 
-            _quizApp.gerarPix();
-        },
+        // 3. Retorna pro site
+        return res.status(200).json({
+            qr_code_base64: qr.imagemQrcode,
+            pix_copia_cola: cobranca.pixCopiaECola,
+            txid: cobranca.txid
+        });
 
-        gerarPix: async () => {
-            try {
-                // --- A CORREÇÃO DE OURO ESTÁ AQUI 👇 ---
-                // Agora enviamos o envelope COMPLETO, não só o e-mail.
-                const envelope = { 
-                    nome: _quizApp.dados.nome,
-                    email: _quizApp.dados.email, 
-                    whatsapp: _quizApp.dados.whatsapp,
-                    qi_score: _quizApp.dados.qi,
-                    qe_score: _quizApp.dados.qe,
-                    fase_profissional: _quizApp.dados.fase,
-                    valor: 1.00 
-                };
+    } catch (e) {
+        return res.status(500).json({ erro: e.message });
+    }
+};
 
-                const res = await fetch('/api/pix', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(envelope) // Enviando envelope cheio!
-                });
-                const data = await res.json();
-                
-                if(!res.ok) throw new Error(data.erro || "Erro ao gerar Pix");
-
-                // Proteção para imagem
-                const imgQR = data.qr_code_base64 || data.qrcode_base64 || data.img;
-
-                document.getElementById('area-qr').innerHTML = `
-                    <img src="${imgQR}" style="width:200px; mix-blend-mode: multiply; margin:0 auto; display:block;">
-                    <textarea style="width:100%; font-size:0.8rem; margin-top:10px;" rows="3" readonly>${data.pix_copia_cola || data.code}</textarea>
-                    <button class="botao-acao" style="background:#333; margin-top:10px;" onclick="navigator.clipboard.writeText('${data.pix_copia_cola || data.code}');alert('Copiado!')">Copiar Pix</button>
-                    <p style="margin-top:10px; font-size:0.9rem; color:#2563eb;">⏳ Aguardando pagamento...</p>
-                    <div style="font-size:0.7rem; color:#999; margin-top:5px;">ID: ${data.txid}</div>
-                `;
-                _quizApp.mostrarTela('tela-pagamento');
-
-                if (window.loopVerificacao) clearInterval(window.loopVerificacao);
-                window.loopVerificacao = setInterval(async () => {
-                    try {
-                        const reqStatus = await fetch('/api/status?txid=' + data.txid);
-                        const jsonStatus = await reqStatus.json();
-                        if (jsonStatus.status === 'pago') {
-                            clearInterval(window.loopVerificacao);
-                            window.location.href = `resultado.html?txid=${data.txid}`;
-                        }
-                    } catch (e) { }
-                }, 3000);
-
-            } catch(e) {
-                console.error(e);
-                _quizApp.mostrarTela('tela-pagamento');
-                document.getElementById('area-qr').innerHTML = `<p style="color:red">Erro: ${e.message}</p><button class="botao-acao" onclick="_quizApp.gerarPix()">Tentar Novamente</button>`;
-            }
-        },
-
-        abrirZap: () => window.open("https://wa.me/5571999466243", "_blank"),
-        mostrarTela: (id) => {
-            document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
-            document.getElementById(id).classList.add('ativa');
-        }
-    };
-</script>
-</body>
-</html>
+// --- FUNÇÕES EFÍ ---
+function getAgent(c){let s=c.cert_base64.replace(/^data:.*;base64,/,"").replace(/\s/g,"");return new https.Agent({pfx:Buffer.from(s,'base64'),passphrase:''})}
+function getToken(c){return new Promise((r,j)=>{const o={hostname:c.sandbox?'pix-h.api.efipay.com.br':'pix.api.efipay.com.br',path:'/oauth/token',method:'POST',headers:{'Authorization':`Basic ${Buffer.from(c.client_id+':'+c.client_secret).toString('base64')}`,'Content-Type':'application/json'},agent:getAgent(c)};const q=https.request(o,res=>{let d='';res.on('data',k=>d+=k);res.on('end',()=>r(JSON.parse(d).access_token))});q.on('error',j);q.write(JSON.stringify({grant_type:'client_credentials'}));q.end()})}
+function createCharge(t,v,c){return new Promise((r,j)=>{const o={hostname:c.sandbox?'pix-h.api.efipay.com.br':'pix.api.efipay.com.br',path:'/v2/cob',method:'POST',headers:{'Authorization':`Bearer ${t}`,'Content-Type':'application/json'},agent:getAgent(c)};const q=https.request(o,res=>{let d='';res.on('data',k=>d+=k);res.on('end',()=>r(JSON.parse(d)))});q.on('error',j);q.write(JSON.stringify({calendario:{expiracao:3600},valor:{original:v.toFixed(2)},chave:"65e5f3c3-b7d1-4757-a955-d6fc20519dce"}));q.end()})}
+function getQRCode(t,l,c){return new Promise((r,j)=>{const o={hostname:c.sandbox?'pix-h.api.efipay.com.br':'pix.api.efipay.com.br',path:`/v2/loc/${l}/qrcode`,method:'GET',headers:{'Authorization':`Bearer ${t}`},agent:getAgent(c)};const q=https.request(o,res=>{let d='';res.on('data',k=>d+=k);res.on('end',()=>r(JSON.parse(d)))});q.on('error',j);q.end()})}
