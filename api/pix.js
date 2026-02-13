@@ -2,10 +2,10 @@ const { createClient } = require('@supabase/supabase-js');
 const https = require('https');
 
 module.exports = async (req, res) => {
-    // --- CHAVES ---
+    // --- SUAS CHAVES ---
     const sbUrl = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
     const sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-    // --------------
+    // ------------------
 
     if (req.method !== 'POST') return res.status(405).json({ erro: 'Use POST' });
 
@@ -26,17 +26,16 @@ module.exports = async (req, res) => {
         const cobranca = await createCharge(token, 1.00, CREDENTIALS);
         const qr = await getQRCode(token, cobranca.loc.id, CREDENTIALS);
 
-        // 2. Salva TUDO no Supabase
-        // Mapeando o que vem do site para as colunas do banco
+        // 2. Salva no Supabase (Capturando TUDO que o index novo manda)
         const { error } = await supabase
             .from('leads')
             .insert({
                 nome: body.nome || 'Sem Nome',
                 email: body.email || 'sem_email',
                 whatsapp: body.whatsapp || null,
-                qi_score: body.qi || 0,         // Note: O site manda 'qi', banco salva em 'qi_score'
-                qe_score: body.qe || 0,         // Note: O site manda 'qe', banco salva em 'qe_score'
-                fase_profissional: body.fase || 'Não Informado',
+                qi_score: body.qi_score || 0,
+                qe_score: body.qe_score || 0,
+                fase_profissional: body.fase_profissional || 'Não Informado',
                 txid: cobranca.txid,
                 pix_copia_cola: cobranca.pixCopiaECola,
                 status: 'pendente'
@@ -44,7 +43,7 @@ module.exports = async (req, res) => {
 
         if (error) console.error("Erro Supabase:", error);
 
-        // 3. Retorna pro site
+        // 3. Retorna
         return res.status(200).json({
             qr_code_base64: qr.imagemQrcode,
             pix_copia_cola: cobranca.pixCopiaECola,
