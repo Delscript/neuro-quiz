@@ -24,16 +24,16 @@ module.exports = async (req, res) => {
         const cobranca = await createCharge(token, 1.00, CREDENTIALS);
         const qr = await getQRCode(token, cobranca.loc.id, CREDENTIALS);
 
-        // 2. Salva TUDO no Supabase
+        // 2. CRIA A LINHA OFICIAL NO BANCO (Com TxID)
         const { error } = await supabase
             .from('leads')
             .insert({
                 nome: body.nome || 'Sem Nome',
                 email: body.email || 'sem_email',
                 whatsapp: body.whatsapp || null,
-                qi_score: body.qi_score || 0,
-                qe_score: body.qe_score || 0,
-                fase_profissional: body.fase_profissional || 'Não Informado',
+                qi_score: body.qi || 0,        // <--- Lendo body.qi
+                qe_score: body.qe || 0,        // <--- Lendo body.qe
+                fase_profissional: body.fase || 'Não Informado', // <--- Lendo body.fase
                 txid: cobranca.txid,
                 pix_copia_cola: cobranca.pixCopiaECola,
                 status: 'pendente',
@@ -42,9 +42,9 @@ module.exports = async (req, res) => {
 
         if (error) console.error("Erro Supabase:", error);
 
-        // 3. Devolve pro site (Nomes exatamente como o Front-end espera para não quebrar a imagem)
+        // 3. Devolve pro site
         return res.status(200).json({
-            img: qr.imagemQrcode,           // A Efí já manda o data:image/png completo aqui
+            img: qr.imagemQrcode,           
             code: cobranca.pixCopiaECola,
             txid: cobranca.txid
         });
