@@ -204,17 +204,19 @@
             _quizApp.gerarPix();
         },
 
-        gerarPix: async () => {
-            try {
-                const envelope = { 
-                    nome: _quizApp.dados.nome,
-                    email: _quizApp.dados.email, 
-                    whatsapp: _quizApp.dados.whatsapp,
-                    qi: _quizApp.dados.qi,
-                    qe: _quizApp.dados.qe,
-                    fase: _quizApp.dados.fase,
-                    valor: 1.00 
-                };
+       gerarPix: async () => {
+    try {
+        const envelope = { 
+            email: _quizApp.dados.email, 
+            nome: _quizApp.dados.nome,
+            whatsapp: _quizApp.dados.whatsapp,
+            qi: _quizApp.dados.qi,
+            qe: _quizApp.dados.qe,
+            fase: _quizApp.dados.fase, // Esse valor agora mudará conforme o clique
+            valor: 1.97 
+        };
+        
+        // ... resto do seu código de fetch ...
 
                 const res = await fetch('/api/pix', {
                     method: 'POST',
