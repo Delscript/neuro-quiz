@@ -3,28 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuroQuiz - Edição App</title>
+    <title>NeuroQuiz - Teste Completo</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .hidden { display: none; }
-        .quiz-card { background: #1e293b; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .quiz-card { background: #1e293b; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .option-btn { background: #334155; transition: 0.3s; width: 100%; text-align: left; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
+        .option-btn:hover { background: #475569; border-left: 5px solid #3b82f6; }
     </style>
 </head>
 <body class="bg-slate-900 text-white font-sans min-h-screen p-4">
 
     <div class="max-w-md mx-auto">
-        <header class="text-center mb-8">
+        <header class="text-center mb-6">
             <h1 class="text-2xl font-bold text-blue-400">Sier Growth</h1>
             <p class="text-slate-400">Neuro Quiz v2.0</p>
         </header>
 
-        <div id="payment-section" class="quiz-card text-center">
-            <h2 class="text-xl font-bold mb-4">Parabéns! Teste Concluído.</h2>
-            <p class="mb-6 text-slate-300">Escolha como deseja liberar seu Certificado de NeuroMarketing:</p>
+        <div id="quiz-container" class="quiz-card">
+            <div class="flex justify-between mb-4 text-xs text-slate-400">
+                <span id="progress-text">Pergunta 1 de 20</span>
+                <span id="timer">Tempo: 00:00</span>
+            </div>
+            <h2 id="question-text" class="text-lg font-semibold mb-6">Carregando pergunta...</h2>
+            <div id="options-container"></div>
+        </div>
+
+        <div id="payment-section" class="quiz-card text-center hidden">
+            <h2 class="text-xl font-bold mb-4 text-green-400">Teste Concluído!</h2>
+            <p class="mb-6 text-slate-300">Seu perfil de NeuroMarketing está pronto. Como deseja liberar?</p>
 
             <div class="mb-6 p-4 border border-slate-700 rounded-lg">
-                <p class="text-sm mb-2 text-blue-400">Liberação Imediata</p>
                 <button onclick="gerarPix()" id="btn-pix" class="w-full bg-green-600 hover:bg-green-700 p-3 rounded-lg font-bold">
                     Pagar R$ 1,00 via PIX
                 </button>
@@ -33,53 +43,74 @@
             <p class="text-slate-500 mb-4">-- OU --</p>
 
             <div class="p-4 border border-slate-700 rounded-lg">
-                <p class="text-sm mb-2 text-yellow-400">Grátis para usuários do App</p>
                 <button onclick="verAnuncio()" class="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-lg font-bold">
-                    Assistir Vídeo para Liberar
+                    Assistir Anúncio (Grátis no App)
                 </button>
             </div>
 
             <div id="qr-container" class="hidden mt-6 bg-white p-4 rounded-lg">
-                <p class="text-black font-bold mb-2">Escaneie para Pagar:</p>
                 <img id="qr-image" src="" alt="QR Code Pix" class="mx-auto">
-                <p id="pix-copy-text" class="text-xs text-slate-600 mt-2 break-all"></p>
+                <p id="pix-copy-text" class="text-[10px] text-slate-600 mt-2 break-all"></p>
                 <button onclick="checkPagamento()" class="mt-4 text-blue-600 font-bold underline">Já paguei, verificar!</button>
             </div>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO SUPABASE
-        const _supabaseURL = "SUA_URL_DO_SUPABASE";
-        const _supabaseKey = "SUA_KEY_DO_SUPABASE";
+        // CONFIGURAÇÕES (Preencha em casa no PC)
+        const _supabaseURL = "SUA_URL_AQUI";
+        const _supabaseKey = "SUA_KEY_AQUI";
         const supabase = supabase.createClient(_supabaseURL, _supabaseKey);
 
-        let currentTxid = localStorage.getItem('last_txid') || "";
+        const perguntas = [
+            { q: "Ao ver uma oferta por tempo limitado, sua reação é:", options: ["Analiso se realmente preciso", "Sinto urgência em comprar", "Ignoro completamente", "Pesquiso preços em outros sites"] },
+            { q: "Qual cor você associa a confiança em uma marca?", options: ["Azul", "Vermelho", "Amarelo", "Preto"] },
+            // ... (Vou colocar apenas 2 por brevidade, mas você completa com as 20)
+        ];
 
-        // FUNÇÃO PARA GERAR PIX (Efi Bank)
-        async function gerarPix() {
-            const btn = document.getElementById('btn-pix');
-            btn.innerText = "Gerando...";
-            
-            try {
-                // Aqui você chama sua função que integra com a Efí
-                // Simulando a resposta:
-                const res = { 
-                    imagem: "link_da_imagem_recebida", 
-                    copyPaste: "codigo_pix_recebido", 
-                    txid: "ID_DA_TRANSACAO" 
-                };
+        let currentQuestion = 0;
+        let respostas = [];
 
-                // VACINA CONTRA F5: Salva tudo no navegador
-                localStorage.setItem('pix_image', res.imagem);
-                localStorage.setItem('pix_copy', res.copyPaste);
-                localStorage.setItem('last_txid', res.txid);
-                
-                exibirQR(res.imagem, res.copyPaste);
-            } catch (err) {
-                alert("Erro ao gerar Pix. Tente novamente.");
-                btn.innerText = "Pagar R$ 1,00 via PIX";
+        function loadQuestion() {
+            if (currentQuestion >= perguntas.length) {
+                finalizarQuiz();
+                return;
             }
+            const q = perguntas[currentQuestion];
+            document.getElementById('question-text').innerText = q.q;
+            document.getElementById('progress-text').innerText = `Pergunta ${currentQuestion + 1} de ${perguntas.length}`;
+            
+            const container = document.getElementById('options-container');
+            container.innerHTML = "";
+            q.options.forEach((opt, i) => {
+                container.innerHTML += `<button onclick="next('${opt}')" class="option-btn">${opt}</button>`;
+            });
+        }
+
+        async function next(answer) {
+            respostas.push(answer);
+            currentQuestion++;
+            loadQuestion();
+        }
+
+        async function finalizarQuiz() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('payment-section').classList.remove('hidden');
+            
+            // Aqui você salvaria os resultados preliminares no Supabase
+            console.log("Quiz Finalizado. Respostas:", respostas);
+        }
+
+        // --- LÓGICA DO PIX E ANÚNCIO ---
+        function gerarPix() {
+            // Aqui entra sua chamada para a API da Efí
+            alert("Gerando Pix de R$ 1,00...");
+            const fakeImg = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ExemploPix";
+            const fakeCopy = "00020126360014BR.GOV.BCB.PIX0114EXEMPLO";
+            
+            localStorage.setItem('pix_image', fakeImg);
+            localStorage.setItem('pix_copy', fakeCopy);
+            exibirQR(fakeImg, fakeCopy);
         }
 
         function exibirQR(img, copy) {
@@ -88,22 +119,22 @@
             document.getElementById('pix-copy-text').innerText = copy;
         }
 
-        // FUNÇÃO PARA O APP (Assistir Anúncio)
         function verAnuncio() {
-            alert("Abridor de Anúncio AdMob iniciado...");
-            // No futuro, aqui entra o script do AdMob
-            // Se o anúncio terminar com sucesso:
+            alert("Iniciando Anúncio AdMob...");
             setTimeout(() => {
-                window.location.href = `resultado-teste.html?txid=FREE_APP&user=${currentTxid}`;
+                window.location.href = "resultado-teste.html?txid=FREE_APP";
             }, 2000);
         }
 
-        // RECUPERAÇÃO AUTOMÁTICA AO RECARREGAR (O que resolve seu print de erro)
         window.onload = () => {
             const savedImg = localStorage.getItem('pix_image');
             const savedCopy = localStorage.getItem('pix_copy');
             if(savedImg && savedCopy) {
+                document.getElementById('quiz-container').classList.add('hidden');
+                document.getElementById('payment-section').classList.remove('hidden');
                 exibirQR(savedImg, savedCopy);
+            } else {
+                loadQuestion();
             }
         }
     </script>
