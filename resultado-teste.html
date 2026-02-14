@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificado NeuroQuiz - Sier Growth</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilo para garantir que o PDF tenha fundo escuro como o app */
+        #certificado-area {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center p-4">
+
+    <div id="certificado-area" class="p-8 rounded-2xl border-4 border-blue-500 shadow-2xl relative overflow-hidden">
+        
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-blue-500 opacity-10 rounded-full"></div>
+        
+        <div class="relative z-10 text-center">
+            <h1 class="text-4xl font-extrabold text-blue-400 mb-2 uppercase tracking-widest">Certificado</h1>
+            <p class="text-slate-400 text-lg mb-8 italic">NeuroMarketing Specialist - Sier Growth</p>
+            
+            <div class="my-8">
+                <p class="text-slate-300">Certificamos que</p>
+                <h2 id="nome-usuario" class="text-3xl font-bold text-white my-2 underline decoration-blue-500">---</h2>
+                <p class="text-slate-300">concluiu com êxito o Neuro Quiz de Perfil Estratégico.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 my-10 bg-slate-800/50 p-6 rounded-xl border border-slate-700">
+                <div>
+                    <p class="text-blue-400 font-bold text-sm uppercase">Quociente Intelectual (QI)</p>
+                    <p id="score-qi" class="text-4xl font-black text-white">--</p>
+                </div>
+                <div>
+                    <p class="text-purple-400 font-bold text-sm uppercase">Quociente Emocional (QE)</p>
+                    <p id="score-qe" class="text-4xl font-black text-white">--</p>
+                </div>
+            </div>
+
+            <div class="mt-12 flex justify-between items-end border-t border-slate-700 pt-6">
+                <div class="text-left">
+                    <p class="text-xs text-slate-500">ID da Certificação:</p>
+                    <p id="cert-id" class="text-xs font-mono text-blue-500 uppercase">---</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-lg font-bold text-white">SierComp4ny</p>
+                    <p class="text-xs text-slate-500 italic">Consultoria Estratégica</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-8">
+        <button onclick="baixarPDF()" id="btn-download" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full shadow-lg transition-all transform hover:scale-105">
+            📥 BAIXAR CERTIFICADO EM PDF
+        </button>
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO SUPABASE
+        const _supabaseURL = "https://oabcppkojfmmmqhevjpq.supabase.co";
+        const _supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
+        const supabase = supabase.createClient(_supabaseURL, _supabaseKey);
+
+        async function carregarDados() {
+            // Pega o TXID da URL (vinda do Pix ou do App)
+            const urlParams = new URLSearchParams(window.location.search);
+            const txid = urlParams.get('txid');
+
+            if (!txid) {
+                alert("Erro: Certificado não encontrado.");
+                return;
+            }
+
+            // Busca os dados no seu Supabase
+            const { data, error } = await supabase
+                .from('sua_tabela_de_vendas') // Troque pelo nome da sua tabela
+                .select('*')
+                .eq('txid', txid)
+                .single();
+
+            if (data) {
+                document.getElementById('nome-usuario').innerText = data.nome || "Explorador";
+                document.getElementById('score-qi').innerText = data.qi || "100";
+                document.getElementById('score-qe').innerText = data.qe || "100";
+                document.getElementById('cert-id').innerText = txid;
+            } else {
+                // Caso venha do App (Modo Grátis)
+                if(txid === 'FREE_APP') {
+                   document.getElementById('nome-usuario').innerText = "Usuário do App";
+                   document.getElementById('cert-id').innerText = "APP-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+                }
+            }
+        }
+
+        // FUNÇÃO QUE GERA O PDF (A MÁGICA)
+        function baixarPDF() {
+            const btn = document.getElementById('btn-download');
+            btn.innerText = "GERANDO PDF...";
+            btn.disabled = true;
+
+            const element = document.getElementById('certificado-area');
+            const opt = {
+                margin:       0.5,
+                filename:     'SierGrowth-Certificado.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, backgroundColor: '#0f172a' },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            // Gera e baixa o arquivo
+            html2pdf().set(opt).from(element).save().then(() => {
+                btn.innerText = "📥 BAIXAR CERTIFICADO EM PDF";
+                btn.disabled = false;
+            });
+        }
+
+        window.onload = carregarDados;
+    </script>
+</body>
+</html>
