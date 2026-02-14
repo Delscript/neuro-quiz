@@ -9,95 +9,39 @@
         :root { --cor-sier: #2563eb; --fundo: #0f172a; }
         body { font-family: 'Segoe UI', sans-serif; background: #1e293b; margin: 0; padding: 20px; color: white; display: flex; flex-direction: column; align-items: center; }
         
-       function gerarPDF(){
+     /* CORREÇÃO PROFISSIONAL PDF */
+.modo-pdf{
 
-const elemento = document.getElementById("relatorio");
+width:210mm !important;
+height:297mm !important;
 
-const clone = elemento.cloneNode(true);
+max-width:210mm !important;
+max-height:297mm !important;
 
+margin:0 auto !important;
+padding:0 !important;
 
-// REMOVE LIMITES VISUAIS
+box-sizing:border-box !important;
 
-clone.style.maxWidth = "210mm";
-clone.style.width = "210mm";
+position:relative !important;
 
-clone.style.height = "297mm";
+left:0 !important;
+top:0 !important;
 
-clone.style.margin = "0";
-clone.style.padding = "0";
+background:white !important;
 
-clone.style.position = "fixed";
-clone.style.top = "0";
-clone.style.left = "0";
-
-clone.style.background = "white";
-clone.style.zIndex = "-9999";
-
-
-document.body.appendChild(clone);
-
-
-
-const opt = {
-
-margin:0,
-
-filename:"Relatorio_SierComp4ny.pdf",
-
-image:{
-type:"jpeg",
-quality:1
-},
-
-html2canvas:{
-
-scale:5,
-
-dpi:300,
-
-letterRendering:true,
-
-useCORS:true,
-
-allowTaint:true,
-
-scrollX:0,
-scrollY:0,
-
-windowWidth:794,
-windowHeight:1123
-
-},
-
-
-jsPDF:{
-
-unit:"mm",
-format:"a4",
-orientation:"portrait",
-
-compress:true
+overflow:hidden !important;
 
 }
 
-};
+.modo-pdf .rodape-fixo{
 
-
-
-html2pdf()
-
-.set(opt)
-.from(clone)
-.save()
-
-.then(()=>{
-
-document.body.removeChild(clone);
-
-});
-
+position:absolute;
+bottom:0;
+width:100%;
 
 }
+
 
 
         .sier-logo { font-size: 3rem; font-weight: 800; letter-spacing: -2px; margin-bottom: 10px; }
