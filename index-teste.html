@@ -113,17 +113,50 @@
                     div.appendChild(b);
                 });
             },
-
-            gerarPix: () => {
+              
+                gerarPix: async () => {
+                const areaQr = document.getElementById('area-qr');
+                const qrContent = document.getElementById('qr-content');
+                
+                // 1. Esconde os botões e mostra a área do QR
                 document.getElementById('opcoes-liberacao').classList.add('hidden');
-                document.getElementById('area-qr').classList.remove('hidden');
-                document.getElementById('qr-content').innerHTML = `
-                    <div class="p-4 text-black font-bold">Gerando QR Code...</div>
-                `;
-                // Simulação de salvamento para o F5
-                localStorage.setItem('neuro_pix_img', 'exemplo_img');
-                localStorage.setItem('neuro_pix_code', '00020126360014BR.GOV.BCB.PIX...');
+                areaQr.classList.remove('hidden');
+                qrContent.innerHTML = `<div class="p-8 text-slate-800 font-bold animate-pulse uppercase italic text-xs">Comunicando com o Banco...</div>`;
+
+                try {
+                    // 2. Aqui deves colocar o teu link da API que gera o Pix
+                    // Exemplo: const res = await fetch('https://tua-api.vercel.app/api/pix');
+                    // const d = await res.json();
+
+                    // SIMULAÇÃO DE RESPOSTA (Substitui pelos dados reais da tua API)
+                    const d = {
+                        img: "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=PIX_DE_TESTE", // Link da imagem do QR
+                        code: "00020126360014BR.GOV.BCB.PIX0114TESTE123..." // Código Copia e Cola
+                    };
+
+                    // 3. Exibe o QR Code real na tela
+                    qrContent.innerHTML = `
+                        <img src="${d.img}" class="w-56 h-56 rounded-xl mb-4 shadow-sm">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Código Copia e Cola:</p>
+                        <textarea class="w-full text-[9px] text-slate-600 p-3 bg-slate-50 border border-slate-200 rounded-xl mb-4" rows="2" readonly>${d.code}</textarea>
+                        <button onclick="navigator.clipboard.writeText('${d.code}'); alert('Pix Copiado!')" class="w-full bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-blue-200">Copiar Código Pix</button>
+                        
+                        <div class="flex items-center justify-center gap-2 mt-6">
+                            <div class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
+                            <span class="text-[9px] text-emerald-600 font-black uppercase tracking-widest">Aguardando Pagamento</span>
+                        </div>
+                    `;
+
+                    // 4. Salva no LocalStorage para o F5 não perder o Pix
+                    localStorage.setItem('neuro_pix_img', d.img);
+                    localStorage.setItem('neuro_pix_code', d.code);
+
+                } catch (e) {
+                    qrContent.innerHTML = `<div class="p-4 text-red-500 font-bold text-xs">Erro ao gerar Pix. Tenta novamente.</div>`;
+                    document.getElementById('opcoes-liberacao').classList.remove('hidden');
+                }
             },
+
 
             verAnuncio: () => {
                 window.location.href = `resultado-teste.html?txid=FREE_APP&nome=${encodeURIComponent(_quizApp.dados.nome)}`;
