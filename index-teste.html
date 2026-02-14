@@ -160,16 +160,15 @@
             setTimeout(() => window.location.href = "resultado.html?txid=FREE_APP", 2000);
         },
 
-        startStatusCheck: (txid) => {
-            setInterval(async () => {
-                const r = await fetch('/api/status?txid=' + txid);
-                const j = await r.json();
-                if (j.status === 'pago') {
-                    localStorage.clear();
-                    window.location.href = `resultado.html?txid=${txid}`;
-                }
-            }, 3000);
-        },
+       // Procure esta linha no seu código original:
+if (json.status === 'pago') {
+    clearInterval(window.loopVerificacao);
+    localStorage.removeItem('neuro_txid_pendente'); 
+    
+    // MUDE DE: window.location.href = `resultado.html?txid=${txid}`;
+    // PARA:
+    window.location.href = `resultado-teste.html?txid=${txid}`; 
+}
 
         mostrarTela: (id) => {
             document.querySelectorAll('.quiz-card').forEach(el => el.classList.add('hidden'));
