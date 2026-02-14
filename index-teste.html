@@ -9,75 +9,91 @@
     <style>
         body { background-color: #020617; color: white; font-family: 'Inter', sans-serif; }
         .card-quiz { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; }
+        .opcao-btn { background: #1e293b; border: 1px solid #334155; transition: 0.2s; }
+        .opcao-btn:active { background: #3b82f6; transform: scale(0.98); }
         .hidden { display: none; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
-
     <div class="w-full max-w-md">
         <div id="tela-inicio" class="card-quiz p-8 text-center">
             <h1 class="text-2xl font-black text-blue-500 mb-1">SIER GROWTH</h1>
-            <p class="text-[10px] text-slate-500 uppercase tracking-widest mb-8">Intelligence Engine v2.0</p>
-            
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest mb-8 italic">Intelligence Engine v2.0</p>
             <div class="space-y-4">
-                <input type="text" id="nome-usuario" placeholder="Nome Completo" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 text-white">
-                <input type="email" id="email-usuario" placeholder="E-mail" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 text-white">
-                <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 text-white">
-                <button onclick="_quizApp.iniciar()" class="w-full bg-blue-600 py-4 rounded-xl font-bold text-lg">Iniciar Avaliação</button>
+                <input type="text" id="nome-usuario" placeholder="Nome Completo" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 text-sm">
+                <input type="email" id="email-usuario" placeholder="E-mail" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 text-sm">
+                <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 text-sm">
+                <button onclick="_quizApp.iniciar()" class="w-full bg-blue-600 py-4 rounded-xl font-black text-lg shadow-lg">Iniciar Avaliação</button>
             </div>
-            <button onclick="localStorage.clear(); location.reload();" class="mt-4 text-[9px] text-slate-600 underline uppercase">Limpar Travamento (Reset)</button>
+            <p class="text-[10px] text-slate-600 mt-6">© 2026 SierComp4ny • Anderson Dias</p>
         </div>
 
         <div id="tela-perguntas" class="card-quiz p-6 hidden">
-            <h2 id="texto-pergunta" class="text-lg font-bold mb-6">...</h2>
+            <p class="text-[10px] text-blue-500 font-bold mb-4 uppercase">Questão <span id="num-pergunta">1</span>/20</p>
+            <h2 id="texto-pergunta" class="text-lg font-bold mb-8">...</h2>
             <div id="area-opcoes" class="space-y-3"></div>
         </div>
 
         <div id="tela-pagamento" class="card-quiz p-8 text-center hidden">
-            <h2 class="text-xl font-bold text-green-500 mb-6">ANÁLISE PRONTA!</h2>
-            <button onclick="_quizApp.gerarPix()" class="w-full bg-emerald-600 p-4 rounded-xl font-bold mb-4">Pagar R$ 1,00 via PIX</button>
-            <div id="area-qr" class="hidden bg-white p-4 rounded-2xl mt-4">
-                <div id="qr-content"></div>
+            <h2 class="text-2xl font-black text-green-500 mb-6">ANÁLISE PRONTA!</h2>
+            <div id="opcoes-liberacao" class="space-y-4">
+                <button onclick="_quizApp.gerarPix()" class="w-full bg-emerald-600 p-4 rounded-2xl font-bold">Pagar R$ 1,00 via PIX</button>
+                <button onclick="_quizApp.verAnuncio()" class="w-full bg-slate-800 p-4 rounded-2xl font-bold text-blue-400 text-xs">Assistir Vídeo (Grátis no App)</button>
+            </div>
+            <div id="area-qr" class="mt-8 bg-white p-4 rounded-3xl hidden">
+                <div id="qr-content" class="flex flex-col items-center"></div>
             </div>
         </div>
     </div>
 
     <script>
-        const _quizApp = {
-            dados: { idx: 0, qi: 0, qe: 0 },
+        const _URL_BANCO = "SUA_URL"; const _CHAVE_BANCO = "SUA_KEY";
+        const supabase = window.supabase.createClient(_URL_BANCO, _CHAVE_BANCO);
+
+        var _quizApp = {
+            dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0 },
             perguntas: [
-                { q: "Pergunta 1: 2, 4, 8...?", opts: ["16", "10"], type: "QI", c: 0 },
-                // Adicione as outras 19 aqui seguindo o mesmo padrão
+                { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
+                { q: "Em situações de estresse, você:", opts: ["Foca na solução", "Fica ansioso", "Pede ajuda"], type: "QE", c: 0 },
+                // ... Complete com as outras 18 questões
             ],
             iniciar: () => {
-                const n = document.getElementById('nome-usuario').value;
-                if(!n) return alert("Preencha o nome!");
-                document.getElementById('tela-inicio').classList.add('hidden');
-                document.getElementById('tela-perguntas').classList.remove('hidden');
+                _quizApp.dados.nome = document.getElementById('nome-usuario').value;
+                if(!_quizApp.dados.nome) return alert("Preencha seu nome!");
+                _quizApp.mostrarTela('tela-perguntas');
                 _quizApp.renderizar();
             },
             renderizar: () => {
                 if(_quizApp.dados.idx >= _quizApp.perguntas.length) {
-                    document.getElementById('tela-perguntas').classList.add('hidden');
-                    document.getElementById('tela-pagamento').classList.remove('hidden');
+                    _quizApp.mostrarTela('tela-pagamento');
                     return;
                 }
                 const q = _quizApp.perguntas[_quizApp.dados.idx];
+                document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
                 document.getElementById('texto-pergunta').innerText = q.q;
                 const area = document.getElementById('area-opcoes');
                 area.innerHTML = '';
                 q.opts.forEach((opt, i) => {
                     const b = document.createElement('button');
-                    b.className = "w-full p-4 bg-slate-800 rounded-xl mb-2 text-left";
+                    b.className = 'opcao-btn w-full p-4 rounded-xl text-left font-semibold';
                     b.innerText = opt;
-                    b.onclick = () => { _quizApp.dados.idx++; _quizApp.renderizar(); };
+                    b.onclick = () => {
+                        if(i === q.c) q.type === "QI" ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
+                        _quizApp.dados.idx++; _quizApp.renderizar();
+                    };
                     area.appendChild(b);
                 });
             },
-            gerarPix: () => {
+            gerarPix: async () => {
+                document.getElementById('opcoes-liberacao').classList.add('hidden');
                 document.getElementById('area-qr').classList.remove('hidden');
-                document.getElementById('qr-content').innerHTML = "<p class='text-black'>QR Code Simulado</p>";
-                localStorage.setItem('neuro_pix', 'ativo');
+                // Lógica de integração com sua API de Pix aqui
+                document.getElementById('qr-content').innerHTML = "<p class='text-black font-bold'>QR CODE SIMULADO</p>";
+            },
+            verAnuncio: () => { window.location.href = `resultado.html?txid=FREE_APP&nome=${_quizApp.dados.nome}`; },
+            mostrarTela: (id) => {
+                document.querySelectorAll('.card-quiz').forEach(el => el.classList.add('hidden'));
+                document.getElementById(id).classList.remove('hidden');
             }
         };
     </script>
