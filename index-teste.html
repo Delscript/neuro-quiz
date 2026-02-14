@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroQuiz - Edição App</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none; }
+        .quiz-card { background: #1e293b; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body class="bg-slate-900 text-white font-sans min-h-screen p-4">
+
+    <div class="max-w-md mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-blue-400">Sier Growth</h1>
+            <p class="text-slate-400">Neuro Quiz v2.0</p>
+        </header>
+
+        <div id="payment-section" class="quiz-card text-center">
+            <h2 class="text-xl font-bold mb-4">Parabéns! Teste Concluído.</h2>
+            <p class="mb-6 text-slate-300">Escolha como deseja liberar seu Certificado de NeuroMarketing:</p>
+
+            <div class="mb-6 p-4 border border-slate-700 rounded-lg">
+                <p class="text-sm mb-2 text-blue-400">Liberação Imediata</p>
+                <button onclick="gerarPix()" id="btn-pix" class="w-full bg-green-600 hover:bg-green-700 p-3 rounded-lg font-bold">
+                    Pagar R$ 1,00 via PIX
+                </button>
+            </div>
+
+            <p class="text-slate-500 mb-4">-- OU --</p>
+
+            <div class="p-4 border border-slate-700 rounded-lg">
+                <p class="text-sm mb-2 text-yellow-400">Grátis para usuários do App</p>
+                <button onclick="verAnuncio()" class="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-lg font-bold">
+                    Assistir Vídeo para Liberar
+                </button>
+            </div>
+
+            <div id="qr-container" class="hidden mt-6 bg-white p-4 rounded-lg">
+                <p class="text-black font-bold mb-2">Escaneie para Pagar:</p>
+                <img id="qr-image" src="" alt="QR Code Pix" class="mx-auto">
+                <p id="pix-copy-text" class="text-xs text-slate-600 mt-2 break-all"></p>
+                <button onclick="checkPagamento()" class="mt-4 text-blue-600 font-bold underline">Já paguei, verificar!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO SUPABASE
+        const _supabaseURL = "SUA_URL_DO_SUPABASE";
+        const _supabaseKey = "SUA_KEY_DO_SUPABASE";
+        const supabase = supabase.createClient(_supabaseURL, _supabaseKey);
+
+        let currentTxid = localStorage.getItem('last_txid') || "";
+
+        // FUNÇÃO PARA GERAR PIX (Efi Bank)
+        async function gerarPix() {
+            const btn = document.getElementById('btn-pix');
+            btn.innerText = "Gerando...";
+            
+            try {
+                // Aqui você chama sua função que integra com a Efí
+                // Simulando a resposta:
+                const res = { 
+                    imagem: "link_da_imagem_recebida", 
+                    copyPaste: "codigo_pix_recebido", 
+                    txid: "ID_DA_TRANSACAO" 
+                };
+
+                // VACINA CONTRA F5: Salva tudo no navegador
+                localStorage.setItem('pix_image', res.imagem);
+                localStorage.setItem('pix_copy', res.copyPaste);
+                localStorage.setItem('last_txid', res.txid);
+                
+                exibirQR(res.imagem, res.copyPaste);
+            } catch (err) {
+                alert("Erro ao gerar Pix. Tente novamente.");
+                btn.innerText = "Pagar R$ 1,00 via PIX";
+            }
+        }
+
+        function exibirQR(img, copy) {
+            document.getElementById('qr-container').classList.remove('hidden');
+            document.getElementById('qr-image').src = img;
+            document.getElementById('pix-copy-text').innerText = copy;
+        }
+
+        // FUNÇÃO PARA O APP (Assistir Anúncio)
+        function verAnuncio() {
+            alert("Abridor de Anúncio AdMob iniciado...");
+            // No futuro, aqui entra o script do AdMob
+            // Se o anúncio terminar com sucesso:
+            setTimeout(() => {
+                window.location.href = `resultado-teste.html?txid=FREE_APP&user=${currentTxid}`;
+            }, 2000);
+        }
+
+        // RECUPERAÇÃO AUTOMÁTICA AO RECARREGAR (O que resolve seu print de erro)
+        window.onload = () => {
+            const savedImg = localStorage.getItem('pix_image');
+            const savedCopy = localStorage.getItem('pix_copy');
+            if(savedImg && savedCopy) {
+                exibirQR(savedImg, savedCopy);
+            }
+        }
+    </script>
+</body>
+</html>
