@@ -3,164 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório Oficial - SierComp4ny</title>
+    <title>Relatório SierComp4ny</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; margin: 0; padding: 0; }
-        .assinatura { font-family: 'Allura', cursive; font-size: 1.6rem; color: #60a5fa; }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
-        /* ESTA É A LÓGICA DE TRAVA QUE EVITA A 2ª PÁGINA BRANCA */
-        #relatorio {
-            background-color: #020617 !important;
-            width: 794px; /* Largura A4 */
-            height: 1122px; /* Altura A4 exata */
-            margin: 0 auto;
-            position: relative;
-            box-sizing: border-box;
-            padding: 50px;
-            overflow: hidden; /* Não deixa o conteúdo "vazar" para baixo */
+        .assinatura {
+            font-family: 'Allura', cursive;
+            font-size: 3.5rem;
+            color: #1e3a8a;
+            transform: rotate(-2deg);
+            line-height: 1;
         }
         
-        .no-print { display: flex; justify-content: center; margin: 20px 0; }
+        .marca-dagua {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 80px; color: rgba(0,0,0,0.03); font-weight: 900; white-space: nowrap; pointer-events: none;
+        }
 
-        /* Força o rodapé a ficar sempre no limite inferior da página única */
-        .rodape-container {
-            position: absolute;
-            bottom: 50px;
-            left: 50px;
-            right: 50px;
-            border-top: 1px solid #1e293b;
-            padding-top: 30px;
+        /* --- CORREÇÃO DA PÁGINA EM BRANCO --- */
+        #relatorio {
+            background-color: white;
+            /* Tamanhos fixos para A4 (794px x 1123px) */
+            width: 794px; 
+            height: 1122px; 
+            position: relative;
+            overflow: hidden; /* Corta o que sobrar */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
+        
+        /* Esconde botões na hora de imprimir */
+        .no-print { display: flex; gap: 10px; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="relatorio">
-        <div class="flex justify-between items-start mb-10">
-            <div>
-                <h1 class="text-2xl font-black tracking-widest text-blue-500">SIERCOMP4NY</h1>
-                <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">
-                    Intelligence & <span class="text-orange-500 font-bold">Sier Growth</span>
-                </p>
-            </div>
-            <div class="text-right">
-                <p class="text-[9px] opacity-60 uppercase">Relatório Confidencial</p>
-                <p id="data-hoje" class="text-[10px] font-mono text-slate-400">--/--/----</p>
-            </div>
-        </div>
-
-        <div class="text-center mb-10">
-            <span class="bg-blue-900/40 text-blue-400 text-[10px] font-bold px-4 py-1 rounded-full border border-blue-500/30 uppercase">Neuro-Análise</span>
-            <h2 id="titulo-perfil" class="text-4xl font-black text-white mt-6 mb-2">---</h2>
-            <p id="subtitulo-perfil" class="text-blue-400 italic text-lg">---</p>
-        </div>
-
-        <div class="flex justify-center gap-10 mb-12">
-            <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl text-center w-36">
-                <p class="text-[10px] text-slate-500 uppercase font-bold mb-2">Razão (QI)</p>
-                <div class="text-4xl font-black text-blue-500"><span id="score-qi">0</span><span class="text-sm text-slate-700">/10</span></div>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl text-center w-36">
-                <p class="text-[10px] text-slate-500 uppercase font-bold mb-2">Emoção (QE)</p>
-                <div class="text-4xl font-black text-purple-500"><span id="score-qe">0</span><span class="text-sm text-slate-700">/10</span></div>
-            </div>
-        </div>
-
-        <div class="space-y-8 px-6">
-            <div class="flex gap-4">
-                <span class="text-3xl">👁️</span>
-                <div>
-                    <h3 class="font-bold text-sm text-white uppercase">Análise de Perfil</h3>
-                    <p id="texto-analise" class="text-[12px] text-slate-400 leading-relaxed mt-1 text-justify">---</p>
-                </div>
-            </div>
-            <div class="flex gap-4">
-                <span class="text-3xl">🚀</span>
-                <div>
-                    <h3 class="font-bold text-sm text-white uppercase">Potencial Máximo</h3>
-                    <p id="texto-potencial" class="text-[12px] text-slate-400 leading-relaxed mt-1 text-justify">---</p>
-                </div>
-            </div>
-            <div class="bg-blue-900/20 border-l-4 border-orange-500 p-4 rounded-r-xl">
-                <h3 class="font-bold text-blue-400 text-[10px] uppercase tracking-widest mb-1 italic">⚡ Ação Imediata</h3>
-                <p id="texto-acao" class="text-xs text-blue-100">---</p>
-            </div>
-        </div>
-
-        <div class="rodape-container text-center">
-            <p class="text-[9px] text-slate-600 uppercase tracking-widest mb-2">Certificado para:</p>
-            <h4 id="nome-cliente" class="text-2xl font-bold text-white mb-6 capitalize">---</h4>
-            
-            <div class="flex flex-col items-center">
-                <div class="assinatura">Anderson Dias</div>
-                <div class="h-px w-32 bg-slate-700 my-2"></div>
-                <p class="text-[8px] text-slate-500 uppercase tracking-widest">
-                    Dias Anderson • Founder Sier Growth
-                </p>
-            </div>
-        </div>
+    <div id="loading" class="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50 text-white">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 mb-4"></div>
+        <h2 class="text-xl font-bold">Gerando Relatório de Inteligência...</h2>
     </div>
 
-    <div class="no-print">
-        <button onclick="gerarPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-12 rounded-full shadow-2xl transition-all">
-            📥 BAIXAR RELATÓRIO PDF
+    <div id="relatorio" class="hidden">
+        
+        <div class="bg-gray-900 text-white p-8 flex justify-between items-center h-[120px]">
+            <div>
+                <h1 class="text-2xl font-bold tracking-widest">SIERCOMP4NY</h1>
+                <p class="text-xs text-gray-400 uppercase">Intelligence & Growth</p>
+            </div>
+            <div class="text-right">
+                <p class="text-[10px] opacity-75 mt-6 mr-2">Relatório Confidencial</p>
+                <p class="text-xs text-gray-500" id="data-hoje">--/--/----</p>
+            </div>
+        </div>
+
+        <div class="p-8 relative h-[calc(1122px-120px)] flex flex-col justify-between">
+            <div class="marca-dagua">SIERCOMP4NY</div>
+
+            <div>
+                <div class="text-center mb-8">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Resultado da Análise</span>
+                    <h2 id="titulo-perfil" class="text-4xl font-black text-gray-800 mt-4 mb-2">...</h2>
+                    <p id="subtitulo-perfil" class="text-xl text-gray-500 italic">...</p>
+                </div>
+
+                <div class="flex justify-center gap-6 mb-8">
+                    <div class="text-center w-32">
+                        <div class="text-sm font-bold text-gray-400 uppercase mb-1">Razão (QI)</div>
+                        <div class="bg-gray-50 border-2 border-blue-100 rounded-xl p-3">
+                            <span id="score-qi" class="text-4xl font-black text-blue-600">0</span>
+                            <span class="text-gray-400 text-sm">/10</span>
+                        </div>
+                    </div>
+                    <div class="text-center w-32">
+                        <div class="text-sm font-bold text-gray-400 uppercase mb-1">Emoção (QE)</div>
+                        <div class="bg-gray-50 border-2 border-purple-100 rounded-xl p-3">
+                            <span id="score-qe" class="text-4xl font-black text-purple-600">0</span>
+                            <span class="text-gray-400 text-sm">/10</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="flex gap-4">
+                        <div class="text-3xl">👁️</div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-lg">O que ninguém vê em você</h3>
+                            <p id="texto-analise" class="text-gray-600 leading-relaxed mt-1 text-sm text-justify">...</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="text-3xl">🚀</div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-lg">Seu Potencial Máximo</h3>
+                            <p id="texto-potencial" class="text-gray-600 leading-relaxed mt-1 text-sm text-justify">...</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                        <h3 class="font-bold text-blue-900 text-lg mb-1">⚡ Sua Ação Imediata</h3>
+                        <p id="texto-acao" class="text-blue-800 text-sm">...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-6 border-t border-gray-200 flex justify-between items-end pb-4">
+                <div>
+                    <p class="font-bold text-gray-800">SierComp4ny</p>
+                    <p class="text-xs text-gray-400 mt-1">Certificado de Autoconhecimento<br>ID: <span id="txid-display">---</span></p>
+                </div>
+                <div class="text-right">
+                    <div class="assinatura mb-2">Anderson Dias</div>
+                    <div class="h-px w-40 bg-gray-400 ml-auto mb-1"></div>
+                    <p class="text-xs text-gray-500 font-bold uppercase">Criado por Anderson Dias</p>
+                    <p class="text-[10px] text-gray-400">CEO & Founder SierComp4ny</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-gray-900 h-4 w-full absolute bottom-0"></div>
+    </div>
+
+    <div class="no-print fixed bottom-8 right-8 flex-col gap-4 z-50">
+        <a href="https://wa.me/5571999466243?text=Ol%C3%A1%2C%20vi%20meu%20relat%C3%B3rio!" target="_blank" class="flex items-center justify-center w-14 h-14 bg-green-500 rounded-full shadow-lg hover:bg-green-600 transition text-white">
+            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654z"/></svg>
+        </a>
+        <button onclick="gerarPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full shadow-lg flex items-center gap-2 mt-4">
+            📥 Baixar PDF
         </button>
     </div>
 
     <script>
+        // CONFIGURAÇÃO SUPABASE (GARANTIA DE FUNCIONAMENTO)
         const SUPABASE_URL = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw"; 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const PERFIS = {
-            "Potência Expansiva": { titulo: "O Visionário", sub: "Mestre em Estratégia Híbrida", analise: "Você processa dados frios sem perder o tato humano. Onde a maioria vê problemas, você enxerga o sistema inteiro.", potencial: "Pense em Steve Jobs: ele vendia sonhos e status, não apenas máquinas.", acao: "Sua mente vale ouro na estratégia. Delegue o operacional agora." },
-            "Executor Solitário": { titulo: "O Estrategista", sub: "Alta Performance Lógica", analise: "Sua mente é uma máquina de resolver problemas com frieza cirúrgica.", potencial: "Liderança técnica ou consultoria de alto nível.", acao: "Treine um braço direito imediatamente. Não centralize tudo." },
-            "Conector Nato": { titulo: "O Diplomata", sub: "Inteligência Social Superior", analise: "Você lê ambientes e pessoas com facilidade extrema. Sua força é a influência.", potencial: "Negociação estratégica e liderança de cultura corporativa.", acao: "Use ferramentas de gestão. O carisma abre portas, a disciplina as mantém abertas." },
-            "Em Construção": { titulo: "Explorador", sub: "Fase de Recalibragem", analise: "Sua inteligência detectou inconsistências produtivas. Você está absorvendo novos conhecimentos.", potencial: "Vasto, mas exige foco em autoconhecimento.", acao: "Tente novamente focado na sua dor principal. Não se disperse." }
+            "Potência Expansiva": { titulo: "O Visionário", sub: "Equilíbrio raro entre Razão e Emoção.", analise: "Você tem a capacidade rara de processar dados frios sem perder o tato humano. Onde a maioria vê problemas isolados, você enxerga o sistema inteiro.", potencial: "Liderança estratégica e inovação disruptiva.", acao: "Pare de fazer o operacional. Sua mente vale ouro na estratégia. Delegue as tarefas repetitivas hoje mesmo." },
+            "Executor Solitário": { titulo: "O Técnico", sub: "Mente afiada, execução impecável.", analise: "Sua lógica é sua fortaleza. Você enxerga erros em processos que custariam fortunas se passassem despercebidos. Porém, seu ponto cego é esperar que as pessoas funcionem como máquinas.", potencial: "Gestão técnica de alta performance.", acao: "Você já é excelente na execução. Seu próximo nível exige treinar um 'braço direito' para lidar com a parte humana." },
+            "Conector Nato": { titulo: "O Diplomata", sub: "Influência magnética e alta percepção.", analise: "Você lê ambientes melhor que ninguém. Sabe o que as pessoas querem antes delas falarem. Seu risco é decidir com o coração para não desagradar.", potencial: "Negociação e Relações Públicas.", acao: "Use seu carisma para vender e liderar, mas nunca tome decisões financeiras importantes sozinho." },
+            "Em Construção": { titulo: "O Analista", sub: "Prudência e visão de longo prazo.", analise: "Você joga xadrez enquanto os outros jogam damas. Sua cautela evita catástrofes, mas o medo de errar pode estar travando seu crescimento.", potencial: "Planejamento estratégico e gestão de riscos.", acao: "O feito é melhor que o perfeito. Lance a versão beta do seu projeto ainda esta semana." }
         };
 
         async function init() {
-            const txid = new URLSearchParams(window.location.search).get('txid');
-            if (!txid) return;
-            const { data } = await supabase.from('leads').select('*').eq('txid', txid).single();
-            if (data) {
-                document.getElementById('nome-cliente').innerText = data.nome;
-                document.getElementById('score-qi').innerText = data.qi_score || 0;
-                document.getElementById('score-qe').innerText = data.qe_score || 0;
-                document.getElementById('data-hoje').innerText = new Date().toLocaleDateString('pt-BR');
-                const qi = data.qi_score || 0, qe = data.qe_score || 0;
-                let p = (qi > 6 && qe > 6) ? "Potência Expansiva" : (qi > 6) ? "Executor Solitário" : (qe > 6) ? "Conector Nato" : "Em Construção";
-                const txt = PERFIS[p];
-                document.getElementById('titulo-perfil').innerText = txt.titulo;
-                document.getElementById('subtitulo-perfil').innerText = txt.sub;
-                document.getElementById('texto-analise').innerText = txt.analise;
-                document.getElementById('texto-potencial').innerText = txt.potencial;
-                document.getElementById('texto-acao').innerText = txt.acao;
-            }
+            try {
+                const txid = new URLSearchParams(window.location.search).get('txid');
+                if (!txid) return;
+
+                // Busca direta no Supabase (Mais seguro que API status)
+                const { data } = await supabase.from('leads').select('*').eq('txid', txid).single();
+
+                if (data) {
+                    document.getElementById('txid-display').innerText = txid.slice(0, 8);
+                    document.getElementById('data-hoje').innerText = new Date().toLocaleDateString('pt-BR');
+                    
+                    const qi = data.qi_score || 0;
+                    const qe = data.qe_score || 0;
+                    
+                    document.getElementById('score-qi').innerText = qi;
+                    document.getElementById('score-qe').innerText = qe;
+
+                    let p = PERFIS["Em Construção"];
+                    if (qi >= 6 && qe >= 6) p = PERFIS["Potência Expansiva"];
+                    else if (qi >= 6) p = PERFIS["Executor Solitário"];
+                    else if (qe >= 6) p = PERFIS["Conector Nato"];
+
+                    document.getElementById('titulo-perfil').innerText = p.titulo;
+                    document.getElementById('subtitulo-perfil').innerText = p.sub;
+                    document.getElementById('texto-analise').innerText = p.analise;
+                    document.getElementById('texto-potencial').innerText = p.potencial;
+                    document.getElementById('texto-acao').innerText = p.acao;
+
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('relatorio').classList.remove('hidden');
+                }
+            } catch (err) { console.error(err); }
         }
 
-        // LÓGICA DE PDF PURA (Captura o elemento direto sem clonar)
         function gerarPDF() {
             const element = document.getElementById('relatorio');
+            // Remove a classe hidden para garantir que o PDF veja o elemento (caso esteja oculto)
+            element.classList.remove('hidden');
+            
             const opt = {
                 margin: 0,
-                filename: 'Relatorio_SierGrowth.pdf',
+                filename: 'Relatorio_Sier.pdf',
                 image: { type: 'jpeg', quality: 1 },
-                html2canvas: { 
-                    scale: 2, 
-                    useCORS: true, 
-                    backgroundColor: '#020617',
-                    scrollY: 0
-                },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+                jsPDF: { unit: 'px', format: [794, 1122], orientation: 'portrait' } // Força tamanho exato
             };
+            
             html2pdf().set(opt).from(element).save();
         }
+
         init();
     </script>
 </body>
