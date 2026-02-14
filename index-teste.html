@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neuro Quiz - Sier Growth</title>
+    <title>Neuro Quiz - Sier Growth </title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; }
-        .card-quiz { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; }
-        .opcao-btn { background: #1e293b; transition: 0.2s; border: 1px solid transparent; }
-        .opcao-btn:active { background: #3b82f6; border-color: #60a5fa; transform: scale(0.98); }
+        .card-quiz { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .opcao-btn { background: #1e293b; transition: 0.2s; border: 1px solid #334155; text-align: left; width: 100%; padding: 16px; border-radius: 16px; font-size: 0.9rem; font-weight: 500; margin-bottom: 12px; }
+        .opcao-btn:active { background: #3b82f6; border-color: #60a5fa; transform: scale(0.97); }
         .hidden { display: none; }
         .barra-progresso { height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
         .progresso-fill { height: 100%; background: linear-gradient(to right, #3b82f6, #8b5cf6); width: 0%; transition: width 0.3s; }
@@ -23,50 +23,53 @@
         
         <div id="tela-inicio" class="card-quiz p-8 text-center">
             <h1 class="text-2xl font-black text-blue-500 mb-1">SIER GROWTH</h1>
-            <p class="text-xs text-slate-500 uppercase tracking-widest mb-6 italic">Neuro-Cognitive Assessment</p>
+            <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 italic font-semibold">Intelligence Engine v2.0</p>
             
             <div class="space-y-4">
-                <input type="text" id="nome-usuario" placeholder="Seu Nome Completo" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-blue-500 outline-none text-sm">
-                <input type="email" id="email-usuario" placeholder="Seu melhor e-mail" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-blue-500 outline-none text-sm">
-                <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp (com DDD)" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-blue-500 outline-none text-sm">
-                <button onclick="_quizApp.iniciar()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-extrabold text-lg shadow-lg shadow-blue-900/20">Iniciar Avaliação</button>
+                <input type="text" id="nome-usuario" placeholder="Nome Completo" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-blue-500 outline-none text-sm text-white">
+                <input type="email" id="email-usuario" placeholder="E-mail principal" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-blue-500 outline-none text-sm text-white">
+                <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp (com DDD)" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-blue-500 outline-none text-sm text-white">
+                <button onclick="_quizApp.iniciar()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-extrabold text-lg shadow-lg shadow-blue-900/40 transition-all">Iniciar Avaliação</button>
             </div>
-            <p class="text-[10px] text-slate-600 mt-6">© 2026 SierComp4ny • Anderson Dias</p>
+            <p class="text-[9px] text-slate-700 mt-8 uppercase tracking-widest font-bold">© 2026 SierComp4ny • Anderson Dias</p>
         </div>
 
         <div id="tela-perguntas" class="card-quiz p-6 hidden">
             <div class="barra-progresso mb-4"><div id="barra-progresso" class="progresso-fill"></div></div>
-            <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-6">
-                <span>QUESTÃO <span id="num-pergunta">1</span>/20</span>
-                <span>SIER GROWTH ENGINE</span>
+            <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-6 uppercase tracking-widest">
+                <span>PERGUNTA <span id="num-pergunta">1</span>/20</span>
+                <span class="text-blue-500">Neuro-Análise</span>
             </div>
-            <h2 id="texto-pergunta" class="text-lg font-bold mb-8 leading-tight">...</h2>
-            <div id="area-opcoes" class="space-y-3"></div>
+            <h2 id="texto-pergunta" class="text-lg font-bold mb-8 leading-tight text-slate-100">...</h2>
+            <div id="area-opcoes"></div>
         </div>
 
-        <div id="tela-carregando" class="card-quiz p-10 text-center hidden">
-            <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-            <h2 class="text-xl font-black animate-pulse">PROCESSANDO MÉTRICAS</h2>
-            <p class="text-slate-500 text-sm mt-2">Cruzando dados de QI e QE...</p>
+        <div id="tela-carregando" class="card-quiz p-12 text-center hidden">
+            <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-8"></div>
+            <h2 class="text-xl font-black text-white uppercase tracking-tighter italic">Processando Respostas</h2>
+            <p class="text-slate-500 text-xs mt-3 uppercase tracking-widest">Cruzando métricas de QI e QE...</p>
         </div>
 
         <div id="tela-pagamento" class="card-quiz p-8 text-center hidden">
-            <h2 class="text-2xl font-black text-green-500 mb-2">ANÁLISE PRONTA!</h2>
-            <p class="text-slate-400 text-sm mb-8">Escolha como deseja liberar seu relatório oficial:</p>
+            <h2 class="text-2xl font-black text-green-500 mb-2 italic">ANÁLISE CONCLUÍDA!</h2>
+            <p class="text-slate-400 text-sm mb-10 font-medium">Seu relatório oficial está pronto para liberação:</p>
             
             <div id="opcoes-liberacao" class="space-y-4">
-                <button onclick="_quizApp.gerarPix()" class="w-full bg-emerald-600 p-4 rounded-2xl font-bold flex items-center justify-center gap-2">
-                    <span>⚡</span> Pagar R$ 1,00 via PIX
+                <button onclick="_quizApp.gerarPix()" class="w-full bg-emerald-600 hover:bg-emerald-700 p-4 rounded-2xl font-black flex items-center justify-center gap-3 shadow-lg shadow-emerald-900/20">
+                    PAGAR R$ 1,00 VIA PIX
                 </button>
-                <div class="text-slate-700 font-bold text-xs uppercase tracking-widest">ou</div>
-                <button onclick="_quizApp.verAnuncio()" class="w-full bg-slate-800 p-4 rounded-2xl font-bold text-blue-400 text-sm border border-slate-700">
-                    📺 Ver vídeo e liberar GRÁTIS
+                <div class="text-slate-800 font-black text-[10px] uppercase tracking-[0.3em]">OU</div>
+                <button onclick="_quizApp.verAnuncio()" class="w-full bg-slate-800 p-4 rounded-2xl font-bold text-blue-400 text-xs border border-slate-700 hover:bg-slate-700 transition-all">
+                    ASSISTIR VÍDEO (GRÁTIS NO APP)
                 </button>
             </div>
 
-            <div id="area-qr" class="mt-8 bg-white p-4 rounded-3xl hidden">
-                <div id="qr-content"></div>
-                <p class="text-blue-600 font-black text-[10px] mt-4 animate-pulse uppercase tracking-widest">⏳ Aguardando Pagamento</p>
+            <div id="area-qr" class="mt-8 bg-white p-5 rounded-[32px] hidden">
+                <div id="qr-content" class="flex flex-col items-center"></div>
+                <div class="flex items-center justify-center gap-2 mt-4">
+                    <div class="w-2 h-2 bg-blue-600 rounded-full animate-ping"></div>
+                    <p class="text-blue-600 font-black text-[10px] uppercase tracking-widest">Aguardando Pagamento</p>
+                </div>
             </div>
         </div>
     </div>
@@ -79,33 +82,33 @@
         var _quizApp = {
             dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: 'Não Informado' },
             perguntas: [
-                { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
-                { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
-                { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
-                { q: "Cliente gritou. Reação:", opts: ["Resolve calmo", "Grita", "Chora"], type: "QE", c: 0 },
-                { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
-                { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
-                { q: "Em grupo prefere:", opts: ["Liderar", "Esperar", "Fazer só"], type: "QE", c: 0 },
-                { q: "Erro na empresa:", opts: ["Assume", "Esconde", "Culpa outro"], type: "QE", c: 0 },
-                { q: "20% de 500 é:", opts: ["100", "50", "200"], type: "QI", c: 0 },
-                { q: "Se ontem fosse amanhã, hoje seria sábado. Hoje é:", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
-                { q: "Feedback duro:", opts: ["Cresce", "Raiva", "Desiste"], type: "QE", c: 0 },
-                { q: "Médico : Hospital :: Professor : ?", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
-                { q: "Colega triste:", opts: ["Ajuda", "Ignora", "Piada"], type: "QE", c: 0 },
-                { q: "Negociação:", opts: ["Acordo", "Vencer", "Não perder"], type: "QE", c: 0 },
-                { q: "Carro 80km/h em 30min:", opts: ["40km", "80km", "60km"], type: "QI", c: 0 },
-                { q: "Inteligência Emocional:", opts: ["Gerir emoções", "Nada", "Feliz"], type: "QE", c: 0 },
-                { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
-                { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
-                { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
-                { q: "Qual sua fase profissional atual?", opts: ["Dono de Negócio", "Autônomo", "CLT", "Estudante"], type: "SEG", c: 0 }
+                { q: "Qual número completa a sequência lógica: 2, 4, 8, 16...?", opts: ["32", "24", "20"], type: "QI", c: 0 },
+                { q: "Em uma reunião tensa com conflitos, sua tendência é:", opts: ["Mediar e buscar solução", "Manter-se neutro", "Impor sua opinião"], type: "QE", c: 0 },
+                { q: "Se todos os A são B, e todos os B são C, então:", opts: ["Todos os A são C", "Alguns A são C", "Nenhum A é C"], type: "QI", c: 0 },
+                { q: "Ao receber um feedback negativo inesperado, você:", opts: ["Analisa para evoluir", "Sente-se desmotivado", "Questiona a intenção"], type: "QE", c: 0 },
+                { q: "O que pesa mais: 1kg de chumbo ou 1kg de algodão?", opts: ["Têm o mesmo peso", "Chumbo", "Algodão"], type: "QI", c: 0 },
+                { q: "Sua facilidade em ler as emoções das pessoas é:", opts: ["Alta (Percebo rápido)", "Média", "Baixa"], type: "QE", c: 0 },
+                { q: "A sequência correta é: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
+                { q: "Quando erra em um projeto importante, você:", opts: ["Assume e corrige", "Busca justificativas", "Fica frustrado"], type: "QE", c: 0 },
+                { q: "Quanto é 25% de 800?", opts: ["200", "150", "250"], type: "QI", c: 0 },
+                { q: "Sua capacidade de manter o foco em tarefas repetitivas é:", opts: ["Alta", "Depende do dia", "Baixa"], type: "QI", c: 0 },
+                { q: "Em negociações difíceis, você foca em:", opts: ["Acordo mútuo (Ganha-Ganha)", "Vencer a discussão", "Evitar perdas"], type: "QE", c: 0 },
+                { q: "Um médico está para o hospital assim como um professor está para:", opts: ["Escola", "Livro", "Aluno"], type: "QI", c: 0 },
+                { q: "Ao ver um colega em dificuldades emocionais, você:", opts: ["Oferece apoio real", "Observa de longe", "Foca no seu trabalho"], type: "QE", c: 0 },
+                { q: "O antônimo de 'Efêmero' é:", opts: ["Duradouro", "Rápido", "Frágil"], type: "QI", c: 0 },
+                { q: "Sua flexibilidade para mudanças repentinas de plano é:", opts: ["Excelente", "Razoável", "Difícil"], type: "QE", c: 0 },
+                { q: "Um carro percorre 60km em 45 minutos. Qual sua velocidade média?", opts: ["80km/h", "60km/h", "75km/h"], type: "QI", c: 0 },
+                { q: "Você se considera um bom ouvinte em conversas pessoais?", opts: ["Sim, ouço com atenção", "Às vezes me distraio", "Prefiro falar"], type: "QE", c: 0 },
+                { q: "Qual palavra não pertence ao grupo: Cadeira, Mesa, Banana, Sofá?", opts: ["Banana", "Cadeira", "Sofá"], type: "QI", c: 0 },
+                { q: "Sua resiliência após um grande fracasso profissional é:", opts: ["Alta (Levanto rápido)", "Média", "Baixa"], type: "QE", c: 0 },
+                { q: "Para finalizar: Qual seu momento de carreira atual?", opts: ["Dono / Empresário", "Autônomo / Liberal", "CLT / Colaborador", "Estudante"], type: "SEG", c: 0 }
             ],
 
             iniciar: () => {
                 const n = document.getElementById('nome-usuario').value;
                 const e = document.getElementById('email-usuario').value;
                 const z = document.getElementById('whatsapp-usuario').value;
-                if(!n || !e.includes('@') || !z) return alert('Por favor, preencha os dados corretamente!');
+                if(!n || !e.includes('@') || !z) return alert('Por favor, preencha todos os campos corretamente.');
                 _quizApp.dados.nome = n; _quizApp.dados.email = e; _quizApp.dados.whatsapp = z;
                 _quizApp.mostrarTela('tela-perguntas');
                 _quizApp.renderizar();
@@ -121,7 +124,7 @@
                 div.innerHTML = '';
                 q.opts.forEach((opt, i) => {
                     const b = document.createElement('button');
-                    b.className = 'opcao-btn w-full p-4 rounded-2xl text-left text-sm font-semibold';
+                    b.className = 'opcao-btn';
                     b.innerText = opt;
                     b.onclick = () => {
                         if(q.type === 'SEG') _quizApp.dados.fase = opt;
@@ -134,45 +137,61 @@
 
             finalizar: () => {
                 _quizApp.mostrarTela('tela-carregando');
-                setTimeout(() => _quizApp.mostrarTela('tela-pagamento'), 2500);
+                // Envia dados preliminares ao Supabase se desejar, ou apenas avança
+                setTimeout(() => _quizApp.mostrarTela('tela-pagamento'), 3000);
             },
 
             gerarPix: async () => {
-                document.getElementById('opcoes-liberacao').classList.add('hidden');
-                document.getElementById('area-qr').classList.remove('hidden');
+                const btn = document.querySelector('#opcoes-liberacao button');
+                btn.innerText = "GERANDO..."; btn.disabled = true;
+                
                 try {
                     const res = await fetch('/api/pix', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(_quizApp.dados)
+                        body: JSON.stringify({
+                            nome: _quizApp.dados.nome,
+                            email: _quizApp.dados.email,
+                            whatsapp: _quizApp.dados.whatsapp,
+                            qi: (_quizApp.dados.qi * 1).toFixed(0), // Normalizando para base 10
+                            qe: (_quizApp.dados.qe * 1.25).toFixed(0),
+                            fase: _quizApp.dados.fase
+                        })
                     });
                     const d = await res.json();
                     if(d.txid) {
+                        // VACINA F5: SALVA TUDO LOCALMENTE
                         localStorage.setItem('neuro_txid', d.txid);
                         localStorage.setItem('neuro_qr_img', d.img);
                         localStorage.setItem('neuro_qr_code', d.code);
                         _quizApp.exibirQR(d.img, d.code);
                         _quizApp.verificarPagamento(d.txid);
                     }
-                } catch(e) { alert("Erro ao conectar com servidor de pagamentos."); }
+                } catch(e) { 
+                    alert("Erro ao gerar Pix. Verifique sua conexão."); 
+                    btn.innerText = "PAGAR R$ 1,00 VIA PIX"; btn.disabled = false;
+                }
             },
 
             exibirQR: (img, code) => {
+                document.getElementById('opcoes-liberacao').classList.add('hidden');
+                document.getElementById('area-qr').classList.remove('hidden');
                 document.getElementById('qr-content').innerHTML = `
-                    <img src="${img}" class="mx-auto w-48 rounded-lg mb-4">
-                    <textarea class="w-full text-[10px] text-slate-800 p-3 bg-slate-100 rounded-xl border-none" rows="3" readonly>${code}</textarea>
-                    <button onclick="navigator.clipboard.writeText('${code}');alert('Pix Copiado!')" class="w-full bg-slate-900 text-white mt-4 py-3 rounded-xl text-xs font-bold">COPIAR CÓDIGO PIX</button>
+                    <img src="${img}" class="w-56 h-56 rounded-xl mb-4 shadow-sm">
+                    <textarea class="w-full text-[9px] text-slate-500 p-3 bg-slate-50 rounded-xl border-none font-mono" rows="3" readonly>${code}</textarea>
+                    <button onclick="navigator.clipboard.writeText('${code}');alert('Código Pix Copiado!')" class="w-full bg-slate-900 text-white mt-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest">Copiar Código Pix</button>
                 `;
             },
 
             verAnuncio: () => {
-                alert("Carregando vídeo premiado...");
-                // Aqui você integrará o SDK do AdMob posteriormente
+                alert("Iniciando anúncio recompensado...");
+                // Simulação AdMob: Redireciona com flag FREE_APP
                 setTimeout(() => window.location.href = `resultado.html?txid=FREE_APP&nome=${encodeURIComponent(_quizApp.dados.nome)}`, 2000);
             },
 
             verificarPagamento: (txid) => {
-                setInterval(async () => {
+                if (window.checkInterval) clearInterval(window.checkInterval);
+                window.checkInterval = setInterval(async () => {
                     try {
                         const r = await fetch('/api/status?txid=' + txid);
                         const j = await r.json();
@@ -197,8 +216,6 @@
             const code = localStorage.getItem('neuro_qr_code');
             if (txid && img && code) {
                 _quizApp.mostrarTela('tela-pagamento');
-                document.getElementById('opcoes-liberacao').classList.add('hidden');
-                document.getElementById('area-qr').classList.remove('hidden');
                 _quizApp.exibirQR(img, code);
                 _quizApp.verificarPagamento(txid);
             }
