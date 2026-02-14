@@ -1,176 +1,173 @@
-   <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Certificado Oficial - NeuroQuiz</title>
+    <title>Relatório Oficial - SierComp4ny</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
     <style>
-        :root { --cor-sier: #2563eb; --fundo: #0f172a; }
-        body { font-family: 'Segoe UI', sans-serif; background: #1e293b; margin: 0; padding: 20px; color: white; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; margin: 0; padding: 0; }
+        .assinatura { font-family: 'Allura', cursive; font-size: 3rem; color: #60a5fa; line-height: 1; }
         
-     /* CORREÇÃO PROFISSIONAL PDF */
-.modo-pdf{
-
-width:210mm !important;
-height:297mm !important;
-
-max-width:210mm !important;
-max-height:297mm !important;
-
-margin:0 auto !important;
-padding:0 !important;
-
-box-sizing:border-box !important;
-
-position:relative !important;
-
-left:0 !important;
-top:0 !important;
-
-background:white !important;
-
-overflow:hidden !important;
-
-}
-
-.modo-pdf .rodape-fixo{
-
-position:absolute;
-bottom:0;
-width:100%;
-
-}
-
-
-
-        .sier-logo { font-size: 3rem; font-weight: 800; letter-spacing: -2px; margin-bottom: 10px; }
-        .sier-logo span { color: var(--cor-sier); }
-        
-        h1 { font-size: 3.5rem; margin: 20px 0; text-transform: uppercase; letter-spacing: 5px; }
-        .subtitulo { font-size: 1.2rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 3px; }
-        
-        .nome-usuario { font-size: 4rem; color: var(--cor-sier); margin: 30px 0; font-family: 'Times New Roman', serif; font-style: italic; }
-        
-        .box-scores { display: flex; justify-content: center; gap: 50px; margin: 40px 0; }
-        .score-item { background: rgba(255,255,255,0.05); padding: 20px 40px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        .score-val { font-size: 3rem; font-weight: bold; color: white; display: block; }
-        .score-label { font-size: 0.9rem; color: #94a3b8; text-transform: uppercase; }
-
-        .fase-info { font-size: 1.5rem; color: #cbd5e1; margin-top: 20px; }
-        
-        .assinatura { margin-top: 50px; border-top: 1px solid #475569; display: inline-block; padding-top: 10px; width: 300px; }
-        
-        .selo { position: absolute; bottom: 40px; right: 40px; width: 120px; opacity: 0.8; }
-
-        /* BOTÃO FORA DA ÁREA DE IMPRESSÃO */
-        .area-botoes { margin-top: 30px; display: flex; gap: 15px; width: 297mm; }
-        .btn { flex: 1; padding: 20px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1.1rem; transition: 0.3s; }
-        .btn-download { background: var(--cor-sier); color: white; }
-        .btn-zap { background: #25D366; color: white; }
-        
-        /* Ajuste para telas pequenas (mobile) para visualização */
-        @media (max-width: 300mm) {
-            body { transform: scale(0.35); transform-origin: top center; }
-            .area-botoes { transform: scale(1); margin-top: 850px; }
+        /* Layout de exibição na tela do celular */
+        #relatorio {
+            background-color: #020617;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 30px;
+            box-sizing: border-box;
         }
+
+        .no-print { display: flex; justify-content: center; margin: 20px 0; }
     </style>
 </head>
 <body>
 
-    <div id="certificado-area">
-        <div class="sier-logo">SIER<span>GROWTH</span></div>
-        <div class="subtitulo">Certificado de Avaliação Neuro-Cognitiva</div>
-        
-        <h1>CERTIFICADO</h1>
-        
-        <p class="subtitulo">Certificamos que para os devidos fins de análise de perfil profissional</p>
-        <div class="nome-usuario" id="out-nome">Anderson Dias</div>
-        
-        <div class="box-scores">
-            <div class="score-item">
-                <span class="score-val" id="out-qi">00</span>
-                <span class="score-label">Pontos QI (Lógica)</span>
+    <div id="relatorio">
+        <div class="flex justify-between items-start border-b border-slate-800 pb-6 mb-8">
+            <div>
+                <h1 class="text-2xl font-black tracking-widest text-blue-500">SIERCOMP4NY</h1>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">
+                    Intelligence & <span class="text-orange-500 font-bold">Sier Growth</span>
+                </p>
             </div>
-            <div class="score-item">
-                <span class="score-val" id="out-qe">00</span>
-                <span class="score-label">Pontos QE (Emocional)</span>
+            <div class="text-right">
+                <p class="text-[9px] opacity-60 uppercase tracking-widest">Confidencial</p>
+                <p id="data-hoje" class="text-[10px] font-mono text-slate-400">--/--/----</p>
             </div>
         </div>
 
-        <div class="fase-info">Nível de Atuação: <strong id="out-fase" style="color: #2563eb;">...</strong></div>
-
-        <div class="assinatura">
-            <div style="font-size: 0.8rem; color: #94a3b8;">SierComp4ny Holding</div>
-            <strong>Anderson Dias</strong>
-            <div style="font-size: 0.7rem; color: #64748b;">Diretor de Neuromarketing</div>
+        <div class="text-center mb-10">
+            <h2 id="titulo-perfil" class="text-3xl font-black text-white uppercase tracking-tighter">---</h2>
+            <p id="subtitulo-perfil" class="text-blue-400 italic text-base">---</p>
         </div>
 
-        <div style="position: absolute; bottom: 40px; left: 40px; text-align: left; font-size: 0.7rem; color: #475569;">
-            ID Autenticidade: <span id="out-txid">...</span><br>
-            Data de Emissão: <span id="out-data">...</span>
+        <div class="flex justify-center gap-6 mb-10">
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl text-center w-28">
+                <p class="text-[9px] text-slate-500 uppercase font-bold mb-1">QI</p>
+                <div class="text-3xl font-black text-blue-500"><span id="score-qi">0</span><span class="text-xs text-slate-700">/10</span></div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl text-center w-28">
+                <p class="text-[9px] text-slate-500 uppercase font-bold mb-1">QE</p>
+                <div class="text-3xl font-black text-purple-500"><span id="score-qe">0</span><span class="text-xs text-slate-700">/10</span></div>
+            </div>
+        </div>
+
+        <div class="space-y-6 mb-12">
+            <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+                <h3 class="font-bold text-xs text-blue-400 uppercase mb-2">👁️ O que ninguém vê em você</h3>
+                <p id="texto-analise" class="text-[11px] text-slate-400 leading-relaxed text-justify">---</p>
+            </div>
+            <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
+                <h3 class="font-bold text-xs text-purple-400 uppercase mb-2">🚀 Seu Potencial Máximo</h3>
+                <p id="texto-potencial" class="text-[11px] text-slate-400 leading-relaxed text-justify">---</p>
+            </div>
+            <div class="bg-blue-900/20 border-l-4 border-orange-500 p-4 rounded-r-xl">
+                <h3 class="font-bold text-blue-400 text-[10px] uppercase mb-1 italic">⚡ Sua Ação Imediata</h3>
+                <p id="texto-acao" class="text-[11px] text-blue-100">---</p>
+            </div>
+        </div>
+
+        <div class="mt-10 pt-8 border-t border-slate-800 text-center">
+            <h4 id="nome-cliente" class="text-2xl font-bold text-white mb-6 capitalize">---</h4>
+            <div class="flex flex-col items-center">
+                <div class="assinatura">Anderson Dias</div>
+                <div class="h-px w-32 bg-slate-700 my-2"></div>
+                <p class="text-[8px] text-slate-500 uppercase tracking-widest">Sier Growth • Anderson Dias</p>
+                <p class="text-[8px] font-mono text-slate-800 mt-1">ID: <span id="txid-display">---</span></p>
+            </div>
         </div>
     </div>
 
-    <div class="area-botoes">
-        <button onclick="baixarPDF()" class="btn btn-download">📥 BAIXAR CERTIFICADO PDF</button>
-        <button onclick="window.open('https://wa.me/5571999466243')" class="btn btn-zap">💬 FALAR COM ANDERSON</button>
+    <div class="no-print">
+        <button onclick="gerarPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-full shadow-2xl transition-all active:scale-95">
+            📥 BAIXAR PDF (A4 VERTICAL)
+        </button>
     </div>
 
     <script>
-        // 1. PEGA OS DADOS DO TXID NA URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const txid = urlParams.get('txid');
+        const SUPABASE_URL = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw"; 
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function carregarDados() {
-            if(!txid) return alert("Erro: ID não encontrado.");
-            
-            try {
-                // Busca no seu banco os dados desse TXID
-                const res = await fetch(`/api/status?txid=${txid}`);
-                const data = await res.json();
-                
-                if (data.status === 'pago' || data.nome) {
-                    document.getElementById('out-nome').innerText = data.nome || "Participante";
-                    document.getElementById('out-qi').innerText = data.qi_score || "0";
-                    document.getElementById('out-qe').innerText = data.qe_score || "0";
-                    document.getElementById('out-fase').innerText = data.fase_profissional || "Não Informado";
-                    document.getElementById('out-txid').innerText = txid;
-                    document.getElementById('out-data').innerText = new Date().toLocaleDateString('pt-BR');
-                } else {
-                    alert("Pagamento não confirmado ou dados não encontrados.");
-                }
-            } catch (e) {
-                console.error("Erro ao carregar certificado:", e);
+        const PERFIS = {
+            "Potência Expansiva": { titulo: "O Visionário", sub: "Mestre em Estratégia Híbrida", analise: "Você processa dados frios sem perder o tato humano. Onde a maioria vê problemas, você enxerga o sistema inteiro.", potencial: "Pense em Steve Jobs: ele vendia sonhos e status, não apenas máquinas.", acao: "Sua mente vale ouro na estratégia. Delegue o operacional agora." },
+            "Executor Solitário": { titulo: "O Estrategista", sub: "Alta Performance Lógica", analise: "Sua mente é uma máquina de resolver problemas com frieza cirúrgica.", potencial: "Liderança técnica ou consultoria de alto nível.", acao: "Treine um braço direito imediatamente. Não centralize tudo." },
+            "Conector Nato": { titulo: "O Diplomata", sub: "Inteligência Social Superior", analise: "Você lê ambientes e pessoas com facilidade extrema. Sua força é a influência.", potencial: "Negociação estratégica e liderança de cultura corporativa.", acao: "Use ferramentas de gestão. O carisma abre portas, a disciplina as mantém abertas." },
+            "Em Construção": { titulo: "Explorador", sub: "Fase de Recalibragem", analise: "Sua inteligência detectou inconsistências produtivas. Você está absorvendo novos conhecimentos.", potencial: "Vasto, mas exige foco em autoconhecimento.", acao: "Tente novamente focado na sua dor principal. Não se disperse." }
+        };
+
+        async function init() {
+            const txid = new URLSearchParams(window.location.search).get('txid');
+            if (!txid) return;
+            const { data } = await supabase.from('leads').select('*').eq('txid', txid).single();
+            if (data) {
+                document.getElementById('nome-cliente').innerText = data.nome;
+                document.getElementById('score-qi').innerText = data.qi_score || 0;
+                document.getElementById('score-qe').innerText = data.qe_score || 0;
+                document.getElementById('txid-display').innerText = txid.slice(0, 8).toUpperCase();
+                document.getElementById('data-hoje').innerText = new Date().toLocaleDateString('pt-BR');
+                const qi = data.qi_score || 0, qe = data.qe_score || 0;
+                let p = (qi > 6 && qe > 6) ? "Potência Expansiva" : (qi > 6) ? "Executor Solitário" : (qe > 6) ? "Conector Nato" : "Em Construção";
+                const txt = PERFIS[p];
+                document.getElementById('titulo-perfil').innerText = txt.titulo;
+                document.getElementById('subtitulo-perfil').innerText = txt.sub;
+                document.getElementById('texto-analise').innerText = txt.analise;
+                document.getElementById('texto-potencial').innerText = txt.potencial;
+                document.getElementById('texto-acao').innerText = txt.acao;
             }
         }
 
-        // 2. FUNÇÃO DE DOWNLOAD PROFISSIONAL
-        function baixarPDF() {
-            const elemento = document.getElementById('certificado-area');
-            const btnDownload = document.querySelector('.btn-download');
-            
-            // Feedback visual
-            btnDownload.innerText = "⏳ GERANDO PDF...";
-            
-            const opcoes = {
+        // FUNÇÃO DE GERAR PDF (A4 PORTRAIT)
+        function gerarPDF(){
+            const elemento = document.getElementById("relatorio");
+            const clone = elemento.cloneNode(true);
+
+            // CONFIGURAÇÃO DO CLONE PARA A4 (210mm x 297mm)
+            clone.style.width = "210mm";
+            clone.style.height = "297mm";
+            clone.style.maxWidth = "none";
+            clone.style.margin = "0";
+            clone.style.padding = "20mm"; // Margem interna do papel
+            clone.style.position = "fixed";
+            clone.style.top = "0";
+            clone.style.left = "0";
+            clone.style.background = "#020617";
+            clone.style.zIndex = "-9999";
+            clone.style.display = "block";
+
+            document.body.appendChild(clone);
+
+            const opt = {
                 margin: 0,
-                filename: `Certificado_NeuroQuiz_${txid}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 3, useCORS: true }, // Escala alta para não pixelar
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+                filename: "Relatorio_SierComp4ny.pdf",
+                image: { type: "jpeg", quality: 1 },
+                html2canvas: {
+                    scale: 3, // Alta definição
+                    useCORS: true,
+                    backgroundColor: "#020617",
+                    windowWidth: 794, // 210mm em pixels
+                    windowHeight: 1123 // 297mm em pixels
+                },
+                jsPDF: {
+                    unit: "mm",
+                    format: "a4",
+                    orientation: "portrait",
+                    compress: true
+                }
             };
 
-            html2pdf().set(opcoes).from(elemento).save().then(() => {
-                btnDownload.innerText = "📥 BAIXAR CERTIFICADO PDF";
+            html2pdf().set(opt).from(clone).save().then(() => {
+                document.body.removeChild(clone);
             });
         }
 
-        carregarDados();
+        init();
     </script>
-</body>
-</html>
-    </script>
-
 </body>
 </html>
