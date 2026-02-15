@@ -212,7 +212,7 @@
             document.getElementById('btn-area').classList.remove('hidden');
         }
 
-        function gerarPDF() {
+          function gerarPDF() {
             const btnArea = document.getElementById('btn-area');
             btnArea.style.display = 'none';
             
@@ -226,10 +226,23 @@
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().set(opt).from(elemento).save().then(() => {
+        html2pdf()
+            .set(opt)
+            .from(elemento)
+            .toPdf()
+            .get('pdf')
+            .then(function (pdf) {
+                // 🔥 Remove qualquer página extra criada
+                if (pdf.internal.getNumberOfPages() > 1) {
+                    pdf.deletePage(2);
+                }
+            })
+            .save()
+            .then(() => {
                 btnArea.style.display = 'flex';
             });
-        }
+    }
+
 
         window.onload = carregarDados;
     </script>
