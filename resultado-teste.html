@@ -13,38 +13,35 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
         
-        /* Estilo Exato A4 para Tela */
+        /* A4 EXATO: 210mm x 297mm */
         #relatorio {
             background-color: white;
             width: 210mm;
-            min-height: 297mm;
+            height: 297mm; 
             margin: 20px auto;
             position: relative;
-            /* Margem interna de 2cm (aprox 75px) */
-            padding: 20mm; 
+            padding: 20mm; /* Margem de 2cm em todos os lados */
             box-sizing: border-box;
             display: none; 
             color: #1f2937;
+            overflow: hidden; /* Garante 1 página só */
         }
 
-        /* Marca D'água Centralizada */
         .watermark {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 8rem;
+            font-size: 6rem;
             font-weight: 900;
-            color: rgba(249, 115, 22, 0.05); /* Laranja Sier bem suave */
+            color: rgba(249, 115, 22, 0.04);
             pointer-events: none;
             z-index: 0;
             white-space: nowrap;
         }
 
         .assinatura { font-family: 'Allura', cursive; font-size: 2.5rem; color: #1e3a8a; }
-        
-        /* Justificar textos */
-        .texto-justificado { text-align: justify; line-height: 1.6; }
+        .texto-justificado { text-align: justify; line-height: 1.5; }
 
         #loading {
             height: 100vh; display: flex; flex-direction: column; 
@@ -56,66 +53,66 @@
 
     <div id="loading">
         <div class="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-slate-600 font-bold uppercase tracking-widest text-xs">Consultando Neuro-Base...</p>
+        <p class="text-slate-600 font-bold uppercase tracking-widest text-xs">Gerando Relatório...</p>
     </div>
 
     <div id="relatorio" class="shadow-2xl">
         <div class="watermark">SIER GROWTH</div>
 
-        <div class="flex justify-between border-b-2 border-slate-800 pb-4 mb-8 relative z-10">
+        <div class="flex justify-between border-b-2 border-slate-800 pb-4 mb-10 relative z-10">
             <div>
                 <h1 class="text-2xl font-black tracking-widest text-orange-600">SIER GROWTH</h1>
                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Intelligence Engine v2.0</p>
             </div>
             <div class="text-right">
-                <p class="text-[10px] text-slate-400 uppercase font-bold mt-2">Documento Confidencial</p>
-                <p class="text-[9px] text-slate-300" id="data-emissao">Data: --/--/----</p>
+                <p class="text-[10px] text-slate-400 uppercase font-bold mt-2">Relatório Confidencial</p>
+                <p class="text-[9px] text-slate-300" id="data-hoje">Data: --/--/----</p>
             </div>
         </div>
 
-        <div class="text-center mb-8 relative z-10">
+        <div class="text-center mb-10 relative z-10">
             <span class="bg-blue-50 text-blue-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Resultado da Análise</span>
-            <h2 id="titulo-perfil" class="text-3xl font-black text-slate-800 mt-4 uppercase">CARREGANDO...</h2>
-            <p id="subtitulo-perfil" class="text-lg text-slate-500 italic mt-1">...</p>
+            <h2 id="titulo-perfil" class="text-4xl font-black text-slate-800 mt-4 uppercase">...</h2>
+            <p id="subtitulo-perfil" class="text-lg text-slate-500 italic mt-2">...</p>
         </div>
 
-        <div class="flex justify-center gap-6 mb-8 relative z-10">
-            <div class="text-center w-36 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
+        <div class="flex justify-center gap-8 mb-10 relative z-10">
+            <div class="text-center w-32 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
                 <p class="text-[10px] font-bold text-slate-400 mb-1 uppercase">Razão (QI)</p>
-                <p class="text-4xl font-black text-blue-600"><span id="val-qi">0</span><span class="text-sm text-slate-400">/20</span></p>
+                <p class="text-4xl font-black text-blue-600" id="val-qi">0</p>
             </div>
-            <div class="text-center w-36 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
+            <div class="text-center w-32 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
                 <p class="text-[10px] font-bold text-slate-400 mb-1 uppercase">Emoção (QE)</p>
-                <p class="text-4xl font-black text-orange-500"><span id="val-qe">0</span><span class="text-sm text-slate-400">/20</span></p>
+                <p class="text-4xl font-black text-orange-500" id="val-qe">0</p>
             </div>
         </div>
 
-        <div class="space-y-6 px-4 mb-8 relative z-10">
+        <div class="space-y-6 px-2 mb-10 relative z-10">
             <div class="flex gap-4 items-start">
                 <span class="text-2xl mt-1">👁️</span>
                 <div>
-                    <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Visão Oculta</h3>
-                    <p id="texto-analise-1" class="text-sm text-slate-600 texto-justificado">Processando...</p>
+                    <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Análise Profunda</h3>
+                    <p id="texto-analise-1" class="text-sm text-slate-600 texto-justificado">...</p>
                 </div>
             </div>
             <div class="flex gap-4 items-start">
                 <span class="text-2xl mt-1">🚀</span>
                 <div>
-                    <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Potencial de Crescimento</h3>
-                    <p id="texto-analise-2" class="text-sm text-slate-600 texto-justificado">Calculando...</p>
+                    <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Próximo Nível</h3>
+                    <p id="texto-analise-2" class="text-sm text-slate-600 texto-justificado">...</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-orange-50 border-l-4 border-orange-500 p-4 mb-10 relative z-10 rounded-r-lg">
+        <div class="bg-orange-50 border-l-4 border-orange-500 p-4 mb-auto relative z-10 rounded-r-lg">
             <p class="text-xs text-orange-800 font-medium italic">
-                "O autoconhecimento é o primeiro passo para o domínio. Use este mapa não para definir quem você é, mas para projetar quem você será."
+                "Não é sobre o que você sabe, mas sobre como você aplica o que sente. Este resultado é o ponto de partida para sua nova fase."
             </p>
         </div>
 
         <div class="absolute bottom-20 left-20 right-20 border-t border-slate-200 pt-6 flex justify-between items-end">
             <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Candidato(a)</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Avaliado</p>
                 <h4 id="nome-cliente" class="text-lg font-bold text-slate-900 mt-1">...</h4>
                 <p id="profissao-cliente" class="text-[10px] text-orange-600 font-bold uppercase mt-0.5">...</p>
             </div>
@@ -128,112 +125,95 @@
 
     <div id="btn-area" class="fixed bottom-10 left-0 right-0 flex justify-center hidden z-50">
         <button onclick="gerarPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-2xl flex items-center gap-2 transition-transform hover:scale-105 border-4 border-white">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
             BAIXAR PDF (A4)
         </button>
     </div>
 
     <script>
-        // --- SUPABASE SETUP ---
         const URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
         const KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
         const supabaseClient = window.supabase.createClient(URL_DB, KEY_DB);
 
-        // --- LÓGICA ---
         const params = new URLSearchParams(window.location.search);
         const txid = params.get('txid');
         const nomeURL = params.get('nome');
 
-        // Data Atual
-        document.getElementById('data-emissao').innerText = "Data: " + new Date().toLocaleDateString('pt-BR');
+        document.getElementById('data-hoje').innerText = "Emissão: " + new Date().toLocaleDateString('pt-BR');
 
         async function carregarDados() {
-            if(!txid) return preencherRelatorio({ nome: nomeURL || "Visitante", qi_score: 0, qe_score: 0 });
+            if(!txid) return preencherRelatorio({ nome: nomeURL || "Visitante", qi_score: 5, qe_score: 5 });
 
             try {
-                // Tenta buscar no banco
-                let { data, error } = await supabaseClient
-                    .from('leads')
-                    .select('*')
-                    .eq('txid', txid)
-                    .single();
-
-                // Se não achar ou der erro (às vezes o banco demora milissegundos), tenta dados de fallback
+                let { data, error } = await supabaseClient.from('leads').select('*').eq('txid', txid).single();
                 if (error || !data) {
-                    console.warn("Tentando recarregar...", error);
-                    setTimeout(() => location.reload(), 2000); // Tenta de novo em 2s se falhar
+                    setTimeout(() => location.reload(), 2000); 
                     return;
                 }
-
                 preencherRelatorio(data);
-
-            } catch (err) {
-                alert("Erro de conexão. Verifique a internet.");
-            }
+            } catch (err) { alert("Erro de conexão."); }
         }
 
         function preencherRelatorio(dados) {
             document.getElementById('nome-cliente').innerText = dados.nome || nomeURL;
-            document.getElementById('profissao-cliente').innerText = dados.fase_profissional || "Profissional em Análise";
+            document.getElementById('profissao-cliente').innerText = dados.fase_profissional || "Em Análise";
             
-            // Corrige o bug do 0/20 se o dado vier nulo
             const qi = dados.qi_score || 0;
             const qe = dados.qe_score || 0;
             
             document.getElementById('val-qi').innerText = qi;
             document.getElementById('val-qe').innerText = qe;
 
-            // Lógica de Arquétipo
+            // SUA LÓGICA ORIGINAL RESTAURADA
             let titulo, subtitulo, txt1, txt2;
 
-            if (qi > qe) {
-                titulo = "O Analista Lógico";
-                subtitulo = "Mente afiada voltada para resultados e processos.";
-                txt1 = "Sua capacidade de processamento lógico é superior. Você identifica padrões complexos e falhas estruturais onde a maioria vê apenas caos. Sua tomada de decisão é baseada em fatos, raramente em impulsos.";
-                txt2 = "Alto potencial para liderança técnica, engenharia financeira, arquitetura de sistemas e gestão de crises operacionais.";
-            } else if (qe > qi) {
-                titulo = "O Diplomata Nato";
-                subtitulo = "Inteligência social e influência acima da média.";
-                txt1 = "Você lê ambientes e pessoas como quem lê um livro. Sua maior força não está apenas no que você sabe, mas em como você mobiliza as pessoas para executarem sua visão. Empatia estratégica é sua arma.";
-                txt2 = "Perfil ideal para negociações de alto nível, gestão de cultura corporativa, vendas complexas e liderança de grandes equipes.";
+            if (qi > 6 && qe > 6) {
+                titulo = "Potência Expansiva";
+                subtitulo = "Alto desempenho em Razão e Emoção.";
+                txt1 = "Você atingiu um nível de equilíbrio raro. Sua capacidade de resolver problemas lógicos complexos caminha junto com uma leitura emocional precisa das situações.";
+                txt2 = "Seu desafio agora não é mais técnico, é de escala. Você tem o perfil exato para liderar grandes movimentos ou empresas.";
+            } else if (qi > 6) {
+                titulo = "Executor Solitário";
+                subtitulo = "Alta capacidade técnica, desafio em conexão.";
+                txt1 = "Sua mente é uma máquina de resolver problemas. Onde outros veem caos, você vê padrões. Porém, pode estar deixando dinheiro na mesa por não conectar com as pessoas.";
+                txt2 = "Para crescer, você precisa delegar a parte técnica e focar em vender sua visão. A lógica constrói, mas é a emoção que vende.";
+            } else if (qe > 6) {
+                titulo = "Conector Nato";
+                subtitulo = "Influência alta, precisa de método.";
+                txt1 = "Você abre portas que ninguém mais consegue. Sua habilidade de ler o ambiente é seu maior ativo. Porém, cuidado para não perder o foco nos resultados frios e números.";
+                txt2 = "Sua alavanca de crescimento está em se associar a processos sólidos. Use seu carisma para liderar, mas use dados para decidir.";
             } else {
-                titulo = "O Estrategista";
-                subtitulo = "O equilíbrio raro entre razão fria e calor humano.";
-                txt1 = "Você possui a habilidade híbrida de analisar cenários complexos sem perder a conexão humana. Consegue ser duro com os problemas e suave com as pessoas, uma característica rara em líderes de topo.";
-                txt2 = "Seu perfil é extremamente adaptável, funcionando bem tanto no board executivo quanto na linha de frente operacional.";
+                titulo = "Em Construção";
+                subtitulo = "O início da jornada de consciência.";
+                txt1 = "Este resultado indica que você pode estar em um momento de transição ou bloqueio. Suas respostas mostram cautela excessiva tanto na lógica quanto na emoção.";
+                txt2 = "O lado bom: você é uma folha em branco pronta para ser moldada. Foque em desenvolver uma habilidade técnica forte primeiro.";
             }
 
             document.getElementById('titulo-perfil').innerText = titulo;
             document.getElementById('subtitulo-perfil').innerText = subtitulo;
-            document.getElementById('texto-analise-1').innerText = txt1;
-            document.getElementById('texto-analise-2').innerText = txt2;
+            document.getElementById('texto-analise-1').innerHTML = `<b>Diagnóstico:</b> ${txt1}`;
+            document.getElementById('texto-analise-2').innerHTML = `<b>Direção:</b> ${txt2}`;
 
-            // Mostra Tela
             document.getElementById('loading').style.display = 'none';
             document.getElementById('relatorio').style.display = 'block';
             document.getElementById('btn-area').classList.remove('hidden');
         }
 
         function gerarPDF() {
-            // Esconde botão para não sair no print
             const btnArea = document.getElementById('btn-area');
             btnArea.style.display = 'none';
             
             const elemento = document.getElementById("relatorio");
             
-            // Configuração A4 Perfeita
             const opt = {
-                margin: 0, // Sem margem extra, o CSS já tem padding
+                margin: 0,
                 filename: `Relatorio_Sier_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             html2pdf().set(opt).from(elemento).save().then(() => {
-                btnArea.style.display = 'flex'; // Volta o botão
+                btnArea.style.display = 'flex';
             });
         }
 
