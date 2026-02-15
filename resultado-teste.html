@@ -59,58 +59,30 @@
 
 <!-- TODO O SEU HTML CONTINUA IGUAL (NÃO ALTERADO) -->
 
-<script>
-    const URL_DB =" "https://oabcppkojfmmmqhevjpq.supabase.co"; 
-    const KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-    const supabaseClient = window.supabase.createClient(URL_DB, KEY_DB);
+ 
+            document.getElementById('titulo-perfil').innerText = titulo;
+            document.getElementById('subtitulo-perfil').innerText = subtitulo;
+            document.getElementById('texto-analise-1').innerHTML = txt1;
+            document.getElementById('texto-analise-2').innerHTML = txt2;
 
-    const params = new URLSearchParams(window.location.search);
-    const txid = params.get('txid');
-    const nomeURL = params.get('nome');
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('relatorio').style.display = 'block';
+            document.getElementById('btn-area').classList.remove('hidden');
+        }
 
-    document.getElementById('data-hoje').innerText = "Emissão: " + new Date().toLocaleDateString('pt-BR');
-
-    async function carregarDados() {
-        if(!txid) return preencherRelatorio({ nome: nomeURL || "Visitante", qi_score: 5, qe_score: 5 });
-
-        try {
-            let { data, error } = await supabaseClient.from('leads').select('*').eq('txid', txid).single();
-            if (error || !data) {
-                setTimeout(() => location.reload(), 2000); 
-                return;
-            }
-            preencherRelatorio(data);
-        } catch (err) { alert("Erro de conexão."); }
-    }
-
-    /* SUA FUNÇÃO preencherRelatorio CONTINUA IGUAL */
-
-    /* 🔥 FUNÇÃO PDF CORRIGIDA (1 PÁGINA GARANTIDA) */
-    function gerarPDF() {
-        const btnArea = document.getElementById('btn-area');
-        btnArea.style.display = 'none';
-        
-        const elemento = document.getElementById("relatorio");
-
-        const opt = {
-            margin: 0,
-            filename: `Relatorio_Sier_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`,
-            image: { type: 'jpeg', quality: 1 },
-            html2canvas: { 
-                scale: 2,
-                useCORS: true,
-                scrollX: 0,
-                scrollY: 0,
-                windowWidth: elemento.scrollWidth,
-                windowHeight: elemento.scrollHeight
-            },
-            jsPDF: { 
-                unit: 'mm',
-                format: 'a4',
-                orientation: 'portrait'
-            },
-            pagebreak: { mode: [] } // 🔥 REMOVE QUEBRA AUTOMÁTICA
-        };
+        function gerarPDF() {
+            const btnArea = document.getElementById('btn-area');
+            btnArea.style.display = 'none';
+            
+            const elemento = document.getElementById("relatorio");
+            
+            const opt = {
+                margin: 0, // Margem já está no CSS do elemento
+                filename: `Relatorio_Sier_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
 
         html2pdf()
             .set(opt)
