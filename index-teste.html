@@ -71,7 +71,7 @@
         const NOME_RECEBEDOR = "SIER GROWTH"; 
         const CIDADE_RECEBEDOR = "SAO PAULO";
 
-        // SUPABASE
+        // SUPABASE CONFIG
         const _URL = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
         const _KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
         
@@ -84,7 +84,7 @@
         } catch(e) { console.error("Erro init SB:", e); }
 
         // Variáveis do App
-        let user = { nome:'', email:'', whatsapp:'', qi:0, qe:0, txid:'', profissao: '' };
+        let user = { nome:'', email:'', whatsapp:'', qi:0, qe:0, txid:'', fase: 'Não Informado' };
         let idx = 0;
         let checkInterval = null;
 
@@ -141,9 +141,9 @@
                 btn.className = 'opcao-btn';
                 btn.innerText = opt;
                 btn.onclick = () => {
-                    // CORREÇÃO DO NULL: Captura a Profissão se for pergunta SEG
+                    // CORREÇÃO: Captura a Profissão (Fase)
                     if (q.type === 'SEG') {
-                        user.profissao = opt;
+                        user.fase = opt; // Salva o texto clicado
                     } else if (i === q.c) {
                         q.type === 'QI' ? user.qi++ : user.qe++;
                     }
@@ -162,23 +162,27 @@
 
             if(_dbClient) {
                 try {
-                    // Manda 'profissao' e 'fase' (para garantir que um dos dois salve)
+                    // Envio com DIAGNÓSTICO E FASE CORRETA
                     const { error } = await _dbClient.from('leads').insert([{
                         nome: user.nome,
                         email: user.email,
                         whatsapp: user.whatsapp,
                         qi_score: user.qi,
                         qe_score: user.qe,
-                        profissao: user.profissao, // Manda como profissao
-                        fase: user.profissao,      // Manda como fase (backup)
+                        fase: user.fase, // Agora vai preenchido
                         txid: user.txid,
                         status: 'pendente'
                     }]);
 
-                    if(error) console.error("Erro BD:", error);
-                    else console.log("Salvo OK com profissão:", user.profissao);
-                    
-                } catch(e) { console.log("Erro Catch:", e); }
+                    if(error) {
+                        alert("ERRO AO SALVAR NO BANCO: " + error.message);
+                        console.error(error);
+                    } else {
+                        console.log("Salvo com sucesso!");
+                    }
+                } catch(e) { 
+                    alert("Erro Crítico de Conexão: " + e.message); 
+                }
             }
 
             // Salva Sessão
@@ -211,7 +215,7 @@
                     <p class="mt-4 text-[9px] text-emerald-500 font-bold animate-pulse">Aguardando Pagamento...</p>
                 `;
                 
-                // INICIA VERIFICAÇÃO AUTOMÁTICA
+                // INICIA O MONITORAMENTO DO STATUS
                 iniciarVerificacaoPagamento(user.txid);
 
             }, 500);
@@ -224,7 +228,6 @@
             checkInterval = setInterval(async () => {
                 if(!_dbClient) return;
 
-                // Consulta status
                 const { data, error } = await _dbClient
                     .from('leads')
                     .select('status')
@@ -236,11 +239,11 @@
                     if(data.status === 'pago' || data.status === 'aprovado') {
                         clearInterval(checkInterval);
                         alert("Pagamento Confirmado! Redirecionando...");
-                        // Redireciona com os dados para o certificado
+                        // Redireciona com dados na URL
                         window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(user.nome)}&qi=${user.qi}&qe=${user.qe}`;
                     }
                 }
-            }, 3000); // Checa a cada 3 segundos
+            }, 3000); // 3 segundos
         }
 
         function verAnuncio() {
