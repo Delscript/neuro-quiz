@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -13,19 +13,22 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
         
+        /* FORMATO A4 EXATO - 1 PÁGINA FIXA */
         #relatorio {
             background-color: white;
             width: 210mm;
             height: 297mm; 
             margin: 0px auto;
             position: relative;
+            /* Margem de 2cm */
             padding: 20mm; 
             box-sizing: border-box;
             display: none; 
             color: #1f2937;
-            overflow: hidden;
+            overflow: hidden; /* Corta o que passar da folha */
         }
 
+        /* FLEXBOX PARA DISTRIBUIR O CONTEÚDO SEM QUEBRAR PÁGINA */
         .page-content {
             display: flex;
             flex-direction: column;
@@ -57,9 +60,90 @@
 </head>
 <body>
 
-<!-- TODO O SEU HTML CONTINUA IGUAL (NÃO ALTERADO) -->
+    <div id="loading">
+        <div class="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-slate-600 font-bold uppercase tracking-widest text-xs">Gerando Relatório...</p>
+    </div>
 
-   <script>
+    <div id="relatorio" class="shadow-2xl">
+        <div class="watermark">SIER GROWTH</div>
+        
+        <div class="page-content relative z-10">
+            
+            <div>
+                <div class="flex justify-between border-b-2 border-slate-800 pb-4 mb-6">
+                    <div>
+                        <h1 class="text-2xl font-black tracking-widest text-orange-600">SIER GROWTH</h1>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Intelligence Engine v2.0</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-slate-400 uppercase font-bold mt-2">Relatório Confidencial</p>
+                        <p class="text-[9px] text-slate-300" id="data-hoje">Data: --/--/----</p>
+                    </div>
+                </div>
+
+                <div class="text-center mb-8">
+                    <span class="bg-blue-50 text-blue-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Resultado da Análise</span>
+                    <h2 id="titulo-perfil" class="text-3xl font-black text-slate-800 mt-4 uppercase">...</h2>
+                    <p id="subtitulo-perfil" class="text-lg text-slate-500 italic mt-1">...</p>
+                </div>
+
+                <div class="flex justify-center gap-8 mb-8">
+                    <div class="text-center w-32 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-400 mb-1 uppercase">Razão (QI)</p>
+                        <p class="text-4xl font-black text-blue-600"><span id="val-qi">0</span></p>
+                    </div>
+                    <div class="text-center w-32 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-400 mb-1 uppercase">Emoção (QE)</p>
+                        <p class="text-4xl font-black text-orange-500"><span id="val-qe">0</span></p>
+                    </div>
+                </div>
+
+                <div class="space-y-6 px-2">
+                    <div class="flex gap-4 items-start">
+                        <span class="text-2xl mt-1">👁️</span>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Diagnóstico</h3>
+                            <p id="texto-analise-1" class="text-sm text-slate-600 texto-justificado">...</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 items-start">
+                        <span class="text-2xl mt-1">🚀</span>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Direção</h3>
+                            <p id="texto-analise-2" class="text-sm text-slate-600 texto-justificado">...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-r-lg mt-6">
+                <p class="text-xs text-orange-800 font-medium italic text-center">
+                    "O autoconhecimento é o primeiro passo para o domínio. Use este mapa não para definir quem você é, mas para projetar quem você será."
+                </p>
+            </div>
+
+            <div class="border-t border-slate-200 pt-6 flex justify-between items-end mt-4">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Avaliado</p>
+                    <h4 id="nome-cliente" class="text-lg font-bold text-slate-900 mt-1">...</h4>
+                    <p id="profissao-cliente" class="text-[10px] text-orange-600 font-bold uppercase mt-0.5">...</p>
+                </div>
+                <div class="text-right">
+                    <div class="assinatura mb-2">Anderson Dias</div>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase">CEO • SierComp4ny</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="btn-area" class="fixed bottom-10 left-0 right-0 flex justify-center hidden z-50">
+        <button onclick="gerarPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-2xl flex items-center gap-2 transition-transform hover:scale-105 border-4 border-white">
+            BAIXAR PDF (A4)
+        </button>
+    </div>
+
+    <script>
         const URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
         const KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
         const supabaseClient = window.supabase.createClient(URL_DB, KEY_DB);
@@ -128,25 +212,27 @@
             document.getElementById('btn-area').classList.remove('hidden');
         }
 
-        html2pdf()
-            .set(opt)
-            .from(elemento)
-            .toPdf()
-            .get('pdf')
-            .then(function (pdf) {
-                // 🔥 Remove qualquer página extra criada
-                if (pdf.internal.getNumberOfPages() > 1) {
-                    pdf.deletePage(2);
-                }
-            })
-            .save()
-            .then(() => {
+        function gerarPDF() {
+            const btnArea = document.getElementById('btn-area');
+            btnArea.style.display = 'none';
+            
+            const elemento = document.getElementById("relatorio");
+            
+            const opt = {
+                margin: 0, // Margem já está no CSS do elemento
+                filename: `Relatorio_Sier_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(elemento).save().then(() => {
                 btnArea.style.display = 'flex';
             });
-    }
+        }
 
-    window.onload = carregarDados;
-</script>
-
+        window.onload = carregarDados;
+    </script>
 </body>
 </html>
+
