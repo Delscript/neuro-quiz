@@ -30,27 +30,27 @@
                 <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp (DDD)" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-blue-500 outline-none text-sm text-white">
                 <button onclick="_quizApp.iniciar()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-extrabold text-lg shadow-lg">Iniciar Avaliação</button>
             </div>
-            <p class="text-[9px] text-slate-700 mt-8 uppercase tracking-widest font-bold">© 2026 SierComp4ny • Anderson Dias</p>
+            <button onclick="localStorage.clear(); location.reload();" class="mt-8 text-[9px] text-slate-700 uppercase tracking-widest hover:text-slate-400">Limpar Sessão (Reset)</button>
         </div>
 
         <div id="tela-perguntas" class="card-quiz p-6 hidden">
             <div class="barra-progresso mb-4"><div id="barra-progresso" class="progresso-fill"></div></div>
             <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-6 uppercase tracking-widest">
                 <span>PERGUNTA <span id="num-pergunta">1</span>/20</span>
-                <span class="text-blue-500">Neuro-Análise</span>
+                <span class="text-blue-500 italic">Neuro-Análise</span>
             </div>
-            <h2 id="texto-pergunta" class="text-lg font-bold mb-8 leading-tight text-slate-100 italic">...</h2>
+            <h2 id="texto-pergunta" class="text-lg font-bold mb-8 leading-tight text-slate-100">...</h2>
             <div id="area-opcoes"></div>
         </div>
 
         <div id="tela-pagamento" class="card-quiz p-8 text-center hidden">
             <h2 class="text-2xl font-black text-green-500 mb-2 italic uppercase">Análise Pronta!</h2>
-            <p class="text-slate-400 text-sm mb-10 font-medium">Escolha como deseja liberar seu relatório oficial:</p>
+            <p class="text-slate-400 text-sm mb-10 font-medium">Escolha como deseja liberar seu relatório:</p>
             <div id="opcoes-liberacao" class="space-y-4">
                 <button onclick="_quizApp.gerarPix()" class="w-full bg-emerald-600 p-4 rounded-2xl font-black shadow-lg">PAGAR R$ 1,00 VIA PIX</button>
                 <button onclick="_quizApp.verAnuncio()" class="w-full bg-slate-800 p-4 rounded-2xl font-bold text-blue-400 text-xs border border-slate-700">ASSISTIR VÍDEO (GRÁTIS NO APP)</button>
             </div>
-            <div id="area-qr" class="mt-8 bg-white p-5 rounded-[32px] hidden">
+            <div id="area-qr" class="mt-8 bg-white p-6 rounded-[32px] hidden text-center">
                 <div id="qr-content" class="flex flex-col items-center"></div>
             </div>
         </div>
@@ -113,50 +113,35 @@
                     div.appendChild(b);
                 });
             },
-              
-                gerarPix: async () => {
+
+            gerarPix: () => {
                 const areaQr = document.getElementById('area-qr');
                 const qrContent = document.getElementById('qr-content');
-                
-                // 1. Esconde os botões e mostra a área do QR
                 document.getElementById('opcoes-liberacao').classList.add('hidden');
                 areaQr.classList.remove('hidden');
-                qrContent.innerHTML = `<div class="p-8 text-slate-800 font-bold animate-pulse uppercase italic text-xs">Comunicando com o Banco...</div>`;
+                qrContent.innerHTML = `<div class="p-8 text-slate-800 font-bold animate-pulse text-xs">A GERAR PIX...</div>`;
 
-                try {
-                    // 2. Aqui deves colocar o teu link da API que gera o Pix
-                    // Exemplo: const res = await fetch('https://tua-api.vercel.app/api/pix');
-                    // const d = await res.json();
-
-                    // SIMULAÇÃO DE RESPOSTA (Substitui pelos dados reais da tua API)
+                // SIMULAÇÃO - AQUI DEVES CONECTAR A TUA API NO FUTURO
+                setTimeout(() => {
                     const d = {
-                        img: "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=PIX_DE_TESTE", // Link da imagem do QR
-                        code: "00020126360014BR.GOV.BCB.PIX0114TESTE123..." // Código Copia e Cola
+                        img: "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=PIX_ANDERSON_DIAS",
+                        code: "00020126360014BR.GOV.BCB.PIX0114TESTE12345678"
                     };
 
-                    // 3. Exibe o QR Code real na tela
                     qrContent.innerHTML = `
-                        <img src="${d.img}" class="w-56 h-56 rounded-xl mb-4 shadow-sm">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Código Copia e Cola:</p>
-                        <textarea class="w-full text-[9px] text-slate-600 p-3 bg-slate-50 border border-slate-200 rounded-xl mb-4" rows="2" readonly>${d.code}</textarea>
-                        <button onclick="navigator.clipboard.writeText('${d.code}'); alert('Pix Copiado!')" class="w-full bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-blue-200">Copiar Código Pix</button>
-                        
-                        <div class="flex items-center justify-center gap-2 mt-6">
+                        <img src="${d.img}" class="w-48 h-48 rounded-xl mb-4">
+                        <p class="text-[9px] text-slate-400 font-bold uppercase mb-2">Código Copia e Cola:</p>
+                        <textarea class="w-full text-[9px] text-slate-600 p-3 bg-slate-50 border rounded-lg mb-4" rows="2" readonly>${d.code}</textarea>
+                        <button onclick="navigator.clipboard.writeText('${d.code}');alert('Pix Copiado!')" class="w-full bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase">Copiar Código</button>
+                        <div class="flex items-center justify-center gap-2 mt-4">
                             <div class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
-                            <span class="text-[9px] text-emerald-600 font-black uppercase tracking-widest">Aguardando Pagamento</span>
+                            <span class="text-[9px] text-emerald-600 font-bold uppercase tracking-widest">Aguardando Pagamento</span>
                         </div>
                     `;
-
-                    // 4. Salva no LocalStorage para o F5 não perder o Pix
                     localStorage.setItem('neuro_pix_img', d.img);
                     localStorage.setItem('neuro_pix_code', d.code);
-
-                } catch (e) {
-                    qrContent.innerHTML = `<div class="p-4 text-red-500 font-bold text-xs">Erro ao gerar Pix. Tenta novamente.</div>`;
-                    document.getElementById('opcoes-liberacao').classList.remove('hidden');
-                }
+                }, 1500);
             },
-
 
             verAnuncio: () => {
                 window.location.href = `resultado-teste.html?txid=FREE_APP&nome=${encodeURIComponent(_quizApp.dados.nome)}`;
@@ -170,22 +155,25 @@
             }
         };
 
-        // VACINA CONTRA TRAVAMENTO NO ONLOAD
         window.onload = () => {
-            try {
-                const pixAtivo = localStorage.getItem('neuro_pix_img');
-                if (pixAtivo) {
-                    _quizApp.mostrarTela('tela-pagamento');
-                    document.getElementById('opcoes-liberacao').classList.add('hidden');
-                    document.getElementById('area-qr').classList.remove('hidden');
-                    document.getElementById('qr-content').innerHTML = `<div class="p-4 text-black font-bold uppercase italic">QR Code Recuperado</div>`;
-                }
-            } catch (e) {
-                console.log("Sem dados salvos, iniciando normal.");
-                localStorage.clear();
+            const pixImg = localStorage.getItem('neuro_pix_img');
+            const pixCode = localStorage.getItem('neuro_pix_code');
+            if (pixImg && pixCode) {
+                _quizApp.mostrarTela('tela-pagamento');
+                document.getElementById('opcoes-liberacao').classList.add('hidden');
+                document.getElementById('area-qr').classList.remove('hidden');
+                document.getElementById('qr-content').innerHTML = `
+                    <img src="${pixImg}" class="w-48 h-48 rounded-xl mb-4">
+                    <p class="text-[9px] text-slate-400 font-bold uppercase mb-2">Código Copia e Cola:</p>
+                    <textarea class="w-full text-[9px] text-slate-600 p-3 bg-slate-50 border rounded-lg mb-4" rows="2" readonly>${pixCode}</textarea>
+                    <button onclick="navigator.clipboard.writeText('${pixCode}');alert('Pix Copiado!')" class="w-full bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase">Copiar Código</button>
+                    <div class="flex items-center justify-center gap-2 mt-4">
+                        <div class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
+                        <span class="text-[9px] text-emerald-600 font-bold uppercase tracking-widest">Sessão Recuperada</span>
+                    </div>
+                `;
             }
         };
     </script>
 </body>
 </html>
-                    
