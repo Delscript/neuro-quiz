@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Avaliação Neuro-Cognitiva</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --cor-principal: #2563eb; --fundo: #f8fafc; --texto: #1e293b; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--fundo); color: var(--texto); padding: 20px; text-align: center; margin: 0; }
@@ -66,21 +67,19 @@
 
 <script>
     // ================= CONFIGURAÇÃO =================
-    // SUA CHAVE ALEATÓRIA
     const CHAVE_PIX_REAL = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; 
-    const NOME_RECEBEDOR = "SIER GROWTH"; // Sem acentos, max 25 chars
-    const CIDADE_RECEBEDOR = "SAO PAULO"; // Sem acentos, max 15 chars
+    const NOME_RECEBEDOR = "SIER GROWTH"; 
+    const CIDADE_RECEBEDOR = "SAO PAULO"; 
 
-    // SUPABASE (Usando a mesma do código original)
+    // SUPABASE
     const _URL = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
     const _KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
     
-    // Variável global segura (meuBanco)
     let meuBanco = null;
     try { 
         if(window.supabase) {
             meuBanco = window.supabase.createClient(_URL, _KEY); 
-            console.log("Supabase ok.");
+            console.log("Supabase OK");
         }
     } catch(e) { console.error("Erro init SB:", e); }
 
@@ -153,22 +152,32 @@
             const txid = 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase();
             _quizApp.dados.txid = txid;
 
-            // Envio para o Banco
+            // ENVIO COM DIAGNÓSTICO DE ERRO
             if(meuBanco) {
                 try {
-                    document.getElementById('msg-status').innerText = "Salvando resultados...";
+                    document.getElementById('msg-status').innerText = "Enviando para Supabase...";
+                    
+                    // ATENÇÃO: Aqui voltamos para 'qi_score' e 'qe_score'
                     const { error } = await meuBanco.from('leads').insert([{
                         nome: _quizApp.dados.nome,
                         email: _quizApp.dados.email,
                         whatsapp: _quizApp.dados.whatsapp,
-                        qi: _quizApp.dados.qi,
-                        qe: _quizApp.dados.qe,
-                        fase: _quizApp.dados.fase,
+                        qi_score: _quizApp.dados.qi,
+                        qe_score: _quizApp.dados.qe,
+                        fase: _quizApp.dados.fase, // Verifique se essa coluna existe, senão remova
                         txid: txid,
                         status: 'pendente'
                     }]);
-                    if(error) console.error("Erro BD:", error);
-                } catch(e) { console.log("Erro Catch:", e); }
+
+                    if(error) {
+                        alert("ERRO AO SALVAR NO BANCO:\n" + error.message + "\n\nVerifique se as colunas 'qi_score', 'qe_score' e 'fase' existem na tabela 'leads'.");
+                        console.error(error);
+                    } else {
+                        console.log("Salvo com sucesso!");
+                    }
+                } catch(e) { 
+                    alert("Erro de conexão: " + e.message);
+                }
             }
 
             // Salva Sessão
@@ -177,48 +186,50 @@
                 dados: _quizApp.dados
             }));
 
-            _quizApp.mostrarTela('tela-pagamento');
-            _quizApp.gerarPixBR(txid);
+            setTimeout(() => {
+                _quizApp.mostrarTela('tela-pagamento');
+                _quizApp.gerarPixBR(txid);
+            }, 1000);
         },
 
         gerarPixBR: (txid) => {
-            // Geração MANUAL DO PAYLOAD PIX (Com suporte a chave aleatória)
-            // Lógica: 0014BR.GOV.BCB.PIX + 01(len)Key
-            // Field 26: 00(14)... + 01(len)KEY
+            // Gerador CRC16 para Chave Aleatória (EVP)
+            // Lógica: 0014BR.GOV.BCB.PIX + 01(36)CHAVE
             
             const valor = "1.00";
             const chave = CHAVE_PIX_REAL;
-            const nome = NOME_RECEBEDOR;
-            const cidade = CIDADE_RECEBEDOR;
             
-            // Calculando tamanho do campo 26 (Merchant Account Info)
-            // 00 + 14 + "BR.GOV.BCB.PIX" (18 chars total)
-            // 01 + len(chave) + chave
-            const tamChave = chave.length;
-            const tamCampo26 = 14 + 4 + 4 + tamChave; // 18 do GUI + 4 do header Chave + tamChave
-            // Nota: 14 é o length do valor do GUI (BR.GOV.BCB.PIX).
-            // Estrutura 26: "0014BR.GOV.BCB.PIX" (18 chars) + "01" + len(2 chars) + Chave
+            // Campo 26: 0014BR.GOV.BCB.PIX + 01 + len(chave) + chave
+            // Chave EVP tem 36 caracteres.
+            const string26 = "0014BR.GOV.BCB.PIX0136" + chave;
             
-            const string26 = "0014BR.GOV.BCB.PIX01" + tamChave.toString().padStart(2,'0') + chave;
-            
-            let payload = "000201";
-            payload += "26" + string26.length.toString().padStart(2,'0') + string26;
-            payload += "52040000"; // Merchant Category Code
-            payload += "5303986";  // BRL
-            payload += "54" + valor.length.toString().padStart(2,'0') + valor;
-            payload += "5802BR";
-            payload += "59" + nome.length.toString().padStart(2,'0') + nome;
-            payload += "60" + cidade.length.toString().padStart(2,'0') + cidade;
+            let p = "000201";
+            p += "26" + string26.length.toString().padStart(2,'0') + string26;
+            p += "52040000"; // Merchant Cat
+            p += "5303986";  // BRL
+            p += "54" + valor.length.toString().padStart(2,'0') + valor;
+            p += "5802BR";
+            p += "59" + NOME_RECEBEDOR.length.toString().padStart(2,'0') + NOME_RECEBEDOR;
+            p += "60" + CIDADE_RECEBEDOR.length.toString().padStart(2,'0') + CIDADE_RECEBEDOR;
             
             // Campo 62 (TxID)
             const string62 = "05" + txid.length.toString().padStart(2,'0') + txid;
-            payload += "62" + string62.length.toString().padStart(2,'0') + string62;
+            p += "62" + string62.length.toString().padStart(2,'0') + string62;
             
-            payload += "6304"; // Início CRC
+            p += "6304"; // Início CRC
 
             // Calcula CRC16
-            const crc = _quizApp.crc16(payload);
-            const pixFinal = payload + crc;
+            let polinomio = 0x1021;
+            let crc = 0xFFFF;
+            for (let i = 0; i < p.length; i++) {
+                crc ^= (p.charCodeAt(i) << 8);
+                for (let j = 0; j < 8; j++) {
+                    if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ polinomio;
+                    else crc = crc << 1;
+                }
+            }
+            const hexCrc = (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+            const pixFinal = p + hexCrc;
 
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(pixFinal)}`;
 
@@ -237,19 +248,6 @@
         mostrarTela: (id) => {
             document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
             document.getElementById(id).classList.add('ativa');
-        },
-
-        crc16: (payload) => {
-            let polinomio = 0x1021;
-            let crc = 0xFFFF;
-            for (let i = 0; i < payload.length; i++) {
-                crc ^= (payload.charCodeAt(i) << 8);
-                for (let j = 0; j < 8; j++) {
-                    if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ polinomio;
-                    else crc = crc << 1;
-                }
-            }
-            return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
         }
     };
 
