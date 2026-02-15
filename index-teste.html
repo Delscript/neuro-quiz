@@ -76,7 +76,8 @@
         const _URL = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
         const _KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
         
-        // CORREÇÃO 1: Nome da variável alterado para não conflitar com a biblioteca
+        // CORREÇÃO 1: Nome da variável alterado para _dbClient
+        // Isso impede o erro "Identifier 'supabase' has already been declared"
         let _dbClient = null;
         try { 
             if(window.supabase) {
@@ -159,8 +160,7 @@
 
             user.txid = "TX-" + Math.random().toString(36).substr(2, 9).toUpperCase();
 
-            // CORREÇÃO 2: Envios APENAS das colunas que existem no seu banco
-            // Removi 'fase' pois o erro disse que ela não existe
+            // CORREÇÃO 2: Removidas colunas 'fase' e 'status' que não existem no banco
             if(_dbClient) {
                 try {
                     const { error } = await _dbClient.from('leads').insert([{
@@ -169,8 +169,7 @@
                         whatsapp: user.whatsapp,
                         qi_score: user.qi,
                         qe_score: user.qe,
-                        txid: user.txid,
-                        status: 'pendente'
+                        txid: user.txid
                     }]);
 
                     if(error) {
