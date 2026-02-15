@@ -13,18 +13,27 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
         
-        /* A4 EXATO: 210mm x 297mm */
+        /* FORMATO A4 EXATO - 1 PÁGINA FIXA */
         #relatorio {
             background-color: white;
             width: 210mm;
             height: 297mm; 
             margin: 20px auto;
             position: relative;
-            padding: 20mm; /* Margem de 2cm em todos os lados */
+            /* Margem de 2cm */
+            padding: 20mm; 
             box-sizing: border-box;
             display: none; 
             color: #1f2937;
-            overflow: hidden; /* Garante 1 página só */
+            overflow: hidden; /* Corta o que passar da folha */
+        }
+
+        /* FLEXBOX PARA DISTRIBUIR O CONTEÚDO SEM QUEBRAR PÁGINA */
+        .page-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
         }
 
         .watermark {
@@ -41,7 +50,7 @@
         }
 
         .assinatura { font-family: 'Allura', cursive; font-size: 2.5rem; color: #1e3a8a; }
-        .texto-justificado { text-align: justify; line-height: 1.5; }
+        .texto-justificado { text-align: justify; line-height: 1.4; }
 
         #loading {
             height: 100vh; display: flex; flex-direction: column; 
@@ -58,67 +67,72 @@
 
     <div id="relatorio" class="shadow-2xl">
         <div class="watermark">SIER GROWTH</div>
-
-        <div class="flex justify-between border-b-2 border-slate-800 pb-4 mb-10 relative z-10">
+        
+        <div class="page-content relative z-10">
+            
             <div>
-                <h1 class="text-2xl font-black tracking-widest text-orange-600">SIER GROWTH</h1>
-                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Intelligence Engine v2.0</p>
-            </div>
-            <div class="text-right">
-                <p class="text-[10px] text-slate-400 uppercase font-bold mt-2">Relatório Confidencial</p>
-                <p class="text-[9px] text-slate-300" id="data-hoje">Data: --/--/----</p>
-            </div>
-        </div>
+                <div class="flex justify-between border-b-2 border-slate-800 pb-4 mb-6">
+                    <div>
+                        <h1 class="text-2xl font-black tracking-widest text-orange-600">SIER GROWTH</h1>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Intelligence Engine v2.0</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-slate-400 uppercase font-bold mt-2">Relatório Confidencial</p>
+                        <p class="text-[9px] text-slate-300" id="data-hoje">Data: --/--/----</p>
+                    </div>
+                </div>
 
-        <div class="text-center mb-10 relative z-10">
-            <span class="bg-blue-50 text-blue-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Resultado da Análise</span>
-            <h2 id="titulo-perfil" class="text-4xl font-black text-slate-800 mt-4 uppercase">...</h2>
-            <p id="subtitulo-perfil" class="text-lg text-slate-500 italic mt-2">...</p>
-        </div>
+                <div class="text-center mb-8">
+                    <span class="bg-blue-50 text-blue-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Resultado da Análise</span>
+                    <h2 id="titulo-perfil" class="text-3xl font-black text-slate-800 mt-4 uppercase">...</h2>
+                    <p id="subtitulo-perfil" class="text-lg text-slate-500 italic mt-1">...</p>
+                </div>
 
-        <div class="flex justify-center gap-8 mb-10 relative z-10">
-            <div class="text-center w-32 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
-                <p class="text-[10px] font-bold text-slate-400 mb-1 uppercase">Razão (QI)</p>
-                <p class="text-4xl font-black text-blue-600" id="val-qi">0</p>
-            </div>
-            <div class="text-center w-32 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
-                <p class="text-[10px] font-bold text-slate-400 mb-1 uppercase">Emoção (QE)</p>
-                <p class="text-4xl font-black text-orange-500" id="val-qe">0</p>
-            </div>
-        </div>
+                <div class="flex justify-center gap-8 mb-8">
+                    <div class="text-center w-32 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-400 mb-1 uppercase">Razão (QI)</p>
+                        <p class="text-4xl font-black text-blue-600"><span id="val-qi">0</span></p>
+                    </div>
+                    <div class="text-center w-32 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-bold text-slate-400 mb-1 uppercase">Emoção (QE)</p>
+                        <p class="text-4xl font-black text-orange-500"><span id="val-qe">0</span></p>
+                    </div>
+                </div>
 
-        <div class="space-y-6 px-2 mb-10 relative z-10">
-            <div class="flex gap-4 items-start">
-                <span class="text-2xl mt-1">👁️</span>
-                <div>
-                    <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Análise Profunda</h3>
-                    <p id="texto-analise-1" class="text-sm text-slate-600 texto-justificado">...</p>
+                <div class="space-y-6 px-2">
+                    <div class="flex gap-4 items-start">
+                        <span class="text-2xl mt-1">👁️</span>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Diagnóstico</h3>
+                            <p id="texto-analise-1" class="text-sm text-slate-600 texto-justificado">...</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 items-start">
+                        <span class="text-2xl mt-1">🚀</span>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Direção</h3>
+                            <p id="texto-analise-2" class="text-sm text-slate-600 texto-justificado">...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="flex gap-4 items-start">
-                <span class="text-2xl mt-1">🚀</span>
+
+            <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-r-lg mt-6">
+                <p class="text-xs text-orange-800 font-medium italic text-center">
+                    "O autoconhecimento é o primeiro passo para o domínio. Use este mapa não para definir quem você é, mas para projetar quem você será."
+                </p>
+            </div>
+
+            <div class="border-t border-slate-200 pt-6 flex justify-between items-end mt-4">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Próximo Nível</h3>
-                    <p id="texto-analise-2" class="text-sm text-slate-600 texto-justificado">...</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Avaliado</p>
+                    <h4 id="nome-cliente" class="text-lg font-bold text-slate-900 mt-1">...</h4>
+                    <p id="profissao-cliente" class="text-[10px] text-orange-600 font-bold uppercase mt-0.5">...</p>
                 </div>
-            </div>
-        </div>
-
-        <div class="bg-orange-50 border-l-4 border-orange-500 p-4 mb-auto relative z-10 rounded-r-lg">
-            <p class="text-xs text-orange-800 font-medium italic">
-                "Não é sobre o que você sabe, mas sobre como você aplica o que sente. Este resultado é o ponto de partida para sua nova fase."
-            </p>
-        </div>
-
-        <div class="absolute bottom-20 left-20 right-20 border-t border-slate-200 pt-6 flex justify-between items-end">
-            <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Avaliado</p>
-                <h4 id="nome-cliente" class="text-lg font-bold text-slate-900 mt-1">...</h4>
-                <p id="profissao-cliente" class="text-[10px] text-orange-600 font-bold uppercase mt-0.5">...</p>
-            </div>
-            <div class="text-right">
-                <div class="assinatura mb-2">Anderson Dias</div>
-                <p class="text-[9px] text-slate-400 font-bold uppercase">CEO • SierComp4ny</p>
+                <div class="text-right">
+                    <div class="assinatura mb-2">Anderson Dias</div>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase">CEO • SierComp4ny</p>
+                </div>
             </div>
         </div>
     </div>
@@ -163,7 +177,7 @@
             document.getElementById('val-qi').innerText = qi;
             document.getElementById('val-qe').innerText = qe;
 
-            // SUA LÓGICA ORIGINAL RESTAURADA
+            // SUA LÓGICA RESTAURADA (Baseada em > 6)
             let titulo, subtitulo, txt1, txt2;
 
             if (qi > 6 && qe > 6) {
@@ -190,8 +204,8 @@
 
             document.getElementById('titulo-perfil').innerText = titulo;
             document.getElementById('subtitulo-perfil').innerText = subtitulo;
-            document.getElementById('texto-analise-1').innerHTML = `<b>Diagnóstico:</b> ${txt1}`;
-            document.getElementById('texto-analise-2').innerHTML = `<b>Direção:</b> ${txt2}`;
+            document.getElementById('texto-analise-1').innerHTML = txt1;
+            document.getElementById('texto-analise-2').innerHTML = txt2;
 
             document.getElementById('loading').style.display = 'none';
             document.getElementById('relatorio').style.display = 'block';
@@ -205,7 +219,7 @@
             const elemento = document.getElementById("relatorio");
             
             const opt = {
-                margin: 0,
+                margin: 0, // Margem já está no CSS do elemento
                 filename: `Relatorio_Sier_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
