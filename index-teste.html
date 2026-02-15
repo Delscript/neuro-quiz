@@ -100,7 +100,7 @@
             { q: "Você se considera um bom ouvinte em conversas pessoais?", opts: ["Sim, ouço com atenção", "Às vezes me distraio", "Prefiro falar"], type: "QE", c: 0 },
             { q: "Qual palavra não pertence ao grupo: Cadeira, Mesa, Banana, Sofá?", opts: ["Banana", "Cadeira", "Sofá"], type: "QI", c: 0 },
             { q: "Sua resiliência após um grande fracasso profissional é:", opts: ["Alta (Levanto rápido)", "Média", "Baixa"], type: "QE", c: 0 },
-            // AQUI ESTÁ A PERGUNTA QUE DEFINE A PROFISSÃO (Tipo SEG)
+            // AQUI ESTÁ A PERGUNTA QUE DEFINE A fase_profissional (Tipo SEG)
             { q: "Para finalizar: Qual seu momento de carreira atual?", opts: ["Dono / Empresário", "Autônomo / Liberal", "CLT / Colaborador", "Estudante"], type: "SEG", c: 0 }
         ];
 
@@ -147,7 +147,7 @@
         function responder(i, tipo, correta, textoOpcao) {
             // Se for a pergunta de Segmentação (SEG), salva a profissão
             if (tipo === 'SEG') {
-                profissaoSelecionada = textoOpcao;
+               fase_profissionalSelecionada = textoOpcao;
             } else {
                 // Cálculo normal de QI/QE
                 if (i === correta) { 
@@ -181,7 +181,7 @@
                         nome: nome,
                         email: email,
                         whatsapp: whatsapp,
-                        profissional: profissaoSelecionada, // Salva o que ele respondeu na pergunta 20
+                        fase_profissional: faseprofissionalSelecionada, // Salva o que ele respondeu na pergunta 20
                         qi_score: scoreQI,
                         qe_score: scoreQE,
                         txid: txidAtual,
