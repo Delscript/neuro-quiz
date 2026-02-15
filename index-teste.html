@@ -12,11 +12,11 @@
     
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; margin: 0; padding: 0; }
-        .card-quiz { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); width: 100%; max-width: 400px; }
-        .opcao-btn { background: #1e293b; transition: 0.2s; border: 1px solid #334155; text-align: left; width: 100%; padding: 16px; border-radius: 16px; font-size: 0.9rem; font-weight: 500; margin-bottom: 12px; cursor: pointer; }
-        .opcao-btn:active { background: #3b82f6; border-color: #60a5fa; transform: scale(0.97); }
+        .card-quiz { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; padding: 2rem; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .opcao-btn { background: #1e293b; border: 1px solid #334155; padding: 16px; border-radius: 16px; width: 100%; text-align: left; margin-bottom: 12px; font-weight: 500; cursor: pointer; transition: 0.2s; }
+        .opcao-btn:active { background: #3b82f6; border-color: #60a5fa; transform: scale(0.98); }
         .hidden { display: none !important; }
-        .barra-progresso { height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
+        .barra-progresso { height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
         .progresso-fill { height: 100%; background: linear-gradient(to right, #f97316, #ea580c); width: 0%; transition: width 0.3s; }
     </style>
 </head>
@@ -24,7 +24,7 @@
 
     <div class="w-full max-w-md">
         
-        <div id="tela-inicio" class="card-quiz p-8 text-center">
+        <div id="tela-inicio" class="card-quiz text-center">
             <h1 class="text-2xl font-black text-orange-500 mb-1 uppercase tracking-tighter">Sier Growth</h1>
             <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 italic font-semibold">Intelligence Engine v2.0</p>
             
@@ -41,8 +41,8 @@
             <button onclick="resetTotal()" class="mt-8 text-[9px] text-slate-700 uppercase tracking-widest hover:text-slate-400">Limpar Cache</button>
         </div>
 
-        <div id="tela-perguntas" class="card-quiz p-6 hidden">
-            <div class="barra-progresso mb-4"><div id="barra-progresso" class="progresso-fill"></div></div>
+        <div id="tela-perguntas" class="card-quiz hidden">
+            <div class="barra-progresso"><div id="barra-progresso" class="progresso-fill"></div></div>
             <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-6 uppercase tracking-widest text-center">
                 <span>PERGUNTA <span id="num-pergunta">1</span>/20</span>
                 <span class="text-orange-500 italic">Neuro-Análise</span>
@@ -51,7 +51,7 @@
             <div id="area-opcoes"></div>
         </div>
 
-        <div id="tela-pagamento" class="card-quiz p-8 text-center hidden">
+        <div id="tela-pagamento" class="card-quiz text-center hidden">
             <h2 class="text-2xl font-black text-green-500 mb-2 italic uppercase text-center">Análise Pronta!</h2>
             <p class="text-slate-400 text-sm mb-10 font-medium text-center">Escolha como deseja liberar seu relatório:</p>
             <div id="opcoes-liberacao" class="space-y-4">
@@ -69,16 +69,26 @@
         // --- CONFIGURAÇÃO MANUAL ---
         // !!! COLOQUE SUA CHAVE PIX AQUI !!!
         const MINHA_CHAVE_PIX = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; 
+        
+        // --- CONFIGURAÇÃO SUPABASE ---
+        const URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
+        const KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
 
         // --- VARIÁVEIS GLOBAIS ---
         let nome = "";
         let email = "";
         let whatsapp = "";
-        let profissaoSelecionada = ""; // Vai guardar a resposta da última pergunta
+        let profissaoSelecionada = "Não Informado";
         let indiceAtual = 0;
         let scoreQI = 0;
         let scoreQE = 0;
         let txidAtual = "";
+
+        // Inicializa Supabase Globalmente
+        let supabaseClient = null;
+        try {
+            if(window.supabase) supabaseClient = window.supabase.createClient(URL_DB, KEY_DB);
+        } catch(e) { console.error(e); }
 
         const perguntas = [
             { q: "Qual número completa a sequência lógica: 2, 4, 8, 16...?", opts: ["32", "24", "20"], type: "QI", c: 0 },
@@ -100,7 +110,7 @@
             { q: "Você se considera um bom ouvinte em conversas pessoais?", opts: ["Sim, ouço com atenção", "Às vezes me distraio", "Prefiro falar"], type: "QE", c: 0 },
             { q: "Qual palavra não pertence ao grupo: Cadeira, Mesa, Banana, Sofá?", opts: ["Banana", "Cadeira", "Sofá"], type: "QI", c: 0 },
             { q: "Sua resiliência após um grande fracasso profissional é:", opts: ["Alta (Levanto rápido)", "Média", "Baixa"], type: "QE", c: 0 },
-            // AQUI ESTÁ A PERGUNTA QUE DEFINE A fase_profissional (Tipo SEG)
+            // PERGUNTA DE PROFISSÃO
             { q: "Para finalizar: Qual seu momento de carreira atual?", opts: ["Dono / Empresário", "Autônomo / Liberal", "CLT / Colaborador", "Estudante"], type: "SEG", c: 0 }
         ];
 
@@ -110,7 +120,6 @@
             email = document.getElementById('email-usuario').value;
             whatsapp = document.getElementById('whatsapp-usuario').value;
 
-            // Valida apenas os dados básicos
             if (nome === "" || email === "" || whatsapp === "") {
                 alert("Por favor, preencha todos os campos para continuar.");
                 return;
@@ -145,17 +154,15 @@
         }
 
         function responder(i, tipo, correta, textoOpcao) {
-            // Se for a pergunta de Segmentação (SEG), salva a profissão
+            // Se for SEG, captura a profissão
             if (tipo === 'SEG') {
-               fase_profissionalSelecionada = textoOpcao;
+                profissaoSelecionada = textoOpcao;
             } else {
-                // Cálculo normal de QI/QE
                 if (i === correta) { 
                      if (tipo === 'QI') scoreQI++;
                      else scoreQE++;
                 }
             }
-            
             indiceAtual++;
             renderizar();
         }
@@ -166,31 +173,34 @@
             document.getElementById('tela-perguntas').classList.add('hidden');
             document.getElementById('tela-pagamento').classList.remove('hidden');
 
-            salvarNoBancoSilencioso();
+            salvarBanco();
         }
 
-        // --- INTEGRAÇÃO COM SUPABASE ---
-        async function salvarNoBancoSilencioso() {
-            const URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
-            const KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-            
+        // --- INTEGRAÇÃO COM ALERTAS DE ERRO ---
+        async function salvarBanco() {
+            if (!supabaseClient) return;
+
             try {
-                if (window.supabase) {
-                    const cliente = window.supabase.createClient(URL_DB, KEY_DB);
-                    await cliente.from('leads').insert([{
-                        nome: nome,
-                        email: email,
-                        whatsapp: whatsapp,
-                        fase_profissional: faseprofissionalSelecionada, // Salva o que ele respondeu na pergunta 20
-                        qi_score: scoreQI,
-                        qe_score: scoreQE,
-                        txid: txidAtual,
-                        status: 'pendente'
-                    }]);
-                    console.log("Salvo no Supabase com sucesso.");
+                // CORREÇÃO APLICADA AQUI: fase_profissional
+                const { error } = await supabaseClient.from('leads').insert([{
+                    nome: nome,
+                    email: email,
+                    whatsapp: whatsapp,
+                    fase_profissional: profissaoSelecionada, // <-- CORRIGIDO AQUI
+                    qi_score: scoreQI,
+                    qe_score: scoreQE,
+                    txid: txidAtual,
+                    status: 'pendente'
+                }]);
+
+                if (error) {
+                    alert("⚠️ ERRO NO BANCO DE DADOS: " + error.message);
+                    console.error("Erro Supabase:", error);
+                } else {
+                    console.log("Salvo com sucesso!");
                 }
             } catch (err) {
-                console.log("Erro ao salvar (mas o quiz continua): " + err);
+                console.log("Erro Conexão: " + err.message);
             }
         }
 
