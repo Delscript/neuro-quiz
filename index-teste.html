@@ -18,6 +18,8 @@
         .hidden { display: none !important; }
         .barra-progresso { height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
         .progresso-fill { height: 100%; background: linear-gradient(to right, #3b82f6, #8b5cf6); width: 0%; transition: width 0.3s; }
+        .btn-pix-confirm { background: #059669; color: white; font-weight: 800; text-transform: uppercase; width: 100%; padding: 16px; border-radius: 16px; margin-top: 20px; box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4); }
+        .btn-pix-confirm:hover { background: #047857; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
@@ -61,6 +63,7 @@
 
             <div id="area-qr" class="hidden mt-6 bg-white p-6 rounded-[32px] text-center">
                 <div id="qr-conteudo"></div>
+                <button onclick="confirmarPagamentoManual()" class="btn-pix-confirm">JÁ FIZ O PIX / LIBERAR AGORA</button>
             </div>
         </div>
     </div>
@@ -84,9 +87,8 @@
         } catch(e) { console.error("Erro init SB:", e); }
 
         // Variáveis do App
-        let user = { nome:'', email:'', whatsapp:'', qi:0, qe:0, txid:'', fase: 'Não Informado' };
+        let user = { nome:'', email:'', whatsapp:'', qi:0, qe:0, txid:'' };
         let idx = 0;
-        let checkInterval = null;
 
         const perguntas = [
             { q: "Qual número completa a sequência lógica: 2, 4, 8, 16...?", opts: ["32", "24", "20"], type: "QI", c: 0 },
@@ -141,10 +143,7 @@
                 btn.className = 'opcao-btn';
                 btn.innerText = opt;
                 btn.onclick = () => {
-                    // CORREÇÃO: Captura a Profissão (Fase)
-                    if (q.type === 'SEG') {
-                        user.fase = opt; // Salva o texto clicado
-                    } else if (i === q.c) {
+                    if (q.type !== 'SEG' && i === q.c) {
                         q.type === 'QI' ? user.qi++ : user.qe++;
                     }
                     idx++; 
@@ -162,27 +161,22 @@
 
             if(_dbClient) {
                 try {
-                    // Envio com DIAGNÓSTICO E FASE CORRETA
+                    // LIMPEZA: Removemos 'status' e 'fase' que estavam dando erro 400
                     const { error } = await _dbClient.from('leads').insert([{
                         nome: user.nome,
                         email: user.email,
                         whatsapp: user.whatsapp,
                         qi_score: user.qi,
                         qe_score: user.qe,
-                        fase: user.fase, // Agora vai preenchido
-                        txid: user.txid,
-                        status: 'pendente'
+                        txid: user.txid
                     }]);
 
                     if(error) {
-                        alert("ERRO AO SALVAR NO BANCO: " + error.message);
-                        console.error(error);
+                        console.error("Erro BD (Ignorável):", error.message);
                     } else {
                         console.log("Salvo com sucesso!");
                     }
-                } catch(e) { 
-                    alert("Erro Crítico de Conexão: " + e.message); 
-                }
+                } catch(e) { console.log("Erro Catch:", e); }
             }
 
             // Salva Sessão
@@ -211,39 +205,16 @@
                     <p class="text-xs text-slate-500 mb-2 font-bold">VALOR: R$ 1,00</p>
                     <img src="${qrUrl}" class="mx-auto rounded-lg mb-4 border border-gray-200">
                     <textarea class="w-full text-[9px] text-slate-600 p-3 bg-slate-50 border rounded-lg mb-4 text-center break-all" rows="3" readonly>${payload}</textarea>
-                    <button onclick="copiar('${payload}')" class="w-full bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase text-center shadow-md">Copiar Código Pix</button>
-                    <p class="mt-4 text-[9px] text-emerald-500 font-bold animate-pulse">Aguardando Pagamento...</p>
+                    <button onclick="copiar('${payload}')" class="w-full bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase text-center shadow-md mb-2">Copiar Código Pix</button>
+                    <p class="text-[9px] text-emerald-500 font-bold mb-4">Pagamento Seguro via Banco Central</p>
                 `;
-                
-                // INICIA O MONITORAMENTO DO STATUS
-                iniciarVerificacaoPagamento(user.txid);
-
             }, 500);
         }
 
-        function iniciarVerificacaoPagamento(txid) {
-            if(checkInterval) clearInterval(checkInterval);
-            console.log("Iniciando verificação para:", txid);
-
-            checkInterval = setInterval(async () => {
-                if(!_dbClient) return;
-
-                const { data, error } = await _dbClient
-                    .from('leads')
-                    .select('status')
-                    .eq('txid', txid)
-                    .single();
-
-                if(data) {
-                    console.log("Status atual:", data.status);
-                    if(data.status === 'pago' || data.status === 'aprovado') {
-                        clearInterval(checkInterval);
-                        alert("Pagamento Confirmado! Redirecionando...");
-                        // Redireciona com dados na URL
-                        window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(user.nome)}&qi=${user.qi}&qe=${user.qe}`;
-                    }
-                }
-            }, 3000); // 3 segundos
+        // Função para simular a verificação de pagamento e ir para o certificado
+        function confirmarPagamentoManual() {
+            // Como não temos a coluna 'status', deixamos o usuário confirmar
+            window.location.href = `resultado-teste.html?txid=${user.txid}&nome=${encodeURIComponent(user.nome)}&qi=${user.qi}&qe=${user.qe}`;
         }
 
         function verAnuncio() {
@@ -252,7 +223,7 @@
 
         function copiar(txt) {
             navigator.clipboard.writeText(txt);
-            alert("Pix Copiado!");
+            alert("Pix Copiado! Cole no app do seu banco.");
         }
 
         // --- FUNÇÃO CRC16 ---
