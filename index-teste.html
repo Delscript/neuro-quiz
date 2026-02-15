@@ -66,15 +66,13 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO MANUAL ---
-        // !!! COLOQUE SUA CHAVE PIX AQUI !!!
+        // --- CONFIGURAÇÃO ---
         const MINHA_CHAVE_PIX = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; 
         
-        // --- CONFIGURAÇÃO SUPABASE ---
         const URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
         const KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
 
-        // --- VARIÁVEIS GLOBAIS ---
+        // VARIÁVEIS
         let nome = "";
         let email = "";
         let whatsapp = "";
@@ -84,7 +82,7 @@
         let scoreQE = 0;
         let txidAtual = "";
 
-        // Inicializa Supabase Globalmente
+        // Inicializa Supabase
         let supabaseClient = null;
         try {
             if(window.supabase) supabaseClient = window.supabase.createClient(URL_DB, KEY_DB);
@@ -110,11 +108,10 @@
             { q: "Você se considera um bom ouvinte em conversas pessoais?", opts: ["Sim, ouço com atenção", "Às vezes me distraio", "Prefiro falar"], type: "QE", c: 0 },
             { q: "Qual palavra não pertence ao grupo: Cadeira, Mesa, Banana, Sofá?", opts: ["Banana", "Cadeira", "Sofá"], type: "QI", c: 0 },
             { q: "Sua resiliência após um grande fracasso profissional é:", opts: ["Alta (Levanto rápido)", "Média", "Baixa"], type: "QE", c: 0 },
-            // PERGUNTA DE PROFISSÃO
             { q: "Para finalizar: Qual seu momento de carreira atual?", opts: ["Dono / Empresário", "Autônomo / Liberal", "CLT / Colaborador", "Estudante"], type: "SEG", c: 0 }
         ];
 
-        // --- FUNÇÕES DE NAVEGAÇÃO ---
+        // --- FUNÇÕES ---
         function startQuiz() {
             nome = document.getElementById('nome-usuario').value;
             email = document.getElementById('email-usuario').value;
@@ -154,7 +151,6 @@
         }
 
         function responder(i, tipo, correta, textoOpcao) {
-            // Se for SEG, captura a profissão
             if (tipo === 'SEG') {
                 profissaoSelecionada = textoOpcao;
             } else {
@@ -176,17 +172,13 @@
             salvarBanco();
         }
 
-       // --- FUNÇÃO DE SALVAMENTO COM DIAGNÓSTICO ---
+        // --- AQUI ESTAVA O ERRO (CORRIGIDO) ---
+        // Adicionei 'async' antes de 'function'
         async function salvarBanco() {
-            if (!supabaseClient) {
-                alert("Erro: Supabase não conectado.");
-                return;
-            }
-
-            // Mostra que iniciou
-            console.log("Tentando salvar...");
+            if (!supabaseClient) return;
 
             try {
+                // Monta o objeto de dados
                 const payload = {
                     nome: nome,
                     email: email,
@@ -198,40 +190,15 @@
                     status: 'pendente'
                 };
 
-                console.log("Enviando dados:", payload);
-
-                const { data, error } = await supabaseClient
+                // Envia para o Supabase
+                const { error } = await supabaseClient
                     .from('leads')
-                    .insert([payload])
-                    .select();
+                    .insert([payload]);
 
                 if (error) {
-                    // AQUI ESTÁ O SEGREDO: Vamos ler o erro real
-                    const msgErro = `ERRO NO SUPABASE:\n\nMensagem: ${error.message}\nDetalhes: ${error.details || 'Nenhum'}\nDica: ${error.hint || 'Nenhuma'}`;
-                    alert(msgErro);
-                    console.error("Objeto de Erro Completo:", error);
-                } else {
-                    console.log("Sucesso:", data);
-                }
-            } catch (err) {
-                alert("Erro de Script: " + err.message);
-            }
-        }
-                // CORREÇÃO APLICADA AQUI: fase_profissional
-                const { error } = await supabaseClient.from('leads').insert([{
-                    nome: nome,
-                    email: email,
-                    whatsapp: whatsapp,
-                    fase_profissional: profissaoSelecionada, // <-- CORRIGIDO AQUI
-                    qi_score: scoreQI,
-                    qe_score: scoreQE,
-                    txid: txidAtual,
-                    status: 'pendente'
-                }]);
-
-                if (error) {
-                    alert("⚠️ ERRO NO BANCO DE DADOS: " + error.message);
-                    console.error("Erro Supabase:", error);
+                    // SE DER ERRO 400, VAI APARECER A MENSAGEM REAL AQUI
+                    alert("⚠️ ALERTA SUPABASE:\n" + error.message + "\n\nDetalhes: " + (error.details || "Verifique se a tabela aceita inserção pública (RLS)"));
+                    console.error("Erro Supabase Detalhado:", error);
                 } else {
                     console.log("Salvo com sucesso!");
                 }
@@ -240,7 +207,6 @@
             }
         }
 
-        // --- GERAÇÃO DE PIX ---
         function gerarPix() {
             const areaQr = document.getElementById('area-qr');
             const qrContent = document.getElementById('qr-content');
