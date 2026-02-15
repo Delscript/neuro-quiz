@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sier Growth - Neuro Quiz</title>
     <link rel="icon" href="data:,">
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -31,6 +32,7 @@
                 <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp (DDD)" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 outline-none text-sm text-white">
                 <button type="button" onclick="iniciarQuiz()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-extrabold text-lg shadow-lg transition-all">Iniciar Avaliação</button>
             </div>
+            <button onclick="localStorage.clear(); location.reload()" class="mt-8 text-[9px] text-slate-600 uppercase tracking-widest">Recarregar App</button>
         </div>
 
         <div id="tela-perguntas" class="card-quiz p-6 hidden">
@@ -58,23 +60,28 @@
 
     <script>
         // ================= CONFIGURAÇÕES =================
-        // SUBSTITUA ABAIXO PELA SUA CHAVE REAL (CPF, EMAIL, ALEATORIA)
+        // SUBSTITUA ABAIXO PELA SUA CHAVE REAL
         const CHAVE_PIX_REAL = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; 
         const NOME_BENEFICIARIO = "Anderson Oliveira Reis Dias";
         const CIDADE_BENEFICIARIO = "Simoes Filho";
         
-        // Supabase
+        // Supabase URL e Key
         const SB_URL = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
         
-        // ================= DADOS =================
+        // ================= DADOS GLOBAIS =================
+        // Usamos _supabaseClient para evitar conflito de nomes com a biblioteca
+        let _supabaseClient = null;
         let user = { nome: "", email: "", zap: "", qi: 0, qe: 0, txid: "" };
         let idx = 0;
-        let supabase = null;
 
-        // Inicializa Banco (Protegido)
-        try { if(window.supabase) supabase = window.supabase.createClient(SB_URL, SB_KEY); } 
-        catch(e) { console.log("Erro init SB"); }
+        // Inicializa Banco (Protegido contra erros)
+        try {
+            if(window.supabase) {
+                _supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+                console.log("Supabase conectado.");
+            }
+        } catch(e) { console.log("Erro init SB:", e); }
 
         const perguntas = [
             { t: "Qual número completa: 2, 4, 8, 16...?", o: ["32", "24", "20"], tipo: "QI" },
@@ -104,15 +111,23 @@
             const n = document.getElementById('nome-usuario').value;
             const e = document.getElementById('email-usuario').value;
             const z = document.getElementById('whatsapp-usuario').value;
-            if(!n || !e || !z) return alert("Preencha todos os campos!");
+            
+            if(!n || !e || !z) return alert("Por favor, preencha todos os campos!");
+            
             user.nome = n; user.email = e; user.zap = z;
+            
+            // Troca de tela visualmente
             document.getElementById('tela-inicio').classList.add('hidden');
             document.getElementById('tela-perguntas').classList.remove('hidden');
             renderizar();
         }
 
         function renderizar() {
-            if(idx >= perguntas.length) return finalizar();
+            if(idx >= perguntas.length) {
+                finalizar();
+                return;
+            }
+            
             const p = perguntas[idx];
             document.getElementById('num-pergunta').innerText = idx + 1;
             document.getElementById('texto-pergunta').innerText = p.t;
@@ -126,7 +141,8 @@
                 btn.innerText = opt;
                 btn.onclick = () => {
                     if(i===0) p.tipo === 'QI' ? user.qi++ : user.qe++;
-                    idx++; renderizar();
+                    idx++; 
+                    renderizar();
                 }
                 div.appendChild(btn);
             });
@@ -136,15 +152,15 @@
             document.getElementById('tela-perguntas').classList.add('hidden');
             document.getElementById('tela-pagamento').classList.remove('hidden');
             
-            // Gera TXID
+            // Gera TXID único
             user.txid = "TX-" + Math.random().toString(36).substr(2, 6).toUpperCase();
 
-            // Salva no banco (Silencioso)
-            if(supabase) {
-                supabase.from('leads').insert([{
+            // Salva no banco (Silencioso) usando a variável correta
+            if(_supabaseClient) {
+                _supabaseClient.from('leads').insert([{
                     nome: user.nome, email: user.email, whatsapp: user.zap,
                     qi_score: user.qi, qe_score: user.qe, txid: user.txid, status: 'pendente'
-                }]).then(res => console.log("Salvo:", res));
+                }]).then(res => console.log("Resultado envio:", res));
             }
         }
 
@@ -153,7 +169,7 @@
             const format = (id, val) => id + val.length.toString().padStart(2, '0') + val;
             let payload = "00020126" + (14 + chave.length + 22) + "0014BR.GOV.BCB.PIX01" + chave.length + chave;
             if (valor) payload += "5204000054" + valor.toFixed(2).length.toString().padStart(2, '0') + valor.toFixed(2);
-            else payload += "52040000"; // Sem valor definido
+            else payload += "52040000";
             
             payload += "53039865802BR59" + nome.length.toString().padStart(2, '0') + nome;
             payload += "60" + cidade.length.toString().padStart(2, '0') + cidade;
@@ -180,7 +196,6 @@
             document.getElementById('qr-content').innerHTML = "Gerando Pix Válido...";
 
             setTimeout(() => {
-                // GERA O CÓDIGO REAL
                 const pixCopiaCola = gerarPayloadPix(CHAVE_PIX_REAL, NOME_BENEFICIARIO, CIDADE_BENEFICIARIO, user.txid, 1.00);
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(pixCopiaCola)}`;
 
@@ -196,12 +211,11 @@
 
         function copiar(texto) {
             navigator.clipboard.writeText(texto);
-            alert("Código Pix copiado! Cole no app do seu banco.");
+            alert("Código Pix copiado com sucesso!");
         }
 
-        // ================= REDIRECIONAMENTO COM DADOS =================
         function irParaRelatorio() {
-            // Manda os dados pela URL para garantir que o relatório funcione
+            // Manda os dados pela URL para o relatório funcionar independente do banco
             const params = new URLSearchParams({
                 nome: user.nome,
                 qi: user.qi,
