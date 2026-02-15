@@ -14,7 +14,6 @@
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
         .assinatura { font-family: 'Allura', cursive; font-size: 3.5rem; color: #1e3a8a; line-height: 1; }
         
-        /* O Relatório deve ter o tamanho exato do A4 na tela para o clone funcionar */
         #relatorio {
             background-color: white;
             width: 794px; /* 210mm */
@@ -24,7 +23,7 @@
             padding: 50px;
             box-sizing: border-box;
             overflow: hidden;
-            display: none; /* Escondido até carregar os dados */
+            display: none; 
         }
         
         #loading {
@@ -100,47 +99,55 @@
         // CONFIGURAÇÃO SUPABASE
         const URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
         const KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-        const supabase = window.supabase.createClient(URL_DB, KEY_DB);
+        
+        // MUDANÇA AQUI: Renomeei para 'supabaseClient' para não dar erro
+        const supabaseClient = window.supabase.createClient(URL_DB, KEY_DB);
 
         // BUSCA DADOS NA URL
         const params = new URLSearchParams(window.location.search);
         const txid = params.get('txid');
-        const nomeURL = params.get('nome'); // Fallback caso o banco demore
+        const nomeURL = params.get('nome'); 
 
         async function carregarDados() {
             if(!txid) {
-                alert("Erro: Nenhum teste identificado.");
+                if(nomeURL) {
+                    // Modo Demonstração (sem banco)
+                    preencherRelatorio({ nome: nomeURL, fase_profissional: "Visitante", qi_score: 10, qe_score: 10 });
+                } else {
+                    alert("Erro: Nenhum teste identificado.");
+                }
                 return;
             }
 
             try {
-                // Busca no banco pelo TXID
-                const { data, error } = await supabase
+                // Busca no banco pelo TXID usando 'supabaseClient'
+                const { data, error } = await supabaseClient
                     .from('leads')
                     .select('*')
                     .eq('txid', txid)
                     .single();
 
                 if (error || !data) {
-                    throw new Error("Dados não encontrados");
+                    console.error("Erro banco:", error);
+                    // Fallback se der erro
+                    preencherRelatorio({ nome: nomeURL || "Convidado", fase_profissional: "Não Identificado", qi_score: 0, qe_score: 0 });
+                } else {
+                    preencherRelatorio(data);
                 }
-
-                preencherRelatorio(data);
 
             } catch (err) {
                 console.error(err);
-                alert("Não foi possível carregar seu relatório. Verifique sua conexão.");
+                alert("Erro de conexão.");
             }
         }
 
         function preencherRelatorio(dados) {
-            // Preenche dados básicos
             document.getElementById('nome-cliente').innerText = dados.nome || nomeURL;
             document.getElementById('profissao-cliente').innerText = dados.fase_profissional || "Profissional em Evolução";
             document.getElementById('val-qi').innerText = dados.qi_score;
             document.getElementById('val-qe').innerText = dados.qe_score;
 
-            // Lógica Simples de Arquétipo (Você pode refinar isso)
+            // Lógica de Arquétipo
             let titulo = "O Estrategista";
             let subtitulo = "Equilíbrio perfeito entre razão e emoção.";
             let txt1 = "Você possui uma capacidade rara de analisar cenários complexos sem perder a conexão humana.";
@@ -158,37 +165,21 @@
                 txt2 = "Grandes negociadores e líderes de cultura corporativa têm esse perfil.";
             }
 
-            // Aplica os textos
             document.getElementById('titulo-perfil').innerText = titulo;
             document.getElementById('subtitulo-perfil').innerText = subtitulo;
             document.getElementById('texto-analise-1').innerHTML = `<b>O que ninguém vê em você:</b> ${txt1}`;
             document.getElementById('texto-analise-2').innerHTML = `<b>Seu Potencial Máximo:</b> ${txt2}`;
 
-            // Libera a tela
+            // Exibe a tela
             document.getElementById('loading').style.display = 'none';
             document.getElementById('relatorio').style.display = 'block';
             document.getElementById('btn-area').classList.remove('hidden');
         }
 
         function gerarPDF(){
-            // Esconde o botão para não sair no print (garantia extra)
             document.getElementById('btn-area').style.display = 'none';
             
             const elemento = document.getElementById("relatorio");
-            const clone = elemento.cloneNode(true);
-
-            // Estilização forçada para garantir A4 perfeito
-            clone.style.display = 'block';
-            clone.style.maxWidth = "210mm";
-            clone.style.width = "210mm";
-            clone.style.height = "297mm";
-            clone.style.padding = "50px";
-            clone.style.position = "absolute";
-            clone.style.left = "-9999px"; // Renderiza fora da tela
-            clone.style.background = "white";
-
-            document.body.appendChild(clone);
-
             const opt = {
                 margin: 0,
                 filename: `Relatorio_Sier_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`,
@@ -197,13 +188,11 @@
                 jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
             };
 
-            html2pdf().set(opt).from(clone).save().then(() => {
-                document.body.removeChild(clone);
-                document.getElementById('btn-area').style.display = 'flex'; // Volta o botão
+            html2pdf().set(opt).from(elemento).save().then(() => {
+                document.getElementById('btn-area').style.display = 'flex';
             });
         }
 
-        // Inicia o carregamento
         window.onload = carregarDados;
     </script>
 </body>
