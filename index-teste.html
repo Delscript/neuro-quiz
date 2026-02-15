@@ -4,69 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sier Growth - Neuro Quiz</title>
+    <link rel="icon" href="data:,">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; margin: 0; padding: 0; }
-        .card-quiz { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; padding: 2rem; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .opcao-btn { background: #1e293b; border: 1px solid #334155; padding: 16px; border-radius: 16px; width: 100%; text-align: left; margin-bottom: 12px; font-weight: 500; cursor: pointer; transition: 0.2s; }
-        .opcao-btn:active { background: #3b82f6; transform: scale(0.98); }
+        .card-quiz { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); width: 100%; max-width: 400px; }
+        .opcao-btn { background: #1e293b; transition: 0.2s; border: 1px solid #334155; text-align: left; width: 100%; padding: 16px; border-radius: 16px; font-size: 0.9rem; font-weight: 500; margin-bottom: 12px; cursor: pointer; }
+        .opcao-btn:active { background: #3b82f6; border-color: #60a5fa; transform: scale(0.97); }
         .hidden { display: none !important; }
-        .barra-progresso { height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
-        .progresso-fill { height: 100%; background: #3b82f6; width: 0%; transition: width 0.3s; }
+        .barra-progresso { height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
+        .progresso-fill { height: 100%; background: linear-gradient(to right, #3b82f6, #8b5cf6); width: 0%; transition: width 0.3s; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
     <div class="w-full max-w-md">
-        
-        <div id="tela-inicio" class="card-quiz text-center">
-            <h1 class="text-2xl font-black text-blue-500 mb-1 uppercase">Sier Growth</h1>
-            <p class="text-[10px] text-slate-500 uppercase tracking-widest mb-8 font-bold">Intelligence Engine v2.0</p>
-            
+        <div id="tela-inicio" class="card-quiz p-8 text-center">
+            <h1 class="text-2xl font-black text-blue-500 mb-1 uppercase tracking-tighter">Sier Growth</h1>
+            <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 italic font-semibold">Intelligence Engine v2.0</p>
             <div class="space-y-4">
-                <input type="text" id="nome" placeholder="Nome Completo" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none">
-                <input type="email" id="email" placeholder="E-mail" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none">
-                <input type="tel" id="whatsapp" placeholder="WhatsApp" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none">
-                <button onclick="iniciarQuiz()" class="w-full bg-blue-600 py-4 rounded-xl font-black text-lg shadow-lg">Iniciar Avaliação</button>
+                <input type="text" id="nome-usuario" placeholder="Nome Completo" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 outline-none text-sm text-white">
+                <input type="email" id="email-usuario" placeholder="E-mail" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 outline-none text-sm text-white">
+                <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp (DDD)" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 outline-none text-sm text-white">
+                <button type="button" onclick="iniciarQuiz()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-extrabold text-lg shadow-lg transition-all">Iniciar Avaliação</button>
             </div>
-            
-            <button onclick="location.reload()" class="mt-8 text-[9px] text-slate-600 uppercase tracking-widest">Recarregar Página</button>
         </div>
 
-        <div id="tela-perguntas" class="card-quiz hidden">
-            <div class="barra-progresso"><div id="progresso" class="progresso-fill"></div></div>
-            <p class="text-[10px] text-blue-500 font-bold mb-4 uppercase text-center">Questão <span id="num-q">1</span>/20</p>
-            <h2 id="texto-q" class="text-lg font-bold mb-8 text-center min-h-[60px]">Carregando pergunta...</h2>
-            <div id="opcoes" class="flex flex-col"></div>
+        <div id="tela-perguntas" class="card-quiz p-6 hidden">
+            <div class="barra-progresso mb-4"><div id="barra-progresso" class="progresso-fill"></div></div>
+            <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-6 uppercase tracking-widest text-center">
+                <span>PERGUNTA <span id="num-pergunta">1</span>/20</span>
+                <span class="text-blue-500 italic">Neuro-Análise</span>
+            </div>
+            <h2 id="texto-pergunta" class="text-lg font-bold mb-8 leading-tight text-slate-100">...</h2>
+            <div id="area-opcoes"></div>
         </div>
 
-        <div id="tela-pagamento" class="card-quiz text-center hidden">
-            <h2 class="text-2xl font-black text-green-500 mb-2 italic">ANÁLISE PRONTA!</h2>
-            <p class="text-xs text-slate-400 mb-8">Seu relatório foi gerado com sucesso.</p>
-            
-            <div id="botoes-pagamento" class="space-y-3">
-                <button onclick="gerarPix()" class="w-full bg-emerald-600 py-4 rounded-xl font-bold text-white shadow-lg">LIBERAR POR R$ 1,00</button>
-                <button onclick="verAnuncio()" class="w-full bg-slate-800 py-4 rounded-xl font-bold text-blue-400 text-xs border border-slate-700">ASSISTIR VÍDEO (GRÁTIS)</button>
+        <div id="tela-pagamento" class="card-quiz p-8 text-center hidden">
+            <h2 class="text-2xl font-black text-green-500 mb-2 italic uppercase text-center">Análise Pronta!</h2>
+            <p class="text-slate-400 text-sm mb-10 font-medium text-center">Escolha como deseja liberar seu relatório:</p>
+            <div id="opcoes-liberacao" class="space-y-4">
+                <button onclick="mostrarQrCode()" class="w-full bg-emerald-600 p-4 rounded-2xl font-black shadow-lg">PAGAR R$ 1,00 VIA PIX</button>
+                <button onclick="irParaRelatorio()" class="w-full bg-slate-800 p-4 rounded-2xl font-bold text-blue-400 text-xs border border-slate-700">ASSISTIR VÍDEO (GRÁTIS)</button>
             </div>
-
-            <div id="area-qr" class="hidden mt-6 bg-white p-6 rounded-2xl">
-                <div id="qr-conteudo" class="text-black text-sm"></div>
+            <div id="area-qr" class="mt-8 bg-white p-6 rounded-[32px] hidden text-center">
+                <div id="qr-content" class="flex flex-col items-center text-black"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO
-        const CHAVE_PIX_REAL = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; // <-- SEU EMAIL AQUI
-        const URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co";
-        const KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-
-        // DADOS
-        let usuario = { nome: "", email: "", zap: "", qi: 0, qe: 0, txid: "" };
-        let indice = 0;
+        // ================= CONFIGURAÇÕES =================
+        // SUBSTITUA ABAIXO PELA SUA CHAVE REAL (CPF, EMAIL, ALEATORIA)
+        const CHAVE_PIX_REAL = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; 
+        const NOME_BENEFICIARIO = "Anderson Oliveira Reis Dias";
+        const CIDADE_BENEFICIARIO = "Simoes Filho";
         
+        // Supabase
+        const SB_URL = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
+        
+        // ================= DADOS =================
+        let user = { nome: "", email: "", zap: "", qi: 0, qe: 0, txid: "" };
+        let idx = 0;
+        let supabase = null;
+
+        // Inicializa Banco (Protegido)
+        try { if(window.supabase) supabase = window.supabase.createClient(SB_URL, SB_KEY); } 
+        catch(e) { console.log("Erro init SB"); }
+
         const perguntas = [
             { t: "Qual número completa: 2, 4, 8, 16...?", o: ["32", "24", "20"], tipo: "QI" },
             { t: "Em conflitos tensos, você:", o: ["Busca solução", "Fica neutro", "Impõe opinião"], tipo: "QE" },
@@ -90,56 +99,37 @@
             { t: "Momento atual:", o: ["Dono", "Autônomo", "CLT"], tipo: "SEG" }
         ];
 
+        // ================= FUNÇÕES DO APP =================
         function iniciarQuiz() {
-            try {
-                const n = document.getElementById('nome').value;
-                const e = document.getElementById('email').value;
-                const z = document.getElementById('whatsapp').value;
-                
-                if(!n || !e || !z) return alert("Preencha todos os campos!");
-                
-                usuario.nome = n; usuario.email = e; usuario.zap = z;
-                
-                document.getElementById('tela-inicio').classList.add('hidden');
-                document.getElementById('tela-perguntas').classList.remove('hidden');
-                
-                renderizar();
-            } catch(erro) {
-                alert("Erro ao iniciar: " + erro.message);
-            }
+            const n = document.getElementById('nome-usuario').value;
+            const e = document.getElementById('email-usuario').value;
+            const z = document.getElementById('whatsapp-usuario').value;
+            if(!n || !e || !z) return alert("Preencha todos os campos!");
+            user.nome = n; user.email = e; user.zap = z;
+            document.getElementById('tela-inicio').classList.add('hidden');
+            document.getElementById('tela-perguntas').classList.remove('hidden');
+            renderizar();
         }
 
         function renderizar() {
-            try {
-                if(indice >= perguntas.length) return finalizar();
-
-                const p = perguntas[indice];
-                document.getElementById('num-q').innerText = indice + 1;
-                document.getElementById('texto-q').innerText = p.t;
-                document.getElementById('progresso').style.width = ((indice / perguntas.length) * 100) + "%";
-
-                const div = document.getElementById('opcoes');
-                div.innerHTML = ""; // Limpa botões antigos
-
-                p.o.forEach((opt, i) => {
-                    const btn = document.createElement('button');
-                    btn.className = "opcao-btn";
-                    btn.innerText = opt;
-                    btn.onclick = () => responder(i, p.tipo);
-                    div.appendChild(btn);
-                });
-            } catch(erro) {
-                alert("Erro na pergunta " + (indice+1) + ": " + erro.message);
-            }
-        }
-
-        function responder(i, tipo) {
-            if(i === 0) { // Lógica simplificada: opção 1 pontua
-                if(tipo === 'QI') usuario.qi++;
-                else usuario.qe++;
-            }
-            indice++;
-            renderizar();
+            if(idx >= perguntas.length) return finalizar();
+            const p = perguntas[idx];
+            document.getElementById('num-pergunta').innerText = idx + 1;
+            document.getElementById('texto-pergunta').innerText = p.t;
+            document.getElementById('barra-progresso').style.width = ((idx/perguntas.length)*100) + '%';
+            
+            const div = document.getElementById('area-opcoes');
+            div.innerHTML = "";
+            p.o.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = "opcao-btn";
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if(i===0) p.tipo === 'QI' ? user.qi++ : user.qe++;
+                    idx++; renderizar();
+                }
+                div.appendChild(btn);
+            });
         }
 
         async function finalizar() {
@@ -147,50 +137,78 @@
             document.getElementById('tela-pagamento').classList.remove('hidden');
             
             // Gera TXID
-            usuario.txid = "TX-" + Math.floor(Math.random() * 1000000);
-            
-            // Envia Banco (Sem travar tela)
-            if(window.supabase) {
-                const sb = window.supabase.createClient(URL_DB, KEY_DB);
-                sb.from('leads').insert([{
-                    nome: usuario.nome, email: usuario.email, whatsapp: usuario.zap,
-                    qi_score: usuario.qi, qe_score: usuario.qe, txid: usuario.txid, status: 'pendente'
-                }]).then(res => {
-                    if(res.error) console.log("Erro Banco:", res.error);
-                    else console.log("Salvo OK");
-                });
+            user.txid = "TX-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+            // Salva no banco (Silencioso)
+            if(supabase) {
+                supabase.from('leads').insert([{
+                    nome: user.nome, email: user.email, whatsapp: user.zap,
+                    qi_score: user.qi, qe_score: user.qe, txid: user.txid, status: 'pendente'
+                }]).then(res => console.log("Salvo:", res));
             }
         }
 
-        function gerarPix() {
-            document.getElementById('botoes-pagamento').classList.add('hidden');
+        // ================= GERADOR DE PIX REAL (CRC16) =================
+        function gerarPayloadPix(chave, nome, cidade, txid, valor) {
+            const format = (id, val) => id + val.length.toString().padStart(2, '0') + val;
+            let payload = "00020126" + (14 + chave.length + 22) + "0014BR.GOV.BCB.PIX01" + chave.length + chave;
+            if (valor) payload += "5204000054" + valor.toFixed(2).length.toString().padStart(2, '0') + valor.toFixed(2);
+            else payload += "52040000"; // Sem valor definido
+            
+            payload += "53039865802BR59" + nome.length.toString().padStart(2, '0') + nome;
+            payload += "60" + cidade.length.toString().padStart(2, '0') + cidade;
+            payload += "62" + (txid.length + 4) + "05" + txid.length.toString().padStart(2, '0') + txid;
+            payload += "6304"; // Início do CRC
+
+            // Cálculo CRC16-CCITT
+            let polinomio = 0x1021;
+            let crc = 0xFFFF;
+            for (let i = 0; i < payload.length; i++) {
+                crc ^= (payload.charCodeAt(i) << 8);
+                for (let j = 0; j < 8; j++) {
+                    if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ polinomio;
+                    else crc = crc << 1;
+                }
+            }
+            let hex = (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+            return payload + hex;
+        }
+
+        function mostrarQrCode() {
+            document.getElementById('opcoes-liberacao').classList.add('hidden');
             document.getElementById('area-qr').classList.remove('hidden');
-            
-            const area = document.getElementById('qr-conteudo');
-            area.innerHTML = "Gerando Pix...";
-            
+            document.getElementById('qr-content').innerHTML = "Gerando Pix Válido...";
+
             setTimeout(() => {
-                // Código Pix Estático com TXID na descrição
-                const pixCode = `00020126580014BR.GOV.BCB.PIX0114${CHAVE_PIX_REAL}5204000053039865802BR5910SIERGROWTH6009SAOPAULO62140510${usuario.txid}6304`;
-                const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(pixCode)}`;
-                
-                area.innerHTML = `
-                    <p class="font-bold mb-2">ID: ${usuario.txid}</p>
-                    <img src="${qrImg}" class="mx-auto rounded-lg mb-4">
-                    <textarea class="w-full text-xs p-2 bg-gray-100 rounded mb-2 text-center" rows="3" readonly>${pixCode}</textarea>
-                    <button onclick="copiar('${pixCode}')" class="w-full bg-blue-600 text-white py-2 rounded font-bold uppercase">Copiar Código</button>
-                    <p class="text-xs text-green-600 font-bold mt-4 animate-pulse">Aguardando Pagamento...</p>
+                // GERA O CÓDIGO REAL
+                const pixCopiaCola = gerarPayloadPix(CHAVE_PIX_REAL, NOME_BENEFICIARIO, CIDADE_BENEFICIARIO, user.txid, 1.00);
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(pixCopiaCola)}`;
+
+                document.getElementById('qr-content').innerHTML = `
+                    <p class="font-bold text-xs mb-2 text-slate-500">Valor: R$ 1,00</p>
+                    <img src="${qrUrl}" class="mx-auto rounded-lg mb-4 border border-gray-200">
+                    <textarea class="w-full text-[10px] p-2 bg-gray-100 rounded mb-2 text-center break-all text-slate-600" rows="3" readonly>${pixCopiaCola}</textarea>
+                    <button onclick="copiar('${pixCopiaCola}')" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold uppercase text-xs">Copiar Código Pix</button>
+                    <p class="mt-4 text-[10px] text-green-600 font-bold animate-pulse">Aguardando Pagamento...</p>
                 `;
-            }, 800);
+            }, 500);
         }
 
         function copiar(texto) {
             navigator.clipboard.writeText(texto);
-            alert("Código Pix Copiado!");
+            alert("Código Pix copiado! Cole no app do seu banco.");
         }
 
-        function verAnuncio() {
-            window.location.href = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(usuario.nome)}`;
+        // ================= REDIRECIONAMENTO COM DADOS =================
+        function irParaRelatorio() {
+            // Manda os dados pela URL para garantir que o relatório funcione
+            const params = new URLSearchParams({
+                nome: user.nome,
+                qi: user.qi,
+                qe: user.qe,
+                txid: "FREE_AD"
+            });
+            window.location.href = `resultado-teste.html?${params.toString()}`;
         }
     </script>
 </body>
