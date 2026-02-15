@@ -21,8 +21,8 @@
 
     <div class="w-full max-w-md">
         <div id="tela-inicio" class="card-quiz p-8 text-center">
-            <h1 class="text-2xl font-black text-blue-500 mb-1 uppercase">Sier Growth</h1>
-            <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 italic font-semibold text-center">Intelligence Engine v2.0</p>
+            <h1 class="text-2xl font-black text-blue-500 mb-1 uppercase text-center">Sier Growth</h1>
+            <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 italic font-semibold text-center text-center">Intelligence Engine v2.0</p>
             
             <div class="space-y-4">
                 <input type="text" id="nome-usuario" placeholder="Nome Completo" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-blue-500 outline-none text-sm text-white">
@@ -57,10 +57,17 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO SUPABASE ---
+        // --- COMUNICAÇÃO COM O BANCO (SUPABASE) ---
         var _URL_BANCO = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
         var _CHAVE_BANCO = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-        const supabase = window.supabase.createClient(_URL_BANCO, _CHAVE_BANCO);
+        
+        // Inicialização protegida
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(_URL_BANCO, _CHAVE_BANCO);
+        } catch (e) {
+            console.error("Erro ao carregar cliente Supabase:", e);
+        }
 
         const _quizApp = {
             dados: { nome: '', email: '', whatsapp: '', idx: 0, qi: 0, qe: 0, txid: '' },
@@ -101,7 +108,7 @@
 
             renderizar: () => {
                 if(_quizApp.dados.idx >= _quizApp.perguntas.length) {
-                    _quizApp.enviarParaBanco(); // ENVIA OS DADOS AQUI
+                    _quizApp.enviarDadosBanco(); // Tenta salvar, mas não trava se falhar
                     _quizApp.mostrarTela('tela-pagamento');
                     return;
                 }
@@ -124,20 +131,22 @@
                 });
             },
 
-            enviarParaBanco: async () => {
+            enviarDadosBanco: async () => {
                 const txid = 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase();
                 _quizApp.dados.txid = txid;
                 try {
-                    await supabase.from('leads').insert([{
-                        nome: _quizApp.dados.nome,
-                        email: _quizApp.dados.email,
-                        whatsapp: _quizApp.dados.whatsapp,
-                        qi_score: _quizApp.dados.qi,
-                        qe_score: _quizApp.dados.qe,
-                        txid: txid,
-                        status: 'pendente'
-                    }]);
-                } catch (e) { console.error("Erro ao salvar no Supabase"); }
+                    if (supabase) {
+                        await supabase.from('leads').insert([{
+                            nome: _quizApp.dados.nome,
+                            email: _quizApp.dados.email,
+                            whatsapp: _quizApp.dados.whatsapp,
+                            qi_score: _quizApp.dados.qi,
+                            qe_score: _quizApp.dados.qe,
+                            txid: txid,
+                            status: 'pendente'
+                        }]);
+                    }
+                } catch (e) { console.warn("Supabase não disponível ou erro no envio."); }
             },
 
             gerarPix: () => {
@@ -145,27 +154,22 @@
                 const qrContent = document.getElementById('qr-content');
                 document.getElementById('opcoes-liberacao').classList.add('hidden');
                 areaQr.classList.remove('hidden');
-                qrContent.innerHTML = `<div class="p-8 text-slate-800 font-bold animate-pulse text-xs">A GERAR PIX...</div>`;
+                qrContent.innerHTML = `<div class="p-8 text-slate-800 font-bold animate-pulse text-xs">GERANDO PIX...</div>`;
 
                 setTimeout(() => {
                     const d = {
-                        img: "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=PIX_ANDERSON_DIAS",
+                        img: "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=PIX_SIER_GROWTH",
                         code: "00020126360014BR.GOV.BCB.PIX0114TESTE12345678"
                     };
 
                     qrContent.innerHTML = `
                         <img src="${d.img}" class="w-48 h-48 rounded-xl mb-4 mx-auto">
-                        <p class="text-[9px] text-slate-400 font-bold uppercase mb-2 text-center">Código Copia e Cola:</p>
                         <textarea class="w-full text-[9px] text-slate-600 p-3 bg-slate-50 border rounded-lg mb-4 text-center" rows="2" readonly>${d.code}</textarea>
                         <button onclick="navigator.clipboard.writeText('${d.code}');alert('Pix Copiado!')" class="w-full bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase text-center shadow-md">Copiar Código</button>
-                        <div class="flex items-center justify-center gap-2 mt-4">
-                            <div class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
-                            <span class="text-[9px] text-emerald-600 font-bold uppercase tracking-widest text-center">Aguardando Pagamento</span>
-                        </div>
                     `;
                     localStorage.setItem('neuro_pix_img', d.img);
                     localStorage.setItem('neuro_pix_code', d.code);
-                }, 1500);
+                }, 1000);
             },
 
             verAnuncio: () => {
@@ -182,7 +186,7 @@
 
         window.onload = () => {
             const pixImg = localStorage.getItem('neuro_pix_img');
-            if (pixImg && pixImg !== "exemplo_img") {
+            if (pixImg) {
                 _quizApp.mostrarTela('tela-pagamento');
                 _quizApp.gerarPix();
             }
