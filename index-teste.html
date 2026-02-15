@@ -61,8 +61,9 @@
             <div id="area-qr" class="mt-8 bg-white p-6 rounded-[32px] hidden text-center">
                 <div id="qr-content" class="flex flex-col items-center text-black"></div>
                 <div id="msg-aguardando" class="mt-4 text-[10px] text-emerald-500 font-bold animate-pulse hidden">
-                    Aguardando confirmação do pagamento...
+                    Aguardando confirmação...
                 </div>
+                <div id="radar-status" class="mt-2 text-[9px] text-slate-500"></div>
             </div>
         </div>
         
@@ -70,7 +71,8 @@
 
     <script>
         // --- CONFIGURAÇÃO MANUAL ---
-        const MINHA_CHAVE_PIX = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; 
+        // !!! COLOQUE SUA CHAVE PIX AQUI !!!
+        const MINHA_CHAVE_PIX = "delreis61@gmail.com"; 
         
         // --- CONFIGURAÇÃO SUPABASE ---
         const URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
@@ -87,7 +89,7 @@
         let txidAtual = "";
         let verificadorIntervalo = null;
 
-        // Inicializa Supabase Globalmente
+        // Inicializa Supabase
         let supabaseClient = null;
         try {
             if(window.supabase) supabaseClient = window.supabase.createClient(URL_DB, KEY_DB);
@@ -178,7 +180,6 @@
             if (!supabaseClient) return;
 
             try {
-                // CORREÇÃO: USANDO 'status_pagamento' (conforme seu banco)
                 const payload = {
                     nome: nome,
                     email: email,
@@ -187,7 +188,7 @@
                     qi_score: scoreQI,
                     qe_score: scoreQE,
                     txid: txidAtual,
-                    status_pagamento: 'pendente' // <--- AQUI ESTAVA O ERRO!
+                    status_pagamento: 'pendente'
                 };
 
                 const { error } = await supabaseClient.from('leads').insert([payload]);
@@ -230,24 +231,36 @@
             }, 1000);
         }
 
-        // --- RADAR DE PAGAMENTO CORRIGIDO ---
+        // --- RADAR DE PAGAMENTO ATUALIZADO ---
         function iniciarRadarPagamento() {
             if(!supabaseClient) return;
-            console.log("Iniciando radar...");
+            const debugEl = document.getElementById('radar-status');
+            debugEl.innerText = "Radar Ativado...";
 
             verificadorIntervalo = setInterval(async () => {
                 try {
-                    // VERIFICA A COLUNA CERTA: 'status_pagamento'
+                    // Tenta ler o status
                     const { data, error } = await supabaseClient
                         .from('leads')
                         .select('status_pagamento')
                         .eq('txid', txidAtual)
-                        .single();
+                        .maybeSingle(); // Usa maybeSingle para evitar erro 406 se bloqueado
 
-                    if(data && data.status_pagamento === 'pago') { // <-- Verifica se mudou para 'pago'
-                        clearInterval(verificadorIntervalo); 
-                        alert("Pagamento Confirmado! Redirecionando...");
-                        window.location.href = `resultado-teste.html?txid=${txidAtual}&nome=${encodeURIComponent(nome)}`;
+                    if (error) {
+                        // Se der erro, avisa no rodapé
+                        debugEl.innerText = "Erro: Leitura bloqueada pelo Supabase (Ajuste Policies)";
+                        debugEl.classList.add('text-red-500');
+                    } else if (data) {
+                        debugEl.innerText = "Status: " + data.status_pagamento;
+                        
+                        if(data.status_pagamento === 'pago') {
+                            clearInterval(verificadorIntervalo); 
+                            alert("Pagamento Confirmado! Redirecionando...");
+                            window.location.href = `resultado-teste.html?txid=${txidAtual}&nome=${encodeURIComponent(nome)}`;
+                        }
+                    } else {
+                        // Se data for null, é porque o RLS escondeu a linha
+                        debugEl.innerText = "Aguardando (Leitura bloqueada ou TXID não encontrado)";
                     }
                 } catch(e) {
                     console.error("Erro no radar:", e);
