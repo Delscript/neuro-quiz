@@ -176,11 +176,47 @@
             salvarBanco();
         }
 
-        // --- INTEGRAÇÃO COM ALERTAS DE ERRO ---
+       // --- FUNÇÃO DE SALVAMENTO COM DIAGNÓSTICO ---
         async function salvarBanco() {
-            if (!supabaseClient) return;
+            if (!supabaseClient) {
+                alert("Erro: Supabase não conectado.");
+                return;
+            }
+
+            // Mostra que iniciou
+            console.log("Tentando salvar...");
 
             try {
+                const payload = {
+                    nome: nome,
+                    email: email,
+                    whatsapp: whatsapp,
+                    fase_profissional: profissaoSelecionada,
+                    qi_score: scoreQI,
+                    qe_score: scoreQE,
+                    txid: txidAtual,
+                    status: 'pendente'
+                };
+
+                console.log("Enviando dados:", payload);
+
+                const { data, error } = await supabaseClient
+                    .from('leads')
+                    .insert([payload])
+                    .select();
+
+                if (error) {
+                    // AQUI ESTÁ O SEGREDO: Vamos ler o erro real
+                    const msgErro = `ERRO NO SUPABASE:\n\nMensagem: ${error.message}\nDetalhes: ${error.details || 'Nenhum'}\nDica: ${error.hint || 'Nenhuma'}`;
+                    alert(msgErro);
+                    console.error("Objeto de Erro Completo:", error);
+                } else {
+                    console.log("Sucesso:", data);
+                }
+            } catch (err) {
+                alert("Erro de Script: " + err.message);
+            }
+        }
                 // CORREÇÃO APLICADA AQUI: fase_profissional
                 const { error } = await supabaseClient.from('leads').insert([{
                     nome: nome,
