@@ -24,9 +24,7 @@
         .barra-fundo { width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 20px; }
         .barra-progresso { height: 100%; background: var(--cor-principal); width: 0%; border-radius: 4px; transition: width 0.3s; }
         .caixa-pix { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin: 20px 0; word-break: break-all; }
-        
-        /* Botão Reset discreto */
-        .btn-reset { background: transparent; color: #94a3b8; font-size: 0.8rem; margin-top: 20px; border: none; cursor: pointer; }
+        .btn-reset { background: transparent; color: #94a3b8; font-size: 0.8rem; margin-top: 20px; border: none; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -40,7 +38,7 @@
         <input type="email" id="email-usuario" placeholder="Seu melhor e-mail...">
         <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp (com DDD)">
         <button class="botao-acao" onclick="_quizApp.iniciar()">Iniciar Avaliação</button>
-        <button class="btn-reset" onclick="localStorage.clear(); location.reload();">Limpar Cache / Destravar</button>
+        <button class="btn-reset" onclick="localStorage.clear(); location.reload();">Limpar Cache / Recomeçar</button>
     </div>
 
     <div id="tela-perguntas" class="tela-app">
@@ -62,7 +60,7 @@
         
         <div id="area-qr" class="caixa-pix">Gerando Pix Seguro...</div>
         
-        <p id="status-pagamento" style="font-size: 0.9rem; color: #2563eb; font-weight: bold; animation: pulse 1s infinite;">⏳ Aguardando confirmação...</p>
+        <p id="status-pagamento" style="font-size: 0.9rem; color: #2563eb; font-weight: bold;">⏳ Aguardando confirmação...</p>
         
         <button class="botao-acao" style="background: #334155; margin-top: 10px; font-size: 0.9rem;" onclick="_quizApp.verAnuncio()">Liberar Grátis (Assistir Vídeo)</button>
     </div>
@@ -70,15 +68,19 @@
 
 <script>
     // --- CONFIGURAÇÃO ---
-    // !!! IMPORTANTE: COLOQUE SUA CHAVE PIX REAL AQUI (CPF, EMAIL, ETC) !!!
+    // !!! IMPORTANTE: COLOQUE SUA CHAVE PIX REAL AQUI !!!
     const CHAVE_PIX_REAL = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; 
 
     const _URL_BANCO = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
     const _CHAVE_BANCO = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
     
-    // Inicializa Supabase
-    let supabase = null;
-    try { if(window.supabase) supabase = window.supabase.createClient(_URL_BANCO, _CHAVE_BANCO); } catch(e){console.log(e);}
+    // CORREÇÃO: Usando um nome diferente para não dar choque com o script da linha 10
+    let meuSupabase = null;
+    try { 
+        if(window.supabase) {
+            meuSupabase = window.supabase.createClient(_URL_BANCO, _CHAVE_BANCO); 
+        }
+    } catch(e) { console.log(e); }
 
     // --- LÓGICA DO APP ---
     var _quizApp = {
@@ -112,7 +114,11 @@
             const email = document.getElementById('email-usuario').value;
             const zap = document.getElementById('whatsapp-usuario').value;
             if(!nome || !email || !zap) return alert('Por favor, preencha todos os campos!');
-            _quizApp.dados.nome = nome; _quizApp.dados.email = email; _quizApp.dados.whatsapp = zap;
+            
+            _quizApp.dados.nome = nome; 
+            _quizApp.dados.email = email; 
+            _quizApp.dados.whatsapp = zap;
+            
             _quizApp.mostrarTela('tela-perguntas');
             _quizApp.renderizar();
         },
@@ -123,15 +129,19 @@
             document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
             document.getElementById('texto-pergunta').innerText = q.q;
             document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / _quizApp.perguntas.length) * 100) + '%';
+            
             const div = document.getElementById('area-opcoes');
             div.innerHTML = '';
+            
             q.opts.forEach((opt, i) => {
                 const btn = document.createElement('div');
-                btn.className = 'opcao-quiz'; btn.innerText = opt;
+                btn.className = 'opcao-quiz'; 
+                btn.innerText = opt;
                 btn.onclick = () => {
                     if(q.type === 'SEG') _quizApp.dados.fase = opt;
                     else if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
-                    _quizApp.dados.idx++; _quizApp.renderizar();
+                    _quizApp.dados.idx++; 
+                    _quizApp.renderizar();
                 };
                 div.appendChild(btn);
             });
@@ -144,15 +154,15 @@
             const txid = 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase();
             _quizApp.dados.txid = txid;
 
-            // 2. Salva no Banco (Usando nomes 'qi' e 'qe' igual ao original)
-            if(supabase) {
+            // 2. Salva no Banco (Usando meuSupabase para evitar choque)
+            if(meuSupabase) {
                 try {
-                    await supabase.from('leads').insert([{
+                    await meuSupabase.from('leads').insert([{
                         nome: _quizApp.dados.nome,
                         email: _quizApp.dados.email,
                         whatsapp: _quizApp.dados.whatsapp,
-                        qi: _quizApp.dados.qi,   // CORRIGIDO: removi '_score' para bater com a tabela
-                        qe: _quizApp.dados.qe,   // CORRIGIDO: removi '_score' para bater com a tabela
+                        qi: _quizApp.dados.qi,   
+                        qe: _quizApp.dados.qe,   
                         fase: _quizApp.dados.fase,
                         txid: txid,
                         status: 'pendente'
@@ -160,7 +170,7 @@
                 } catch(e) { console.log("Erro banco:", e); }
             }
 
-            // 3. Salva Sessão (Para o F5 funcionar)
+            // 3. Salva Sessão na memória (Garante o F5)
             localStorage.setItem('neuro_sessao_v2', JSON.stringify({
                 status: 'pagamento',
                 dados: _quizApp.dados
@@ -172,15 +182,15 @@
         },
 
         gerarPixLocal: (txid) => {
-            // Gera Código Pix CRC16 (Válido para Banco)
+            // Gera Código Pix CRC16 (Válido)
             const payload = _quizApp.crc16(CHAVE_PIX_REAL, "SIER GROWTH", "SAO PAULO", txid, 1.00);
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(payload)}`;
 
             document.getElementById('area-qr').innerHTML = `
                 <img src="${qrUrl}" style="width:200px; margin:0 auto; display:block; border-radius:10px;">
                 <p style="font-size:0.8rem; margin:10px 0;">Valor: <strong>R$ 1,00</strong></p>
-                <textarea style="width:100%; font-size:0.7rem; padding:10px; border:1px solid #ddd; border-radius:8px;" rows="3" readonly>${payload}</textarea>
-                <button class="botao-acao" style="background:#333; margin-top:10px;" onclick="navigator.clipboard.writeText('${payload}');alert('Pix Copiado!')">Copiar Pix Copia e Cola</button>
+                <textarea style="width:100%; font-size:0.7rem; padding:10px; border:1px solid #cbd5e1; border-radius:8px; background:#f1f5f9;" rows="3" readonly>${payload}</textarea>
+                <button class="botao-acao" style="background:#1e293b; margin-top:10px; padding:12px; font-size:0.9rem;" onclick="navigator.clipboard.writeText('${payload}');alert('Pix Copiado!')">Copiar Pix Copia e Cola</button>
             `;
         },
 
@@ -193,7 +203,6 @@
             document.getElementById(id).classList.add('ativa');
         },
 
-        // Função Matemática para Gerar o Pix Válido
         crc16: (chave, nome, cidade, txid, valor) => {
             const format = (id, val) => id + val.length.toString().padStart(2, '0') + val;
             let p = "00020126" + (14 + chave.length + 22) + "0014BR.GOV.BCB.PIX01" + chave.length + chave;
@@ -214,7 +223,7 @@
         }
     };
 
-    // Recuperar Sessão no F5
+    // --- RECUPERAÇÃO NO F5 ---
     window.onload = () => {
         const sessao = JSON.parse(localStorage.getItem('neuro_sessao_v2'));
         if(sessao && sessao.status === 'pagamento') {
