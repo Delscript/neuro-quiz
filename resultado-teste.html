@@ -59,7 +59,65 @@
 
 <!-- TODO O SEU HTML CONTINUA IGUAL (NÃO ALTERADO) -->
 
- 
+   <script>
+        const URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
+        const KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
+        const supabaseClient = window.supabase.createClient(URL_DB, KEY_DB);
+
+        const params = new URLSearchParams(window.location.search);
+        const txid = params.get('txid');
+        const nomeURL = params.get('nome');
+
+        document.getElementById('data-hoje').innerText = "Emissão: " + new Date().toLocaleDateString('pt-BR');
+
+        async function carregarDados() {
+            if(!txid) return preencherRelatorio({ nome: nomeURL || "Visitante", qi_score: 5, qe_score: 5 });
+
+            try {
+                let { data, error } = await supabaseClient.from('leads').select('*').eq('txid', txid).single();
+                if (error || !data) {
+                    setTimeout(() => location.reload(), 2000); 
+                    return;
+                }
+                preencherRelatorio(data);
+            } catch (err) { alert("Erro de conexão."); }
+        }
+
+        function preencherRelatorio(dados) {
+            document.getElementById('nome-cliente').innerText = dados.nome || nomeURL;
+            document.getElementById('profissao-cliente').innerText = dados.fase_profissional || "Em Análise";
+            
+            const qi = dados.qi_score || 0;
+            const qe = dados.qe_score || 0;
+            
+            document.getElementById('val-qi').innerText = qi;
+            document.getElementById('val-qe').innerText = qe;
+
+            // SUA LÓGICA RESTAURADA (Baseada em > 6)
+            let titulo, subtitulo, txt1, txt2;
+
+            if (qi > 6 && qe > 6) {
+                titulo = "Potência Expansiva";
+                subtitulo = "Alto desempenho em Razão e Emoção.";
+                txt1 = "Você atingiu um nível de equilíbrio raro. Sua capacidade de resolver problemas lógicos complexos caminha junto com uma leitura emocional precisa das situações.";
+                txt2 = "Seu desafio agora não é mais técnico, é de escala. Você tem o perfil exato para liderar grandes movimentos ou empresas.";
+            } else if (qi > 6) {
+                titulo = "Executor Solitário";
+                subtitulo = "Alta capacidade técnica, desafio em conexão.";
+                txt1 = "Sua mente é uma máquina de resolver problemas. Onde outros veem caos, você vê padrões. Porém, pode estar deixando dinheiro na mesa por não conectar com as pessoas.";
+                txt2 = "Para crescer, você precisa delegar a parte técnica e focar em vender sua visão. A lógica constrói, mas é a emoção que vende.";
+            } else if (qe > 6) {
+                titulo = "Conector Nato";
+                subtitulo = "Influência alta, precisa de método.";
+                txt1 = "Você abre portas que ninguém mais consegue. Sua habilidade de ler o ambiente é seu maior ativo. Porém, cuidado para não perder o foco nos resultados frios e números.";
+                txt2 = "Sua alavanca de crescimento está em se associar a processos sólidos. Use seu carisma para liderar, mas use dados para decidir.";
+            } else {
+                titulo = "Em Construção";
+                subtitulo = "O início da jornada de consciência.";
+                txt1 = "Este resultado indica que você pode estar em um momento de transição ou bloqueio. Suas respostas mostram cautela excessiva tanto na lógica quanto na emoção.";
+                txt2 = "O lado bom: você é uma folha em branco pronta para ser moldada. Foque em desenvolver uma habilidade técnica forte primeiro.";
+            }
+
             document.getElementById('titulo-perfil').innerText = titulo;
             document.getElementById('subtitulo-perfil').innerText = subtitulo;
             document.getElementById('texto-analise-1').innerHTML = txt1;
@@ -69,20 +127,6 @@
             document.getElementById('relatorio').style.display = 'block';
             document.getElementById('btn-area').classList.remove('hidden');
         }
-
-        function gerarPDF() {
-            const btnArea = document.getElementById('btn-area');
-            btnArea.style.display = 'none';
-            
-            const elemento = document.getElementById("relatorio");
-            
-            const opt = {
-                margin: 0, // Margem já está no CSS do elemento
-                filename: `Relatorio_Sier_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
 
         html2pdf()
             .set(opt)
