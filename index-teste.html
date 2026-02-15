@@ -17,7 +17,7 @@
         .opcao-btn:active { background: #3b82f6; border-color: #60a5fa; transform: scale(0.97); }
         .hidden { display: none !important; }
         .barra-progresso { height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
-        .progresso-fill { height: 100%; background: linear-gradient(to right, #f97316, #ea580c); width: 0%; transition: width 0.3s; } /* Progresso Laranja também */
+        .progresso-fill { height: 100%; background: linear-gradient(to right, #f97316, #ea580c); width: 0%; transition: width 0.3s; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
@@ -32,8 +32,6 @@
                 <input type="text" id="nome-usuario" placeholder="Nome Completo" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-orange-500 outline-none text-sm text-white">
                 <input type="email" id="email-usuario" placeholder="E-mail" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-orange-500 outline-none text-sm text-white">
                 <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp (DDD)" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-orange-500 outline-none text-sm text-white">
-                
-                <input type="text" id="profissional-usuario" placeholder="Profissão / Área de Atuação" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-orange-500 outline-none text-sm text-white">
                 
                 <button type="button" onclick="startQuiz()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-extrabold text-lg shadow-lg transition-all">
                     Iniciar Avaliação
@@ -69,14 +67,14 @@
 
     <script>
         // --- CONFIGURAÇÃO MANUAL ---
-        // !!! COLOQUE SUA CHAVE PIX ABAIXO (EMAIL, CPF ou CELULAR) !!!
+        // !!! COLOQUE SUA CHAVE PIX AQUI !!!
         const MINHA_CHAVE_PIX = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; 
 
         // --- VARIÁVEIS GLOBAIS ---
         let nome = "";
         let email = "";
         let whatsapp = "";
-        let profissional = ""; // Nova variável
+        let profissaoSelecionada = ""; // Vai guardar a resposta da última pergunta
         let indiceAtual = 0;
         let scoreQI = 0;
         let scoreQE = 0;
@@ -102,6 +100,7 @@
             { q: "Você se considera um bom ouvinte em conversas pessoais?", opts: ["Sim, ouço com atenção", "Às vezes me distraio", "Prefiro falar"], type: "QE", c: 0 },
             { q: "Qual palavra não pertence ao grupo: Cadeira, Mesa, Banana, Sofá?", opts: ["Banana", "Cadeira", "Sofá"], type: "QI", c: 0 },
             { q: "Sua resiliência após um grande fracasso profissional é:", opts: ["Alta (Levanto rápido)", "Média", "Baixa"], type: "QE", c: 0 },
+            // AQUI ESTÁ A PERGUNTA QUE DEFINE A PROFISSÃO (Tipo SEG)
             { q: "Para finalizar: Qual seu momento de carreira atual?", opts: ["Dono / Empresário", "Autônomo / Liberal", "CLT / Colaborador", "Estudante"], type: "SEG", c: 0 }
         ];
 
@@ -110,10 +109,9 @@
             nome = document.getElementById('nome-usuario').value;
             email = document.getElementById('email-usuario').value;
             whatsapp = document.getElementById('whatsapp-usuario').value;
-            profissional = document.getElementById('profissional-usuario').value;
 
-            // Valida se tudo está preenchido
-            if (nome === "" || email === "" || whatsapp === "" || profissional === "") {
+            // Valida apenas os dados básicos
+            if (nome === "" || email === "" || whatsapp === "") {
                 alert("Por favor, preencha todos os campos para continuar.");
                 return;
             }
@@ -141,16 +139,23 @@
                 const btn = document.createElement('button');
                 btn.className = 'opcao-btn';
                 btn.innerText = opcao;
-                btn.onclick = function() { responder(i, q.type, q.c); };
+                btn.onclick = function() { responder(i, q.type, q.c, opcao); };
                 div.appendChild(btn);
             });
         }
 
-        function responder(i, tipo, correta) {
-            if (i === correta) { 
-                 if (tipo === 'QI') scoreQI++;
-                 else scoreQE++;
+        function responder(i, tipo, correta, textoOpcao) {
+            // Se for a pergunta de Segmentação (SEG), salva a profissão
+            if (tipo === 'SEG') {
+                profissaoSelecionada = textoOpcao;
+            } else {
+                // Cálculo normal de QI/QE
+                if (i === correta) { 
+                     if (tipo === 'QI') scoreQI++;
+                     else scoreQE++;
+                }
             }
+            
             indiceAtual++;
             renderizar();
         }
@@ -176,7 +181,7 @@
                         nome: nome,
                         email: email,
                         whatsapp: whatsapp,
-                        profissional: profissional, // Enviando nova coluna
+                        profissional: profissaoSelecionada, // Salva o que ele respondeu na pergunta 20
                         qi_score: scoreQI,
                         qe_score: scoreQE,
                         txid: txidAtual,
