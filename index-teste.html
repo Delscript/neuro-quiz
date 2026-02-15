@@ -71,7 +71,7 @@
         const NOME_RECEBEDOR = "SIER GROWTH"; 
         const CIDADE_RECEBEDOR = "SAO PAULO";
 
-        // SUPABASE CONFIG
+        // SUPABASE
         const _URL = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
         const _KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
         
@@ -79,14 +79,14 @@
         try { 
             if(window.supabase) {
                 _dbClient = window.supabase.createClient(_URL, _KEY); 
-                console.log("Supabase OK");
+                console.log("Supabase Conectado.");
             }
         } catch(e) { console.error("Erro init SB:", e); }
 
         // Variáveis do App
-        let user = { nome:'', email:'', whatsapp:'', qi:0, qe:0, txid:'' };
+        let user = { nome:'', email:'', whatsapp:'', qi:0, qe:0, txid:'', profissao: '' };
         let idx = 0;
-        let intervaloCheck = null; // Para o loop de verificação
+        let checkInterval = null;
 
         const perguntas = [
             { q: "Qual número completa a sequência lógica: 2, 4, 8, 16...?", opts: ["32", "24", "20"], type: "QI", c: 0 },
@@ -141,9 +141,11 @@
                 btn.className = 'opcao-btn';
                 btn.innerText = opt;
                 btn.onclick = () => {
-                    // Lógica simples de pontuação
-                    if(q.type !== 'SEG') {
-                         if(i===q.c) q.type === 'QI' ? user.qi++ : user.qe++;
+                    // CORREÇÃO DO NULL: Captura a Profissão se for pergunta SEG
+                    if (q.type === 'SEG') {
+                        user.profissao = opt;
+                    } else if (i === q.c) {
+                        q.type === 'QI' ? user.qi++ : user.qe++;
                     }
                     idx++; 
                     renderizar();
@@ -160,29 +162,26 @@
 
             if(_dbClient) {
                 try {
-                    // Envia apenas as colunas que existem (removi fase e status que deram erro antes)
+                    // Manda 'profissao' e 'fase' (para garantir que um dos dois salve)
                     const { error } = await _dbClient.from('leads').insert([{
                         nome: user.nome,
                         email: user.email,
                         whatsapp: user.whatsapp,
                         qi_score: user.qi,
                         qe_score: user.qe,
+                        profissao: user.profissao, // Manda como profissao
+                        fase: user.profissao,      // Manda como fase (backup)
                         txid: user.txid,
-                        // Se você já criou a coluna 'status' no banco, pode descomentar a linha abaixo:
-                        // status: 'pendente' 
+                        status: 'pendente'
                     }]);
 
-                    if(error) {
-                        // Se der erro, avisa, mas não trava o fluxo
-                        console.error("Erro BD:", error);
-                        // Tenta salvar sem status se o erro for de coluna
-                    } else {
-                        console.log("Salvo com sucesso!");
-                    }
+                    if(error) console.error("Erro BD:", error);
+                    else console.log("Salvo OK com profissão:", user.profissao);
+                    
                 } catch(e) { console.log("Erro Catch:", e); }
             }
 
-            // Salva Sessão local
+            // Salva Sessão
             localStorage.setItem('neuro_sessao_ok', JSON.stringify({
                 status: 'pagamento',
                 dados: user
@@ -212,31 +211,36 @@
                     <p class="mt-4 text-[9px] text-emerald-500 font-bold animate-pulse">Aguardando Pagamento...</p>
                 `;
                 
-                // INICIA O MONITORAMENTO DO STATUS
+                // INICIA VERIFICAÇÃO AUTOMÁTICA
                 iniciarVerificacaoPagamento(user.txid);
 
             }, 500);
         }
 
         function iniciarVerificacaoPagamento(txid) {
-            // Verifica a cada 3 segundos se o status mudou para 'pago' no banco
-            if(intervaloCheck) clearInterval(intervaloCheck);
-            
-            intervaloCheck = setInterval(async () => {
+            if(checkInterval) clearInterval(checkInterval);
+            console.log("Iniciando verificação para:", txid);
+
+            checkInterval = setInterval(async () => {
                 if(!_dbClient) return;
 
+                // Consulta status
                 const { data, error } = await _dbClient
                     .from('leads')
-                    .select('status') // Garanta que a coluna 'status' existe no banco para isso funcionar
+                    .select('status')
                     .eq('txid', txid)
                     .single();
 
-                if(data && (data.status === 'pago' || data.status === 'aprovado')) {
-                    clearInterval(intervaloCheck);
-                    // REDIRECIONA PARA O CERTIFICADO
-                    window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(user.nome)}`;
+                if(data) {
+                    console.log("Status atual:", data.status);
+                    if(data.status === 'pago' || data.status === 'aprovado') {
+                        clearInterval(checkInterval);
+                        alert("Pagamento Confirmado! Redirecionando...");
+                        // Redireciona com os dados para o certificado
+                        window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(user.nome)}&qi=${user.qi}&qe=${user.qe}`;
+                    }
                 }
-            }, 3000); // 3 segundos
+            }, 3000); // Checa a cada 3 segundos
         }
 
         function verAnuncio() {
