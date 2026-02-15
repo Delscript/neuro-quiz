@@ -67,7 +67,6 @@
 
     <script>
         // ================= CONFIGURAÇÃO =================
-        // CHAVE ALEATÓRIA FORNECIDA
         const CHAVE_PIX_REAL = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; 
         const NOME_RECEBEDOR = "SIER GROWTH"; 
         const CIDADE_RECEBEDOR = "SAO PAULO";
@@ -76,8 +75,6 @@
         const _URL = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
         const _KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
         
-        // CORREÇÃO 1: Nome da variável alterado para _dbClient
-        // Isso impede o erro "Identifier 'supabase' has already been declared"
         let _dbClient = null;
         try { 
             if(window.supabase) {
@@ -89,6 +86,7 @@
         // Variáveis do App
         let user = { nome:'', email:'', whatsapp:'', qi:0, qe:0, txid:'' };
         let idx = 0;
+        let intervaloCheck = null; // Para o loop de verificação
 
         const perguntas = [
             { q: "Qual número completa a sequência lógica: 2, 4, 8, 16...?", opts: ["32", "24", "20"], type: "QI", c: 0 },
@@ -160,20 +158,24 @@
 
             user.txid = "TX-" + Math.random().toString(36).substr(2, 9).toUpperCase();
 
-            // CORREÇÃO 2: Removidas colunas 'fase' e 'status' que não existem no banco
             if(_dbClient) {
                 try {
+                    // Envia apenas as colunas que existem (removi fase e status que deram erro antes)
                     const { error } = await _dbClient.from('leads').insert([{
                         nome: user.nome,
                         email: user.email,
                         whatsapp: user.whatsapp,
                         qi_score: user.qi,
                         qe_score: user.qe,
-                        txid: user.txid
+                        txid: user.txid,
+                        // Se você já criou a coluna 'status' no banco, pode descomentar a linha abaixo:
+                        // status: 'pendente' 
                     }]);
 
                     if(error) {
-                        alert("ERRO BANCO DE DADOS:\n" + error.message);
+                        // Se der erro, avisa, mas não trava o fluxo
+                        console.error("Erro BD:", error);
+                        // Tenta salvar sem status se o erro for de coluna
                     } else {
                         console.log("Salvo com sucesso!");
                     }
@@ -189,7 +191,7 @@
             setTimeout(() => {
                 document.getElementById('tela-carregando').classList.add('hidden');
                 document.getElementById('tela-pagamento').classList.remove('hidden');
-                gerarQrCodePix(); // Já gera o Pix automaticamente ao chegar aqui
+                gerarQrCodePix(); 
             }, 1000);
         }
 
@@ -199,7 +201,6 @@
             document.getElementById('qr-conteudo').innerHTML = "Gerando Pix Válido...";
 
             setTimeout(() => {
-                // PAYLOAD PIX (Chave Aleatória)
                 const payload = gerarPayloadPix(CHAVE_PIX_REAL, NOME_RECEBEDOR, CIDADE_RECEBEDOR, user.txid, "1.00");
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(payload)}`;
 
@@ -210,7 +211,32 @@
                     <button onclick="copiar('${payload}')" class="w-full bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase text-center shadow-md">Copiar Código Pix</button>
                     <p class="mt-4 text-[9px] text-emerald-500 font-bold animate-pulse">Aguardando Pagamento...</p>
                 `;
+                
+                // INICIA O MONITORAMENTO DO STATUS
+                iniciarVerificacaoPagamento(user.txid);
+
             }, 500);
+        }
+
+        function iniciarVerificacaoPagamento(txid) {
+            // Verifica a cada 3 segundos se o status mudou para 'pago' no banco
+            if(intervaloCheck) clearInterval(intervaloCheck);
+            
+            intervaloCheck = setInterval(async () => {
+                if(!_dbClient) return;
+
+                const { data, error } = await _dbClient
+                    .from('leads')
+                    .select('status') // Garanta que a coluna 'status' existe no banco para isso funcionar
+                    .eq('txid', txid)
+                    .single();
+
+                if(data && (data.status === 'pago' || data.status === 'aprovado')) {
+                    clearInterval(intervaloCheck);
+                    // REDIRECIONA PARA O CERTIFICADO
+                    window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(user.nome)}`;
+                }
+            }, 3000); // 3 segundos
         }
 
         function verAnuncio() {
@@ -224,14 +250,13 @@
 
         // --- FUNÇÃO CRC16 ---
         function gerarPayloadPix(chave, nome, cidade, txid, valor) {
-            // Ajuste para Chave Aleatória (36 chars)
             const tamChave = chave.length;
             const string26 = "0014BR.GOV.BCB.PIX01" + tamChave.toString().padStart(2,'0') + chave;
             
             let p = "000201";
             p += "26" + string26.length.toString().padStart(2,'0') + string26;
-            p += "52040000"; // Merchant Cat
-            p += "5303986";  // BRL
+            p += "52040000"; 
+            p += "5303986";  
             p += "54" + valor.length.toString().padStart(2,'0') + valor;
             p += "5802BR";
             p += "59" + nome.length.toString().padStart(2,'0') + nome;
@@ -240,7 +265,7 @@
             const string62 = "05" + txid.length.toString().padStart(2,'0') + txid;
             p += "62" + string62.length.toString().padStart(2,'0') + string62;
             
-            p += "6304"; // Início CRC
+            p += "6304"; 
 
             let polinomio = 0x1021;
             let crc = 0xFFFF;
