@@ -60,6 +60,9 @@
             </div>
             <div id="area-qr" class="mt-8 bg-white p-6 rounded-[32px] hidden text-center">
                 <div id="qr-content" class="flex flex-col items-center text-black"></div>
+                <div id="msg-aguardando" class="mt-4 text-[10px] text-emerald-500 font-bold animate-pulse hidden">
+                    Aguardando confirmação do pagamento...
+                </div>
             </div>
         </div>
         
@@ -67,7 +70,6 @@
 
     <script>
         // --- CONFIGURAÇÃO MANUAL ---
-        // !!! COLOQUE SUA CHAVE PIX AQUI !!!
         const MINHA_CHAVE_PIX = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; 
         
         // --- CONFIGURAÇÃO SUPABASE ---
@@ -83,6 +85,7 @@
         let scoreQI = 0;
         let scoreQE = 0;
         let txidAtual = "";
+        let verificadorIntervalo = null;
 
         // Inicializa Supabase Globalmente
         let supabaseClient = null;
@@ -110,11 +113,9 @@
             { q: "Você se considera um bom ouvinte em conversas pessoais?", opts: ["Sim, ouço com atenção", "Às vezes me distraio", "Prefiro falar"], type: "QE", c: 0 },
             { q: "Qual palavra não pertence ao grupo: Cadeira, Mesa, Banana, Sofá?", opts: ["Banana", "Cadeira", "Sofá"], type: "QI", c: 0 },
             { q: "Sua resiliência após um grande fracasso profissional é:", opts: ["Alta (Levanto rápido)", "Média", "Baixa"], type: "QE", c: 0 },
-            // PERGUNTA DE PROFISSÃO
             { q: "Para finalizar: Qual seu momento de carreira atual?", opts: ["Dono / Empresário", "Autônomo / Liberal", "CLT / Colaborador", "Estudante"], type: "SEG", c: 0 }
         ];
 
-        // --- FUNÇÕES DE NAVEGAÇÃO ---
         function startQuiz() {
             nome = document.getElementById('nome-usuario').value;
             email = document.getElementById('email-usuario').value;
@@ -154,7 +155,6 @@
         }
 
         function responder(i, tipo, correta, textoOpcao) {
-            // Se for SEG, captura a profissão
             if (tipo === 'SEG') {
                 profissaoSelecionada = textoOpcao;
             } else {
@@ -169,32 +169,31 @@
 
         function finalizar() {
             txidAtual = 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-            
             document.getElementById('tela-perguntas').classList.add('hidden');
             document.getElementById('tela-pagamento').classList.remove('hidden');
-
             salvarBanco();
         }
 
-        // --- INTEGRAÇÃO COM SUPABASE ---
         async function salvarBanco() {
             if (!supabaseClient) return;
 
             try {
-                // REMOVIDO O CAMPO 'STATUS' QUE NÃO EXISTE NO BANCO
-                const { error } = await supabaseClient.from('leads').insert([{
+                // CORREÇÃO: USANDO 'status_pagamento' (conforme seu banco)
+                const payload = {
                     nome: nome,
                     email: email,
                     whatsapp: whatsapp,
-                    fase_profissional: profissaoSelecionada, // Correto!
+                    fase_profissional: profissaoSelecionada,
                     qi_score: scoreQI,
                     qe_score: scoreQE,
-                    txid: txidAtual
-                    // status: 'pendente' <--- REMOVIDO PARA NÃO DAR ERRO
-                }]);
+                    txid: txidAtual,
+                    status_pagamento: 'pendente' // <--- AQUI ESTAVA O ERRO!
+                };
+
+                const { error } = await supabaseClient.from('leads').insert([payload]);
 
                 if (error) {
-                    alert("⚠️ ERRO SUPABASE: " + error.message);
+                    console.error("Erro Supabase:", error.message);
                 } else {
                     console.log("Salvo com sucesso!");
                 }
@@ -221,12 +220,39 @@
                     <img src="${qrUrl}" class="w-48 h-48 rounded-xl mb-4 mx-auto border border-gray-200">
                     <textarea class="w-full text-[9px] text-slate-600 p-3 bg-slate-50 border rounded-lg mb-4 text-center break-all" rows="3" readonly>${payload}</textarea>
                     <button onclick="navigator.clipboard.writeText('${payload}');alert('Código Copiado!')" class="w-full bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase text-center shadow-md">Copiar Código Pix</button>
-                    <div class="mt-4 flex items-center justify-center gap-2">
-                         <div class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
-                         <span class="text-[9px] text-emerald-600 font-bold uppercase tracking-widest">Aguardando Pagamento...</span>
-                    </div>
                 `;
+                
+                document.getElementById('msg-aguardando').classList.remove('hidden');
+                
+                // INICIA O RADAR DE PAGAMENTO
+                iniciarRadarPagamento();
+
             }, 1000);
+        }
+
+        // --- RADAR DE PAGAMENTO CORRIGIDO ---
+        function iniciarRadarPagamento() {
+            if(!supabaseClient) return;
+            console.log("Iniciando radar...");
+
+            verificadorIntervalo = setInterval(async () => {
+                try {
+                    // VERIFICA A COLUNA CERTA: 'status_pagamento'
+                    const { data, error } = await supabaseClient
+                        .from('leads')
+                        .select('status_pagamento')
+                        .eq('txid', txidAtual)
+                        .single();
+
+                    if(data && data.status_pagamento === 'pago') { // <-- Verifica se mudou para 'pago'
+                        clearInterval(verificadorIntervalo); 
+                        alert("Pagamento Confirmado! Redirecionando...");
+                        window.location.href = `resultado-teste.html?txid=${txidAtual}&nome=${encodeURIComponent(nome)}`;
+                    }
+                } catch(e) {
+                    console.error("Erro no radar:", e);
+                }
+            }, 3000);
         }
 
         function verAnuncio() {
