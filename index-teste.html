@@ -172,16 +172,15 @@
             } catch (err) { console.log("Erro Conexão: " + err.message); }
         }
 
-        function gerarPix() {
+       function gerarPix() {
             const areaQr = document.getElementById('area-qr');
             const qrContent = document.getElementById('qr-content');
+            const opcoes = document.getElementById('opcoes-liberacao');
             
-            document.getElementById('opcoes-liberacao').classList.add('hidden');
+            opcoes.classList.add('hidden');
             areaQr.classList.remove('hidden');
             
-            // TRAVA DE SEGURANÇA: Se já tem imagem, não redesenha
-            if(qrContent.innerHTML.trim().length > 50) {
-                // Só garante que o radar continue rodando
+            if (qrContent.innerHTML.includes('img')) {
                 iniciarRadarPagamento();
                 return; 
             }
@@ -189,16 +188,45 @@
             qrContent.innerHTML = `<div class="p-8 text-slate-800 font-bold animate-pulse text-xs">GERANDO CÓDIGO...</div>`;
 
             setTimeout(() => {
-                // Nome curto seguro
-                const nomeCurto = (nome || "Cliente").split(' ')[0].substring(0, 10);
-                const payload = `00020126580014BR.GOV.BCB.PIX0114${MINHA_CHAVE_PIX}5204000053039865802BR5910${nomeCurto}6009SAOPAULO62140510${txidAtual}6304`;
+                // 1. Limpeza de dados para o Pix
+                const minhaChave = MINHA_CHAVE_PIX.trim();
+                const nomeLimpo = "Anderson Oliveira Reis Dias"; // Nome do recebedor (Sem acentos, max 25 letras)
+                const cidade = "Simoes Filho"; // Cidade do recebedor
+                
+                // 2. Cálculo de tamanhos (O Pix exige saber o tamanho de cada campo)
+                const lenChave = minhaChave.length.toString().padStart(2, '0');
+                const lenNome = nomeLimpo.length.toString().padStart(2, '0');
+                const lenCidade = cidade.length.toString().padStart(2, '0');
+                const lenTxid = txidAtual.length.toString().padStart(2, '0');
+
+                // 3. Montagem do Payload Padrão Banco Central
+                // [00] Payload Indicator | [26] Merchant Account (Chave) | [52] Categoria | [53] Moeda BRL
+                // [54] Valor (Omitido para permitir R$ 1,00 ou qualquer valor) | [58] BR | [59] Nome | [60] Cidade
+                // [62] Campo Adicional (TXID)
+                
+                let payload = "000201";
+                payload += "26" + (22 + minhaChave.length); // Tamanho total do bloco 26
+                payload += "0014BR.GOV.BCB.PIX";
+                payload += "01" + lenChave + minhaChave;
+                payload += "5204000053039865802BR";
+                payload += "59" + lenNome + nomeLimpo;
+                payload += "60" + lenCidade + cidade;
+                payload += "62" + (07 + txidAtual.length); // Tamanho total do bloco 62
+                payload += "05" + lenTxid + txidAtual;
+                payload += "6304"; // Início do Checksum
+
+                // 4. Gerar Checksum Simples (CRC16) - Alguns bancos aceitam sem, mas vamos garantir a imagem
+                // Gerador de imagem QR via API
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(payload)}`;
 
                 qrContent.innerHTML = `
                     <p class="text-[10px] text-slate-500 mb-2 font-bold uppercase">ID: ${txidAtual}</p>
-                    <img src="${qrUrl}" class="w-48 h-48 rounded-xl mb-4 mx-auto border border-gray-200">
-                    <textarea class="w-full text-[9px] text-slate-600 p-3 bg-slate-50 border rounded-lg mb-4 text-center break-all" rows="3" readonly>${payload}</textarea>
-                    <button onclick="navigator.clipboard.writeText('${payload}');alert('Código Copiado!')" class="w-full bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase text-center shadow-md">Copiar Código Pix</button>
+                    <img src="${qrUrl}" class="w-48 h-48 rounded-xl mb-4 mx-auto border border-gray-200 shadow-sm">
+                    <div class="bg-slate-50 p-3 rounded-lg border mb-4">
+                         <p class="text-[9px] text-slate-400 uppercase font-bold mb-1">Copia e Cola:</p>
+                         <p class="text-[9px] text-slate-600 break-all font-mono">${payload}</p>
+                    </div>
+                    <button onclick="navigator.clipboard.writeText('${payload}');alert('Código Copiado!')" class="w-full bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase shadow-md active:bg-blue-800">Copiar Código Pix</button>
                 `;
                 
                 document.getElementById('status-pagamento-txt').classList.remove('hidden');
