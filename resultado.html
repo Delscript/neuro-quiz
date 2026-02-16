@@ -238,7 +238,8 @@
         }
 
         // --- MÁGICA DO PDF V3 (CLONE PERFEITO + RODAPÉ FIXO) ---
-                   const btnArea = document.getElementById('btn-area');
+                  function gerarPDF() {
+            const btnArea = document.getElementById('btn-area');
             btnArea.style.display = 'none';
             
             const elemento = document.getElementById("relatorio");
@@ -268,7 +269,8 @@
             });
     }
 
-        init();
+
+        window.onload = carregarDados;
     </script>
 </body>
 </html>
