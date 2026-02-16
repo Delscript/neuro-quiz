@@ -322,28 +322,50 @@
 
         document.getElementById('data-hoje').innerText = "Emissão: " + new Date().toLocaleDateString('pt-BR');
 
-        async function carregarDados() {
-            if(!txid) return preencherRelatorio({ nome: nomeURL || "Visitante", qi_score: 5, qe_score: 5 });
+       async function carregarDados() {
+    const params = new URLSearchParams(window.location.search);
+    const txid = params.get('txid');
+    const nomeURL = params.get('nome') || "Visitante";
+    const qiURL = params.get('qi') || 0;
+    const qeURL = params.get('qe') || 0;
+    const faseURL = params.get('fase') || "Profissional";
 
-            try {
-                let { data, error } = await supabaseClient.from('leads').select('*').eq('txid', txid).single();
-                if (error || !data) {
-                    setTimeout(() => location.reload(), 2000); 
-                    return;
-                }
-                preencherRelatorio(data);
-            } catch (err) { alert("Erro de conexão."); }
+    // --- O PULO DO GATO ---
+    // Se for FREE, não chama o Supabase. Usa os dados que mandamos pelo link.
+    if (txid === 'FREE' || txid === null) {
+        console.log("Modo Grátis ativado. Ignorando consulta ao banco.");
+        preencherRelatorio({
+            nome: nomeURL,
+            fase_profissional: faseURL,
+            qi_score: parseInt(qiURL),
+            qe_score: parseInt(qeURL)
+        });
+        return; // Encerra aqui e não dá o erro 406
+    }
+
+    // Se NÃO for FREE, aí sim ele busca o pagamento no banco
+    try {
+        const { data, error } = await supabaseClient
+            .from('leads')
+            .select('*')
+            .eq('txid', txid)
+            .single();
+
+        if (error || !data) {
+            // Se o banco falhar, usa os dados da URL como plano B (Segurança)
+            preencherRelatorio({
+                nome: nomeURL,
+                fase_profissional: faseURL,
+                qi_score: parseInt(qiURL),
+                qe_score: parseInt(qeURL)
+            });
+        } else {
+            preencherRelatorio(data);
         }
-
-        function preencherRelatorio(dados) {
-            document.getElementById('nome-cliente').innerText = dados.nome || nomeURL;
-            document.getElementById('profissao-cliente').innerText = dados.fase_profissional || "Em Análise";
-            
-            const qi = dados.qi_score || 0;
-            const qe = dados.qe_score || 0;
-            
-            document.getElementById('val-qi').innerText = qi;
-            document.getElementById('val-qe').innerText = qe;
+    } catch (err) {
+        console.error("Erro na consulta:", err);
+    }
+}
 
             // SUA LÓGICA RESTAURADA (Baseada em > 6)
             let titulo, subtitulo, txt1, txt2;
