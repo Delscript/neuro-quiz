@@ -22,11 +22,9 @@
 <body class="min-h-screen flex items-center justify-center p-4">
 
     <div class="w-full max-w-md">
-        
         <div id="tela-inicio" class="card-quiz text-center tela-app ativa">
             <h1 class="text-2xl font-black text-orange-500 mb-1 uppercase tracking-tighter">Sier Growth</h1>
             <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 italic font-semibold">Intelligence Engine v2.0</p>
-            
             <div class="space-y-4">
                 <input type="text" id="nome-usuario" placeholder="Nome Completo" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-orange-500 outline-none text-sm text-white">
                 <input type="email" id="email-usuario" placeholder="E-mail" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-orange-500 outline-none text-sm text-white">
@@ -36,49 +34,52 @@
         </div>
 
         <div id="tela-perguntas" class="card-quiz tela-app">
-            <div class="barra-progresso"><div id="barra-progresso" class="progresso-fill"></div></div>
+            <div class="barra-fundo mb-4"><div id="barra-progresso" class="progresso-fill"></div></div>
             <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-6 uppercase tracking-widest text-center">
                 <span>PERGUNTA <span id="num-pergunta">1</span>/20</span>
                 <span class="text-orange-500 italic">Neuro-Análise</span>
             </div>
-            <h2 id="texto-pergunta" class="text-lg font-bold mb-8 leading-tight text-slate-100">...</h2>
+            <h2 id="texto-pergunta" class="text-lg font-bold mb-8 leading-tight text-slate-100 text-center">...</h2>
             <div id="area-opcoes"></div>
         </div>
 
         <div id="tela-carregando" class="card-quiz text-center tela-app">
             <div class="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
             <h2 class="text-lg font-bold">Processando Respostas...</h2>
-            <p class="text-xs text-slate-500 mt-2 uppercase tracking-widest">Cruzando métricas neurais</p>
+            <p class="text-xs text-slate-500 mt-2 uppercase tracking-widest text-center">Cruzando métricas neurais</p>
         </div>
 
         <div id="tela-pagamento" class="card-quiz text-center tela-app">
-            <h2 class="text-2xl font-black text-green-500 mb-2 italic uppercase">Análise Pronta!</h2>
-            <p class="text-slate-400 text-sm mb-8">Escaneie o Pix para liberar seu relatório:</p>
+            <h2 class="text-2xl font-black text-green-500 mb-2 italic uppercase">Análise Concluída!</h2>
+            <div id="area-qr" class="bg-white p-6 rounded-[32px] text-black my-4">Gerando Pix Seguro...</div>
+            <p id="status-pagamento" class="text-[10px] text-blue-500 font-bold uppercase animate-pulse mb-6">⏳ Aguardando pagamento...</p>
             
-            <div id="area-qr" class="bg-white p-6 rounded-[32px] text-black">
-                Gerando Pix Seguro...
+            <div class="space-y-4">
+                <button onclick="_quizApp.verAnuncio()" class="w-full bg-slate-800 border border-slate-700 py-4 rounded-xl font-bold text-blue-400 text-xs hover:bg-slate-700 transition-all">
+                    📺 ASSISTIR VÍDEO (GERAR RELATÓRIO GRÁTIS)
+                </button>
+                
+                <button onclick="localStorage.removeItem('neuro_txid_pendente'); location.reload();" class="text-[9px] text-slate-600 uppercase font-bold tracking-widest">Reiniciar Avaliação</button>
             </div>
-            
-            <p id="status-pagamento" class="mt-6 text-[10px] text-blue-500 font-bold uppercase animate-pulse">⏳ Aguardando pagamento...</p>
         </div>
-
     </div>
 
     <script>
-        // --- BLINDAGEM DE F5 ORIGINAL ---
+        // --- BLINDAGEM DE F5 ORIGINAL (O TRAVA QR CODE) ---
         window.onload = () => {
             const pendente = localStorage.getItem('neuro_txid_pendente');
             if (pendente) {
                 _quizApp.mostrarTela('tela-pagamento');
-                document.getElementById('area-qr').innerHTML = `<p class="text-black text-xs p-4">Recuperando seu QR Code...</p><button class="w-full bg-slate-800 text-white py-3 rounded-xl text-xs font-bold" onclick="localStorage.removeItem('neuro_txid_pendente');location.reload();">Reiniciar Teste</button>`;
+                document.getElementById('area-qr').innerHTML = `<p class="text-slate-800 text-xs font-bold p-4">Recuperando seu QR Code...</p>`;
                 _quizApp.startStatusCheck(pendente);
+                // Chama a geração para restaurar o visual do QR se o txid existe
+                _quizApp.gerarPix(true); 
             }
         };
 
         var _quizApp = {
-            dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, perfil: null, fase: 'Não Informado' },
+            dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: 'Não Informado' },
             
-            // --- SUAS PERGUNTAS E RESPOSTAS ORIGINAIS ---
             perguntas: [
                 { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
                 { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
@@ -102,7 +103,7 @@
                 { q: "Para calibrar sua liderança: Qual sua fase atual?", opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], type: "SEG", c: 0 }
             ],
 
-            iniciar: async () => {
+            iniciar: () => {
                 const n = document.getElementById('nome-usuario').value;
                 const e = document.getElementById('email-usuario').value;
                 const z = document.getElementById('whatsapp-usuario').value;
@@ -132,32 +133,34 @@
                 });
             },
 
-            finalizar: () => { _quizApp.mostrarTela('tela-carregando'); _quizApp.gerarPix(); },
+            finalizar: () => { _quizApp.mostrarTela('tela-carregando'); setTimeout(() => _quizApp.gerarPix(), 1500); },
 
-            // --- FUNÇÃO PIX ORIGINAL (CORRIGIDA PARA SEU VISUAL) ---
-            gerarPix: async () => {
+            gerarPix: async (isReload = false) => {
                 try {
+                    const payload = isReload ? { txid: localStorage.getItem('neuro_txid_pendente'), nome: localStorage.getItem('neuro_nome_pendente') } : { 
+                        nome: _quizApp.dados.nome, email: _quizApp.dados.email, 
+                        whatsapp: _quizApp.dados.whatsapp, qi: _quizApp.dados.qi, 
+                        qe: _quizApp.dados.qe, fase: _quizApp.dados.fase 
+                    };
+
                     const res = await fetch('/api/pix', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            nome: _quizApp.dados.nome, email: _quizApp.dados.email, 
-                            whatsapp: _quizApp.dados.whatsapp, qi: _quizApp.dados.qi, 
-                            qe: _quizApp.dados.qe, fase: _quizApp.dados.fase 
-                        })
+                        body: JSON.stringify(payload)
                     });
                     const data = await res.json();
                     if(data.txid) {
                         localStorage.setItem('neuro_txid_pendente', data.txid);
+                        localStorage.setItem('neuro_nome_pendente', _quizApp.dados.nome || data.nome);
                         document.getElementById('area-qr').innerHTML = `
-                            <img src="${data.img}" class="w-48 mx-auto rounded-xl shadow-sm mb-4">
-                            <textarea class="w-full text-[9px] text-slate-500 p-2 bg-slate-50 border rounded-lg mb-4 text-center break-all" rows="3" readonly>${data.code}</textarea>
+                            <img src="${data.img}" class="w-48 mx-auto mb-4 rounded-xl">
+                            <textarea class="w-full text-[9px] text-slate-500 p-2 bg-slate-50 border rounded-lg mb-4 text-center" rows="2" readonly>${data.code}</textarea>
                             <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="navigator.clipboard.writeText('${data.code}');alert('Copiado!')">Copiar Pix</button>
                         `;
                         _quizApp.mostrarTela('tela-pagamento');
                         _quizApp.startStatusCheck(data.txid);
                     }
-                } catch(e) { alert("Erro ao gerar Pix"); }
+                } catch(e) { console.error(e); }
             },
 
             startStatusCheck: (txid) => {
@@ -169,10 +172,17 @@
                         if (json.status === 'pago') {
                             clearInterval(window.loopVerificacao);
                             localStorage.removeItem('neuro_txid_pendente');
+                            localStorage.removeItem('neuro_nome_pendente');
                             window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(_quizApp.dados.nome)}`;
                         }
                     } catch (e) {}
                 }, 3000);
+            },
+
+            verAnuncio: () => {
+                const txid = localStorage.getItem('neuro_txid_pendente') || 'FREE';
+                const nome = _quizApp.dados.nome || localStorage.getItem('neuro_nome_pendente') || 'Visitante';
+                window.location.href = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(nome)}`;
             },
 
             mostrarTela: (id) => {
