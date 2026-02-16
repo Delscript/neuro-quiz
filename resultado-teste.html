@@ -1,10 +1,9 @@
-           <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Relatório SierComp4ny</title>
+    <title>Relatório Sier Growth</title>
     <link rel="icon" href="data:,">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -13,27 +12,17 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
         
-        /* FORMATO A4 EXATO - 1 PÁGINA FIXA */
         #relatorio {
             background-color: white;
             width: 210mm;
             height: 297mm; 
-            margin: 0px auto;
+            margin: 20px auto;
             position: relative;
-            /* Margem de 2cm */
             padding: 20mm; 
             box-sizing: border-box;
             display: none; 
             color: #1f2937;
-            overflow: hidden; /* Corta o que passar da folha */
-        }
-
-        /* FLEXBOX PARA DISTRIBUIR O CONTEÚDO SEM QUEBRAR PÁGINA */
-        .page-content {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
+            overflow: hidden; 
         }
 
         .watermark {
@@ -49,8 +38,8 @@
             white-space: nowrap;
         }
 
-        .assinatura { font-family: 'Allura', cursive; font-size: 0.5rem; color: #1e3a8a; }
-        .texto-justificado { text-align: justify; line-height: 1.4; }
+        .assinatura { font-family: 'Allura', cursive; font-size: 2.5rem; color: #1e3a8a; }
+        .texto-justificado { text-align: justify; line-height: 1.5; }
 
         #loading {
             height: 100vh; display: flex; flex-direction: column; 
@@ -66,458 +55,174 @@
     </div>
 
     <div id="relatorio" class="shadow-2xl">
-        <div class="watermark">SIERCOMP4NY</div>
+        <div class="watermark">SIER GROWTH</div>
         
-        <div class="page-content relative z-10">
-            
+        <div class="flex justify-between border-b-2 border-slate-800 pb-4 mb-10 relative z-10">
             <div>
-                <div class="flex justify-between border-b-2 border-slate-800 pb-4 mb-6">
-                    <div>
-                         <h1 class="text-xl font-bold tracking-widest">SIERCOMP4NY</h1>
-                <p class="text-[10px] text-gray-400 uppercase tracking-wider mt-1">
-                    Intelligence & <span class="text-orange-500 font-bold">Sier Growth</span>
-                </p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[10px] text-slate-400 uppercase font-bold mt-2">Relatório Confidencial</p>
-                        <p class="text-[9px] text-slate-300" id="data-hoje">Data: --/--/----</p>
-                    </div>
-                </div>
-
-                <div class="text-center mb-8">
-                    <span class="bg-blue-50 text-blue-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Resultado da Análise</span>
-                    <h2 id="titulo-perfil" class="text-3xl font-black text-slate-800 mt-4 uppercase">...</h2>
-                    <p id="subtitulo-perfil" class="text-lg text-slate-500 italic mt-1">...</p>
-                </div>
-
-                <div class="flex justify-center gap-8 mb-8">
-                    <div class="text-center w-32 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
-                        <p class="text-[10px] font-bold text-slate-400 mb-1 uppercase">Razão (QI)</p>
-                        <p class="text-4xl font-black text-blue-600"><span id="val-qi">0</span></p>
-                    </div>
-                    <div class="text-center w-32 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
-                        <p class="text-[10px] font-bold text-slate-400 mb-1 uppercase">Emoção (QE)</p>
-                        <p class="text-4xl font-black text-orange-500"><span id="val-qe">0</span></p>
-                    </div>
-                </div>
-
-                <div class="space-y-6 px-2">
-                    <div class="flex gap-4 items-start">
-                        <span class="text-2xl mt-1">👁️</span>
-                        <div>
-                            <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Diagnóstico</h3>
-                            <p id="texto-analise-1" class="text-sm text-slate-600 texto-justificado">...</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4 items-start">
-                        <span class="text-2xl mt-1">🚀</span>
-                        <div>
-                            <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Direção</h3>
-                            <p id="texto-analise-2" class="text-sm text-slate-600 texto-justificado">...</p>
-                        </div>
-                    </div>
-                </div>
+                <h1 class="text-2xl font-black tracking-widest text-orange-600">SIER GROWTH</h1>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Intelligence Engine v2.0</p>
             </div>
-
-            <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-r-lg mt-6">
-                <p class="text-xs text-orange-800 font-medium italic text-center">
-                    "O autoconhecimento é o primeiro passo para o domínio. Use este mapa não para definir quem você é, mas para projetar quem você será."
-                </p>
+            <div class="text-right">
+                <p class="text-[10px] text-slate-400 uppercase font-bold mt-2">Relatório Confidencial</p>
+                <p class="text-[9px] text-slate-300" id="data-hoje"></p>
             </div>
+        </div>
 
-            <div class="border-t border-slate-200 pt-6 flex justify-between items-end mt-4">
+        <div class="text-center mb-10 relative z-10">
+            <span class="bg-blue-50 text-blue-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Resultado da Análise</span>
+            <h2 id="titulo-perfil" class="text-4xl font-black text-slate-800 mt-4 uppercase">...</h2>
+            <p id="subtitulo-perfil" class="text-lg text-slate-500 italic mt-2">...</p>
+        </div>
+
+        <div class="flex justify-center gap-8 mb-10 relative z-10">
+            <div class="text-center w-32 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 mb-1 uppercase">Razão (QI)</p>
+                <p class="text-4xl font-black text-blue-600" id="val-qi">0</p>
+            </div>
+            <div class="text-center w-32 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 mb-1 uppercase">Emoção (QE)</p>
+                <p class="text-4xl font-black text-orange-500" id="val-qe">0</p>
+            </div>
+        </div>
+
+        <div class="space-y-6 px-2 mb-10 relative z-10">
+            <div class="flex gap-4 items-start">
+                <span class="text-2xl mt-1">👁️</span>
                 <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Avaliado</p>
-                    <h4 id="nome-cliente" class="text-lg font-bold text-slate-900 mt-1">...</h4>
-                    <p id="profissao-cliente" class="text-[10px] text-orange-600 font-bold uppercase mt-0.5">...</p>
+                    <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Diagnóstico</h3>
+                    <p id="texto-analise-1" class="text-sm text-slate-600 texto-justificado"></p>
                 </div>
-                <div class="text-right">
-                    <div class="assinatura mb-2">Anderson Dias</div>
-                    <p class="text-[9px] text-gray-400 uppercase mt-0.5">Dias Anderson • Founder & Lead Developer Sier Growth</p>
+            </div>
+            <div class="flex gap-4 items-start">
+                <span class="text-2xl mt-1">🚀</span>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Direção</h3>
+                    <p id="texto-analise-2" class="text-sm text-slate-600 texto-justificado"></p>
                 </div>
             </div>
         </div>
+
+        <div class="bg-orange-50 border-l-4 border-orange-500 p-4 mb-10 relative z-10 rounded-r-lg">
+            <p class="text-xs text-orange-800 font-medium italic">
+                "O autoconhecimento é o primeiro passo para o domínio. Use este mapa para projetar quem você será."
+            </p>
+        </div>
+
+        <div class="absolute bottom-20 left-20 right-20 border-t border-slate-200 pt-6 flex justify-between items-end">
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Avaliado</p>
+                <h4 id="nome-cliente" class="text-lg font-bold text-slate-900 mt-1">...</h4>
+                <p id="profissao-cliente" class="text-[10px] text-orange-600 font-bold uppercase mt-0.5"></p>
+            </div>
+            <div class="text-right">
+                <div class="assinatura mb-2">Anderson Dias</div>
+                <p class="text-[9px] text-slate-400 font-bold uppercase">CEO • SierComp4ny</p>
+            </div>
+        </div>
     </div>
-      <div class="fixed bottom-6 right-6 flex flex-col gap-3 z-50 no-print">
-        <a href="https://wa.me/5571999466243?text=Ol%C3%A1%2C%20recebi%20meu%20relat%C3%B3rio!" target="_blank" class="hidden flex items-center justify-center w-12 h-12 bg-green-500 text-white rounded-full shadow-lg hover:bg-green-600 transition hover:scale-110" id="btn-whatsapp">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-        </a>
-    </div>
+
     <div id="btn-area" class="fixed bottom-10 left-0 right-0 flex justify-center hidden z-50">
-        <button onclick="gerarPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-2xl flex items-center gap-2 transition-transform hover:scale-105 border-4 border-white">
+        <button onclick="gerarPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-2xl transition-all hover:scale-105">
             BAIXAR PDF (A4)
         </button>
     </div>
 
     <script>
-        const URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
-        const KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-        const supabaseClient = window.supabase.createClient(URL_DB, KEY_DB);
-
-        const params = new URLSearchParams(window.location.search);
-        const txid = params.get('txid');
-        const nomeURL = params.get('nome');
-
-        document.getElementById('data-hoje').innerText = "Emissão: " + new Date().toLocaleDateString('pt-BR');
-
-                 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Relatório SierComp4ny</title>
-    <link rel="icon" href="data:,">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
-    
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
-        
-        /* FORMATO A4 EXATO - 1 PÁGINA FIXA */
-        #relatorio {
-            background-color: white;
-            width: 210mm;
-            height: 297mm; 
-            margin: 0px auto;
-            position: relative;
-            /* Margem de 2cm */
-            padding: 20mm; 
-            box-sizing: border-box;
-            display: none; 
-            color: #1f2937;
-            overflow: hidden; /* Corta o que passar da folha */
-        }
-
-        /* FLEXBOX PARA DISTRIBUIR O CONTEÚDO SEM QUEBRAR PÁGINA */
-        .page-content {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-        }
-
-        .watermark {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 6rem;
-            font-weight: 900;
-            color: rgba(249, 115, 22, 0.04);
-            pointer-events: none;
-            z-index: 0;
-            white-space: nowrap;
-        }
-
-        .assinatura { font-family: 'Allura', cursive; font-size: 0.5rem; color: #1e3a8a; }
-        .texto-justificado { text-align: justify; line-height: 1.4; }
-
-        #loading {
-            height: 100vh; display: flex; flex-direction: column; 
-            justify-content: center; align-items: center;
-        }
-    </style>
-</head>
-<body>
-
-    <div id="loading">
-        <div class="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-slate-600 font-bold uppercase tracking-widest text-xs">Gerando Relatório...</p>
-    </div>
-
-    <div id="relatorio" class="shadow-2xl">
-        <div class="watermark">SIERCOMP4NY</div>
-        
-        <div class="page-content relative z-10">
-            
-            <div>
-                <div class="flex justify-between border-b-2 border-slate-800 pb-4 mb-6">
-                    <div>
-                         <h1 class="text-xl font-bold tracking-widest">SIERCOMP4NY</h1>
-                <p class="text-[10px] text-gray-400 uppercase tracking-wider mt-1">
-                    Intelligence & <span class="text-orange-500 font-bold">Sier Growth</span>
-                </p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[10px] text-slate-400 uppercase font-bold mt-2">Relatório Confidencial</p>
-                        <p class="text-[9px] text-slate-300" id="data-hoje">Data: --/--/----</p>
-                    </div>
-                </div>
-
-                <div class="text-center mb-8">
-                    <span class="bg-blue-50 text-blue-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Resultado da Análise</span>
-                    <h2 id="titulo-perfil" class="text-3xl font-black text-slate-800 mt-4 uppercase">...</h2>
-                    <p id="subtitulo-perfil" class="text-lg text-slate-500 italic mt-1">...</p>
-                </div>
-
-                <div class="flex justify-center gap-8 mb-8">
-                    <div class="text-center w-32 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
-                        <p class="text-[10px] font-bold text-slate-400 mb-1 uppercase">Razão (QI)</p>
-                        <p class="text-4xl font-black text-blue-600"><span id="val-qi">0</span></p>
-                    </div>
-                    <div class="text-center w-32 bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
-                        <p class="text-[10px] font-bold text-slate-400 mb-1 uppercase">Emoção (QE)</p>
-                        <p class="text-4xl font-black text-orange-500"><span id="val-qe">0</span></p>
-                    </div>
-                </div>
-
-                <div class="space-y-6 px-2">
-                    <div class="flex gap-4 items-start">
-                        <span class="text-2xl mt-1">👁️</span>
-                        <div>
-                            <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Diagnóstico</h3>
-                            <p id="texto-analise-1" class="text-sm text-slate-600 texto-justificado">...</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4 items-start">
-                        <span class="text-2xl mt-1">🚀</span>
-                        <div>
-                            <h3 class="text-sm font-bold text-slate-800 uppercase mb-1">Direção</h3>
-                            <p id="texto-analise-2" class="text-sm text-slate-600 texto-justificado">...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-r-lg mt-6">
-                <p class="text-xs text-orange-800 font-medium italic text-center">
-                    "O autoconhecimento é o primeiro passo para o domínio. Use este mapa não para definir quem você é, mas para projetar quem você será."
-                </p>
-            </div>
-
-            <div class="border-t border-slate-200 pt-6 flex justify-between items-end mt-4">
-                <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Avaliado</p>
-                    <h4 id="nome-cliente" class="text-lg font-bold text-slate-900 mt-1">...</h4>
-                    <p id="profissao-cliente" class="text-[10px] text-orange-600 font-bold uppercase mt-0.5">...</p>
-                </div>
-                <div class="text-right">
-                    <div class="assinatura mb-2">Anderson Dias</div>
-                    <p class="text-[9px] text-gray-400 uppercase mt-0.5">Dias Anderson • Founder & Lead Developer Sier Growth</p>
-                </div>
-            </div>
-        </div>
-    </div>
-      <div class="fixed bottom-6 right-6 flex flex-col gap-3 z-50 no-print">
-        <a href="https://wa.me/5571999466243?text=Ol%C3%A1%2C%20recebi%20meu%20relat%C3%B3rio!" target="_blank" class="hidden flex items-center justify-center w-12 h-12 bg-green-500 text-white rounded-full shadow-lg hover:bg-green-600 transition hover:scale-110" id="btn-whatsapp">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-        </a>
-    </div>
-    <div id="btn-area" class="fixed bottom-10 left-0 right-0 flex justify-center hidden z-50">
-        <button onclick="gerarPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-2xl flex items-center gap-2 transition-transform hover:scale-105 border-4 border-white">
-            BAIXAR PDF (A4)
-        </button>
-    </div>
-
-    <script>
-        const URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
-        const KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-        const supabaseClient = window.supabase.createClient(URL_DB, KEY_DB);
-
-        const params = new URLSearchParams(window.location.search);
-        const txid = params.get('txid');
-        const nomeURL = params.get('nome');
-
-        document.getElementById('data-hoje').innerText = "Emissão: " + new Date().toLocaleDateString('pt-BR');
-
-      async function carregarDados() {
-    const params = new URLSearchParams(window.location.search);
-    const txid = params.get('txid');
-    const nomeURL = params.get('nome') || "Visitante";
-    const qiURL = params.get('qi') || 0;
-    const qeURL = params.get('qe') || 0;
-    const faseURL = params.get('fase') || "Profissional";
-
-    // --- O PULO DO GATO ---
-    // Se for FREE, não chama o Supabase. Usa os dados que mandamos pelo link.
-    if (txid === 'FREE' || txid === null) {
-        console.log("Modo Grátis ativado. Ignorando consulta ao banco.");
-        preencherRelatorio({
-            nome: nomeURL,
-            fase_profissional: faseURL,
-            qi_score: parseInt(qiURL),
-            qe_score: parseInt(qeURL)
-        });
-        return; // Encerra aqui e não dá o erro 406
-    }
-
-    // Se NÃO for FREE, aí sim ele busca o pagamento no banco
-    try {
-        const { data, error } = await supabaseClient
-            .from('leads')
-            .select('*')
-            .eq('txid', txid)
-            .single();
-
-        if (error || !data) {
-            // Se o banco falhar, usa os dados da URL como plano B (Segurança)
-            preencherRelatorio({
-                nome: nomeURL,
-                fase_profissional: faseURL,
-                qi_score: parseInt(qiURL),
-                qe_score: parseInt(qeURL)
-            });
-        } else {
-            preencherRelatorio(data);
-        }
-    } catch (err) {
-        console.error("Erro na consulta:", err);
-    }
-}
-            // SUA LÓGICA RESTAURADA (Baseada em > 6)
-            let titulo, subtitulo, txt1, txt2;
-
-            if (qi > 6 && qe > 6) {
-                titulo = "Potência Expansiva";
-                subtitulo = "Alto desempenho em Razão e Emoção.";
-                txt1 = "Você atingiu um nível de equilíbrio raro. Sua capacidade de resolver problemas lógicos complexos caminha junto com uma leitura emocional precisa das situações.";
-                txt2 = "Seu desafio agora não é mais técnico, é de escala. Você tem o perfil exato para liderar grandes movimentos ou empresas.";
-            } else if (qi > 6) {
-                titulo = "Executor Solitário";
-                subtitulo = "Alta capacidade técnica, desafio em conexão.";
-                txt1 = "Sua mente é uma máquina de resolver problemas. Onde outros veem caos, você vê padrões. Porém, pode estar deixando dinheiro na mesa por não conectar com as pessoas.";
-                txt2 = "Para crescer, você precisa delegar a parte técnica e focar em vender sua visão. A lógica constrói, mas é a emoção que vende.";
-            } else if (qe > 6) {
-                titulo = "Conector Nato";
-                subtitulo = "Influência alta, precisa de método.";
-                txt1 = "Você abre portas que ninguém mais consegue. Sua habilidade de ler o ambiente é seu maior ativo. Porém, cuidado para não perder o foco nos resultados frios e números.";
-                txt2 = "Sua alavanca de crescimento está em se associar a processos sólidos. Use seu carisma para liderar, mas use dados para decidir.";
-            } else {
-                titulo = "Em Construção";
-                subtitulo = "O início da jornada de consciência.";
-                txt1 = "Este resultado indica que você pode estar em um momento de transição ou bloqueio. Suas respostas mostram cautela excessiva tanto na lógica quanto na emoção.";
-                txt2 = "O lado bom: você é uma folha em branco pronta para ser moldada. Foque em desenvolver uma habilidade técnica forte primeiro.";
-            }
-
-            document.getElementById('titulo-perfil').innerText = titulo;
-            document.getElementById('subtitulo-perfil').innerText = subtitulo;
-            document.getElementById('texto-analise-1').innerHTML = txt1;
-            document.getElementById('texto-analise-2').innerHTML = txt2;
-
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('relatorio').style.display = 'block';
-            document.getElementById('btn-area').classList.remove('hidden');
-            document.getElementById('btn-whatsapp').classList.remove('hidden');
-        }
-
-          function gerarPDF() {
-            const btnArea = document.getElementById('btn-area');
-            btnArea.style.display = 'none';
-            
-            const elemento = document.getElementById("relatorio");
-            
-            const opt = {
-                margin: 0, // Margem já está no CSS do elemento
-                filename: `Relatorio_Sier_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-        html2pdf()
-            .set(opt)
-            .from(elemento)
-            .toPdf()
-            .get('pdf')
-            .then(function (pdf) {
-                // 🔥 Remove qualquer página extra criada
-                if (pdf.internal.getNumberOfPages() > 1) {
-                    pdf.deletePage(2);
-                }
-            })
-            .save()
-            .then(() => {
-                btnArea.style.display = 'flex';
-            });
-    }
-
+        const _URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
+        const _KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
+        const supabaseClient = window.supabase.createClient(_URL_DB, _KEY_DB);
 
         window.onload = carregarDados;
-    </script>
-</body>
-</html>
+
+        async function carregarDados() {
+            const params = new URLSearchParams(window.location.search);
+            const txid = params.get('txid');
+            const nomeURL = params.get('nome') || "Visitante";
+            const qiURL = params.get('qi') || 0;
+            const qeURL = params.get('qe') || 0;
+            const faseURL = params.get('fase') || "Profissional";
+
+            document.getElementById('data-hoje').innerText = "Data: " + new Date().toLocaleDateString('pt-BR');
+
+            if (txid === 'FREE' || !txid) {
+                console.log("Processando modo grátis...");
+                preencherRelatorio({
+                    nome: nomeURL,
+                    fase_profissional: faseURL,
+                    qi_score: parseInt(qiURL),
+                    qe_score: parseInt(qeURL)
+                });
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient.from('leads').select('*').eq('txid', txid).single();
+                if (data) {
+                    preencherRelatorio(data);
+                } else {
+                    preencherRelatorio({ nome: nomeURL, fase_profissional: faseURL, qi_score: parseInt(qiURL), qe_score: parseInt(qeURL) });
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
 
         function preencherRelatorio(dados) {
-            document.getElementById('nome-cliente').innerText = dados.nome || nomeURL;
-            document.getElementById('profissao-cliente').innerText = dados.fase_profissional || "Em Análise";
-            
-            const qi = dados.qi_score || 0;
-            const qe = dados.qe_score || 0;
-            
-            document.getElementById('val-qi').innerText = qi;
-            document.getElementById('val-qe').innerText = qe;
+            document.getElementById('nome-cliente').innerText = dados.nome;
+            document.getElementById('profissao-cliente').innerText = dados.fase_profissional;
+            document.getElementById('val-qi').innerText = dados.qi_score;
+            document.getElementById('val-qe').innerText = dados.qe_score;
 
-            // SUA LÓGICA RESTAURADA (Baseada em > 6)
-            let titulo, subtitulo, txt1, txt2;
+            let qi = dados.qi_score;
+            let qe = dados.qe_score;
+            let t, s, d, r;
 
             if (qi > 6 && qe > 6) {
-                titulo = "Potência Expansiva";
-                subtitulo = "Alto desempenho em Razão e Emoção.";
-                txt1 = "Você atingiu um nível de equilíbrio raro. Sua capacidade de resolver problemas lógicos complexos caminha junto com uma leitura emocional precisa das situações.";
-                txt2 = "Seu desafio agora não é mais técnico, é de escala. Você tem o perfil exato para liderar grandes movimentos ou empresas.";
+                t = "Potência Expansiva";
+                s = "Alto desempenho em Razão e Emoção.";
+                d = "Você atingiu um nível de equilíbrio raro. Sua capacidade de resolver problemas lógicos complexos caminha junto com uma leitura emocional precisa.";
+                r = "Seu desafio agora é escala. Você tem o perfil exato para liderar grandes movimentos ou empresas.";
             } else if (qi > 6) {
-                titulo = "Executor Solitário";
-                subtitulo = "Alta capacidade técnica, desafio em conexão.";
-                txt1 = "Sua mente é uma máquina de resolver problemas. Onde outros veem caos, você vê padrões. Porém, pode estar deixando dinheiro na mesa por não conectar com as pessoas.";
-                txt2 = "Para crescer, você precisa delegar a parte técnica e focar em vender sua visão. A lógica constrói, mas é a emoção que vende.";
+                t = "Executor Solitário";
+                s = "Alta capacidade técnica, desafio em conexão.";
+                d = "Sua mente é uma máquina de resolver problemas. Onde outros veem caos, você vê padrões.";
+                r = "Para crescer, você precisa focar em vender sua visão. A lógica constrói, mas é a emoção que vende.";
             } else if (qe > 6) {
-                titulo = "Conector Nato";
-                subtitulo = "Influência alta, precisa de método.";
-                txt1 = "Você abre portas que ninguém mais consegue. Sua habilidade de ler o ambiente é seu maior ativo. Porém, cuidado para não perder o foco nos resultados frios e números.";
-                txt2 = "Sua alavanca de crescimento está em se associar a processos sólidos. Use seu carisma para liderar, mas use dados para decidir.";
+                t = "Conector Nato";
+                s = "Influência alta, precisa de método.";
+                d = "Você abre portas que ninguém mais consegue. Sua habilidade de ler o ambiente é seu maior ativo.";
+                r = "Use seu carisma para liderar, mas use dados para decidir. Sua alavanca de crescimento está em se associar a processos sólidos.";
             } else {
-                titulo = "Em Construção";
-                subtitulo = "O início da jornada de consciência.";
-                txt1 = "Este resultado indica que você pode estar em um momento de transição ou bloqueio. Suas respostas mostram cautela excessiva tanto na lógica quanto na emoção.";
-                txt2 = "O lado bom: você é uma folha em branco pronta para ser moldada. Foque em desenvolver uma habilidade técnica forte primeiro.";
+                t = "Em Construção";
+                s = "O início da jornada de consciência.";
+                d = "Este resultado indica que você pode estar em um momento de transição ou bloqueio.";
+                r = "Foque em desenvolver uma habilidade técnica forte primeiro. Você é uma folha em branco pronta para ser moldada.";
             }
 
-            document.getElementById('titulo-perfil').innerText = titulo;
-            document.getElementById('subtitulo-perfil').innerText = subtitulo;
-            document.getElementById('texto-analise-1').innerHTML = txt1;
-            document.getElementById('texto-analise-2').innerHTML = txt2;
+            document.getElementById('titulo-perfil').innerText = t;
+            document.getElementById('subtitulo-perfil').innerText = s;
+            document.getElementById('texto-analise-1').innerText = d;
+            document.getElementById('texto-analise-2').innerText = r;
 
             document.getElementById('loading').style.display = 'none';
             document.getElementById('relatorio').style.display = 'block';
             document.getElementById('btn-area').classList.remove('hidden');
-            document.getElementById('btn-whatsapp').classList.remove('hidden');
         }
 
-          function gerarPDF() {
-            const btnArea = document.getElementById('btn-area');
-            btnArea.style.display = 'none';
-            
+        function gerarPDF() {
+            document.getElementById('btn-area').style.display = 'none';
             const elemento = document.getElementById("relatorio");
-            
             const opt = {
-                margin: 0, // Margem já está no CSS do elemento
+                margin: 0,
                 filename: `Relatorio_Sier_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+                html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-
-        html2pdf()
-            .set(opt)
-            .from(elemento)
-            .toPdf()
-            .get('pdf')
-            .then(function (pdf) {
-                // 🔥 Remove qualquer página extra criada
-                if (pdf.internal.getNumberOfPages() > 1) {
-                    pdf.deletePage(2);
-                }
-            })
-            .save()
-            .then(() => {
-                btnArea.style.display = 'flex';
+            html2pdf().set(opt).from(elemento).save().then(() => {
+                document.getElementById('btn-area').style.display = 'flex';
             });
-    }
-
-
-        window.onload = carregarDados;
+        }
     </script>
 </body>
 </html>
