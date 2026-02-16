@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sier Growth - Neuro Quiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; margin: 0; padding: 0; }
@@ -14,12 +15,15 @@
         .hidden { display: none !important; }
         .barra-progresso { height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
         .progresso-fill { height: 100%; background: linear-gradient(to right, #f97316, #ea580c); width: 0%; transition: width 0.3s; }
+        .tela-app { display: none; }
+        .tela-app.ativa { display: block; animation: aparecer 0.4s; }
+        @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
     <div class="w-full max-w-md">
-        <div id="tela-inicio" class="card-quiz text-center">
+        <div id="tela-inicio" class="card-quiz text-center tela-app ativa">
             <h1 class="text-2xl font-black text-orange-500 mb-1 uppercase tracking-tighter">Sier Growth</h1>
             <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 italic font-semibold">Intelligence Engine v2.0</p>
             <div class="space-y-4">
@@ -30,41 +34,57 @@
             </div>
         </div>
 
-        <div id="tela-perguntas" class="card-quiz hidden">
+        <div id="tela-perguntas" class="card-quiz tela-app">
             <div class="barra-progresso"><div id="barra-progresso" class="progresso-fill"></div></div>
             <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-6 uppercase tracking-widest text-center">
-                <span>PERGUNTA <span id="num-pergunta">1</span>/20</span>
-                <span class="text-orange-500 italic">Neuro-Análise</span>
+                <span>QUESTÃO <span id="num-pergunta">1</span>/20</span>
+                <span class="text-orange-500 italic">NEURO-ANÁLISE</span>
             </div>
-            <h2 id="texto-pergunta" class="text-lg font-bold mb-8 leading-tight text-slate-100">...</h2>
+            <h2 id="texto-pergunta" class="text-lg font-bold mb-8 text-center text-slate-100 leading-tight">...</h2>
             <div id="area-opcoes"></div>
         </div>
 
-        <div id="tela-carregando" class="card-quiz text-center hidden">
+        <div id="tela-carregando" class="card-quiz text-center tela-app">
             <div class="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
             <h2 class="text-lg font-bold">Processando Respostas...</h2>
-            <p class="text-xs text-slate-500 mt-2 uppercase tracking-widest">Cruzando métricas neurais</p>
+            <p class="text-xs text-slate-500 mt-2 uppercase tracking-widest text-center">Cruzando métricas neurais</p>
         </div>
 
-        <div id="tela-pagamento" class="card-quiz text-center hidden">
-            <h2 class="text-2xl font-black text-green-500 mb-2 italic uppercase text-center">Análise Pronta!</h2>
-            <div id="area-qr" class="bg-white p-6 rounded-[32px] text-black my-4">Gerando Pix Seguro...</div>
+        <div id="tela-pagamento" class="card-quiz text-center tela-app">
+            <h2 class="text-2xl font-black text-green-500 mb-2 italic uppercase">Análise Concluída!</h2>
+            <div id="area-qr" class="bg-white p-6 rounded-[32px] text-black my-4 flex flex-col items-center">
+                Gerando Pix Seguro...
+            </div>
             <p id="status-pagamento" class="text-[10px] text-blue-500 font-bold uppercase animate-pulse mb-6">⏳ Aguardando pagamento...</p>
             
             <div class="space-y-4">
-                <button onclick="_quizApp.verAnuncio()" class="w-full bg-slate-800 border border-slate-700 py-4 rounded-xl font-bold text-blue-400 text-xs">
+                <button onclick="_quizApp.verAnuncio()" class="w-full bg-slate-800 border border-slate-700 py-4 rounded-xl font-bold text-blue-400 text-xs hover:bg-slate-700">
                     📺 ASSISTIR VÍDEO (GERAR RELATÓRIO GRÁTIS)
                 </button>
-                <button onclick="localStorage.removeItem('neuro_txid_pendente'); location.reload();" class="text-[9px] text-slate-600 uppercase font-bold tracking-widest">Reiniciar Teste</button>
+                <button onclick="localStorage.removeItem('neuro_txid_pendente'); location.reload();" class="text-[9px] text-slate-600 uppercase font-bold tracking-widest">Reiniciar Avaliação</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO ---
+        // --- CONFIGURAÇÃO SUPABASE ---
+        const _URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
+        const _KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
+        const _CHAVE_PIX = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; // SUA CHAVE INTEGRADA
+        
+        var supabaseClient = null;
+        try { if(window.supabase) supabaseClient = window.supabase.createClient(_URL_DB, _KEY_DB); } catch(e) {}
+
+        window.onload = () => {
+            const pendente = localStorage.getItem('neuro_txid_pendente');
+            if (pendente) {
+                _quizApp.mostrarTela('tela-pagamento');
+                _quizApp.gerarPix(true); 
+            }
+        };
+
         var _quizApp = {
             dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: 'Não Informado' },
-            
             perguntas: [
                 { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
                 { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
@@ -72,7 +92,7 @@
                 { q: "Cliente gritou. Reação:", opts: ["Resolve calmo", "Grita", "Chora"], type: "QE", c: 0 },
                 { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
                 { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
-                { q: "Em grupo prefere:", opts: ["Liderar", "Esperar", "Fazer só"], type: "QE", q: "QI", c: 0 },
+                { q: "Em grupo prefere:", opts: ["Liderar", "Esperar", "Fazer só"], type: "QE", c: 0 },
                 { q: "Erro na empresa:", opts: ["Assume", "Esconde", "Culpa outro"], type: "QE", c: 0 },
                 { q: "20% de 500 é:", opts: ["100", "50", "200"], type: "QI", c: 0 },
                 { q: "Se ontem fosse amanhã, hoje seria sábado. Hoje é:", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
@@ -92,7 +112,7 @@
                 const n = document.getElementById('nome-usuario').value;
                 const e = document.getElementById('email-usuario').value;
                 const z = document.getElementById('whatsapp-usuario').value;
-                if(!n || !e.includes('@') || !z) return alert('Preencha os dados!');
+                if(!n || !e.includes('@') || !z) return alert('Preencha os dados corretamente!');
                 _quizApp.dados.nome = n; _quizApp.dados.email = e; _quizApp.dados.whatsapp = z;
                 _quizApp.mostrarTela('tela-perguntas');
                 _quizApp.renderizar();
@@ -121,45 +141,51 @@
             finalizar: () => { _quizApp.mostrarTela('tela-carregando'); setTimeout(() => _quizApp.gerarPix(), 1500); },
 
             gerarPix: async (isReload = false) => {
-                try {
-                    // SE FOR RELOAD, SÓ CHAMA O QUE ESTÁ NO CACHE
-                    const payload = isReload ? { txid: localStorage.getItem('neuro_txid_pendente'), nome: localStorage.getItem('neuro_nome_pendente') } : { 
-                        nome: _quizApp.dados.nome, email: _quizApp.dados.email, 
-                        whatsapp: _quizApp.dados.whatsapp, qi: _quizApp.dados.qi, 
-                        qe: _quizApp.dados.qe, fase: _quizApp.dados.fase 
-                    };
+                const areaQr = document.getElementById('area-qr');
+                if(isReload && areaQr.innerHTML.includes('<img')) {
+                    _quizApp.startStatusCheck(localStorage.getItem('neuro_txid_pendente'));
+                    return;
+                }
 
-                    const res = await fetch('/api/pix', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    const data = await res.json();
-                    if(data.txid) {
-                        localStorage.setItem('neuro_txid_pendente', data.txid);
-                        localStorage.setItem('neuro_nome_pendente', _quizApp.dados.nome || data.nome);
-                        document.getElementById('area-qr').innerHTML = `
-                            <img src="${data.img}" class="w-48 mx-auto mb-4 rounded-xl shadow-md border">
-                            <textarea class="w-full text-[9px] text-slate-500 p-2 bg-slate-50 border rounded-lg mb-4 text-center font-mono" rows="2" readonly>${data.code}</textarea>
-                            <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase shadow-lg" onclick="navigator.clipboard.writeText('${data.code}');alert('Pix Copiado!')">Copiar Pix</button>
-                        `;
-                        _quizApp.mostrarTela('tela-pagamento');
-                        _quizApp.startStatusCheck(data.txid);
-                    }
-                } catch(e) { console.error("Erro ao gerar Pix:", e); }
+                if(!isReload) {
+                    txidAtual = 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                    localStorage.setItem('neuro_txid_pendente', txidAtual);
+                    localStorage.setItem('neuro_nome_pendente', _quizApp.dados.nome);
+                    
+                    // SALVAR NO BANCO ANTES DE MOSTRAR QR
+                    try {
+                        await supabaseClient.from('leads').insert([{
+                            nome: _quizApp.dados.nome, email: _quizApp.dados.email, whatsapp: _quizApp.dados.whatsapp,
+                            qi_score: _quizApp.dados.qi, qe_score: _quizApp.dados.qe, 
+                            fase_profissional: _quizApp.dados.fase, txid: txidAtual, status_pagamento: 'pendente'
+                        }]);
+                    } catch(e) {}
+                } else {
+                    txidAtual = localStorage.getItem('neuro_txid_pendente');
+                }
+
+                const nomeURL = (localStorage.getItem('neuro_nome_pendente') || "CLIENTE").split(' ')[0].substring(0, 10).toUpperCase();
+                const payload = `00020126580014BR.GOV.BCB.PIX0114${_CHAVE_PIX}5204000053039865802BR5910${nomeURL}6009SAOPAULO62140510${txidAtual}6304`;
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(payload)}`;
+
+                areaQr.innerHTML = `
+                    <img src="${qrUrl}" class="w-48 mx-auto mb-4 rounded-xl border">
+                    <textarea class="w-full text-[9px] text-slate-500 p-2 bg-slate-50 border rounded-lg mb-4 text-center font-mono" rows="2" readonly>${payload}</textarea>
+                    <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="navigator.clipboard.writeText('${payload}');alert('Pix Copiado!')">Copiar Pix</button>
+                `;
+                _quizApp.mostrarTela('tela-pagamento');
+                _quizApp.startStatusCheck(txidAtual);
             },
 
             startStatusCheck: (txid) => {
                 if (window.loopVerificacao) clearInterval(window.loopVerificacao);
                 window.loopVerificacao = setInterval(async () => {
                     try {
-                        const res = await fetch('/api/status?txid=' + txid);
-                        const json = await res.json();
-                        if (json.status === 'pago') {
+                        const { data } = await supabaseClient.from('leads').select('status_pagamento').eq('txid', txid).maybeSingle();
+                        if (data && data.status_pagamento === 'pago') {
                             clearInterval(window.loopVerificacao);
                             localStorage.removeItem('neuro_txid_pendente');
-                            localStorage.removeItem('neuro_nome_pendente');
-                            window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(_quizApp.dados.nome)}`;
+                            window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(localStorage.getItem('neuro_nome_pendente') || _quizApp.dados.nome)}`;
                         }
                     } catch (e) {}
                 }, 3000);
@@ -167,23 +193,12 @@
 
             verAnuncio: () => {
                 const n = _quizApp.dados.nome || localStorage.getItem('neuro_nome_pendente') || 'Visitante';
-                // PASSA OS SCORES NA URL PARA O MODO FREE
                 window.location.href = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(n)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
             },
 
             mostrarTela: (id) => {
-                const telas = ['tela-inicio', 'tela-perguntas', 'tela-carregando', 'tela-pagamento'];
-                telas.forEach(t => document.getElementById(t).classList.add('hidden'));
-                document.getElementById(id).classList.remove('hidden');
-            }
-        };
-
-        // --- RECUPERAÇÃO F5 ---
-        window.onload = () => {
-            const pendente = localStorage.getItem('neuro_txid_pendente');
-            if (pendente) {
-                _quizApp.mostrarTela('tela-pagamento');
-                _quizApp.gerarPix(true); 
+                document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
+                document.getElementById(id).classList.add('ativa');
             }
         };
     </script>
