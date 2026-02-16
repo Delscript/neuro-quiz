@@ -24,7 +24,7 @@
     <div class="w-full max-w-md">
         <div id="tela-inicio" class="card-quiz text-center tela-app ativa">
             <h1 class="text-2xl font-black text-orange-500 mb-1 uppercase tracking-tighter">Sier Growth</h1>
-            <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 italic font-semibold">Intelligence Engine v2.0</p>
+            <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 italic font-semibold text-center">Intelligence Engine v2.0</p>
             <div class="space-y-4">
                 <input type="text" id="nome-usuario" placeholder="Nome Completo" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-orange-500 outline-none text-sm text-white">
                 <input type="email" id="email-usuario" placeholder="E-mail" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-orange-500 outline-none text-sm text-white">
@@ -58,21 +58,18 @@
                 <button onclick="_quizApp.verAnuncio()" class="w-full bg-slate-800 border border-slate-700 py-4 rounded-xl font-bold text-blue-400 text-xs hover:bg-slate-700 transition-all">
                     📺 ASSISTIR VÍDEO (GERAR RELATÓRIO GRÁTIS)
                 </button>
-                
                 <button onclick="localStorage.removeItem('neuro_txid_pendente'); location.reload();" class="text-[9px] text-slate-600 uppercase font-bold tracking-widest">Reiniciar Avaliação</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- BLINDAGEM DE F5 ORIGINAL (O TRAVA QR CODE) ---
+        // --- BLINDAGEM DE F5 ORIGINAL ---
         window.onload = () => {
             const pendente = localStorage.getItem('neuro_txid_pendente');
             if (pendente) {
                 _quizApp.mostrarTela('tela-pagamento');
-                document.getElementById('area-qr').innerHTML = `<p class="text-slate-800 text-xs font-bold p-4">Recuperando seu QR Code...</p>`;
                 _quizApp.startStatusCheck(pendente);
-                // Chama a geração para restaurar o visual do QR se o txid existe
                 _quizApp.gerarPix(true); 
             }
         };
@@ -125,6 +122,7 @@
                     const btn = document.createElement('div');
                     btn.className = 'opcao-btn'; btn.innerText = opt;
                     btn.onclick = () => {
+                        // Lógica de captura de fase profissional e pontuação
                         if(q.type === 'SEG') _quizApp.dados.fase = opt;
                         else if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
                         _quizApp.dados.idx++; _quizApp.renderizar();
@@ -169,6 +167,7 @@
                     try {
                         const res = await fetch('/api/status?txid=' + txid);
                         const json = await res.json();
+                        // Redirecionamento automático quando o status for 'pago'
                         if (json.status === 'pago') {
                             clearInterval(window.loopVerificacao);
                             localStorage.removeItem('neuro_txid_pendente');
@@ -180,9 +179,9 @@
             },
 
             verAnuncio: () => {
-                const txid = localStorage.getItem('neuro_txid_pendente') || 'FREE';
                 const nome = _quizApp.dados.nome || localStorage.getItem('neuro_nome_pendente') || 'Visitante';
-                window.location.href = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(nome)}`;
+                // Envia para o resultado com o score via URL para evitar 406 do Supabase em testes rápidos
+                window.location.href = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
             },
 
             mostrarTela: (id) => {
