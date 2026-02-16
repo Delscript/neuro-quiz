@@ -237,40 +237,37 @@
             }
         }
 
-        // --- MÁGICA DO PDF V3 (CLONE PERFEITO + RODAPÉ FIXO) ---
-                  function gerarPDF() {
-            const btnArea = document.getElementById('btn-area');
-            btnArea.style.display = 'none';
+         // --- MÁGICA DO PDF V3 (CLONE PERFEITO + RODAPÉ FIXO) ---
+        function gerarPDF() {
+            const elemento = document.getElementById('relatorio');
+            const clone = elemento.cloneNode(true);
             
-            const elemento = document.getElementById("relatorio");
+            // Aplica modo impressão A4
+            clone.classList.remove('hidden', 'max-w-3xl', 'shadow-2xl', 'rounded-lg', 'overflow-hidden');
+            clone.classList.add('modo-pdf');
             
+            document.body.appendChild(clone);
+
             const opt = {
-                margin: 0, // Margem já está no CSS do elemento
-                filename: `Relatorio_Sier_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+                margin: 0, // MARGEM ZERO = SEM BORDA BRANCA
+                filename: 'Relatorio_SierComp4ny.pdf',
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { 
+                    scale: 2, 
+                    useCORS: true, 
+                    scrollY: 0,
+                    backgroundColor: '#ffffff'
+                },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-        html2pdf()
-            .set(opt)
-            .from(elemento)
-            .toPdf()
-            .get('pdf')
-            .then(function (pdf) {
-                // 🔥 Remove qualquer página extra criada
-                if (pdf.internal.getNumberOfPages() > 1) {
-                    pdf.deletePage(2);
-                }
-            })
-            .save()
-            .then(() => {
-                btnArea.style.display = 'flex';
+            html2pdf().set(opt).from(clone).save().then(() => {
+                document.body.removeChild(clone);
             });
-    }
+        }
 
+        init();
 
-        window.onload = carregarDados;
     </script>
 </body>
 </html>
