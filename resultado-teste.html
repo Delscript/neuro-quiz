@@ -322,7 +322,7 @@
 
         document.getElementById('data-hoje').innerText = "Emissão: " + new Date().toLocaleDateString('pt-BR');
 
-       async function carregarDados() {
+      async function carregarDados() {
     const params = new URLSearchParams(window.location.search);
     const txid = params.get('txid');
     const nomeURL = params.get('nome') || "Visitante";
@@ -366,7 +366,6 @@
         console.error("Erro na consulta:", err);
     }
 }
-
             // SUA LÓGICA RESTAURADA (Baseada em > 6)
             let titulo, subtitulo, txt1, txt2;
 
