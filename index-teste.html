@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sier Growth - Neuro Quiz</title>
-    <link rel="icon" href="data:,">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -16,24 +14,28 @@
         .hidden { display: none !important; }
         .barra-progresso { height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
         .progresso-fill { height: 100%; background: linear-gradient(to right, #f97316, #ea580c); width: 0%; transition: width 0.3s; }
+        .tela-app { display: none; }
+        .tela-app.ativa { display: block; animation: aparecer 0.4s; }
+        @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
     <div class="w-full max-w-md">
-        <div id="tela-inicio" class="card-quiz text-center">
+        
+        <div id="tela-inicio" class="card-quiz text-center tela-app ativa">
             <h1 class="text-2xl font-black text-orange-500 mb-1 uppercase tracking-tighter">Sier Growth</h1>
             <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 italic font-semibold">Intelligence Engine v2.0</p>
+            
             <div class="space-y-4">
                 <input type="text" id="nome-usuario" placeholder="Nome Completo" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-orange-500 outline-none text-sm text-white">
                 <input type="email" id="email-usuario" placeholder="E-mail" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-orange-500 outline-none text-sm text-white">
                 <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp (DDD)" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-orange-500 outline-none text-sm text-white">
-                <button type="button" onclick="startQuiz()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-extrabold text-lg shadow-lg transition-all">Iniciar Avaliação</button>
+                <button type="button" onclick="_quizApp.iniciar()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-extrabold text-lg shadow-lg">Iniciar Avaliação</button>
             </div>
-            <button onclick="resetTotal()" class="mt-8 text-[9px] text-slate-700 uppercase tracking-widest hover:text-slate-400">Limpar Cache</button>
         </div>
 
-        <div id="tela-perguntas" class="card-quiz hidden">
+        <div id="tela-perguntas" class="card-quiz tela-app">
             <div class="barra-progresso"><div id="barra-progresso" class="progresso-fill"></div></div>
             <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-6 uppercase tracking-widest text-center">
                 <span>PERGUNTA <span id="num-pergunta">1</span>/20</span>
@@ -43,218 +45,141 @@
             <div id="area-opcoes"></div>
         </div>
 
-        <div id="tela-pagamento" class="card-quiz text-center hidden">
-            <h2 class="text-2xl font-black text-green-500 mb-2 italic uppercase text-center">Análise Pronta!</h2>
-            <p class="text-slate-400 text-sm mb-10 font-medium text-center">Escolha como deseja liberar seu relatório:</p>
-            <div id="opcoes-liberacao" class="space-y-4">
-                <button onclick="gerarPix()" class="w-full bg-emerald-600 p-4 rounded-2xl font-black shadow-lg">PAGAR R$ 1,00 VIA PIX</button>
-                <button onclick="verAnuncio()" class="w-full bg-slate-800 p-4 rounded-2xl font-bold text-blue-400 text-xs border border-slate-700">ASSISTIR VÍDEO (GRÁTIS)</button>
-            </div>
-            <div id="area-qr" class="mt-8 bg-white p-6 rounded-[32px] hidden text-center">
-                <div id="qr-content" class="flex flex-col items-center text-black"></div>
-                <div id="status-pagamento-txt" class="mt-4 text-[10px] text-emerald-600 font-bold uppercase tracking-widest animate-pulse hidden">Aguardando Pagamento...</div>
-            </div>
+        <div id="tela-carregando" class="card-quiz text-center tela-app">
+            <div class="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+            <h2 class="text-lg font-bold">Processando Respostas...</h2>
+            <p class="text-xs text-slate-500 mt-2 uppercase tracking-widest">Cruzando métricas neurais</p>
         </div>
+
+        <div id="tela-pagamento" class="card-quiz text-center tela-app">
+            <h2 class="text-2xl font-black text-green-500 mb-2 italic uppercase">Análise Pronta!</h2>
+            <p class="text-slate-400 text-sm mb-8">Escaneie o Pix para liberar seu relatório:</p>
+            
+            <div id="area-qr" class="bg-white p-6 rounded-[32px] text-black">
+                Gerando Pix Seguro...
+            </div>
+            
+            <p id="status-pagamento" class="mt-6 text-[10px] text-blue-500 font-bold uppercase animate-pulse">⏳ Aguardando pagamento...</p>
+        </div>
+
     </div>
 
     <script>
-        const MINHA_CHAVE_PIX = "65e5f3c3-b7d1-4757-a955-d6fc20519dce"; 
-        const URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
-        const KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-
-        let nome = "", email = "", whatsapp = "", profissaoSelecionada = "Não Informado";
-        let indiceAtual = 0, scoreQI = 0, scoreQE = 0, txidAtual = "";
-        let verificadorIntervalo = null;
-        let supabaseClient = null;
-
-        try {
-            if(window.supabase) supabaseClient = window.supabase.createClient(URL_DB, KEY_DB);
-        } catch(e) { console.error(e); }
-
-        // --- BLINDAGEM DE F5 (RECUPERAÇÃO) ---
+        // --- BLINDAGEM DE F5 ORIGINAL ---
         window.onload = () => {
             const pendente = localStorage.getItem('neuro_txid_pendente');
-            const nomeSalvo = localStorage.getItem('neuro_nome_pendente');
-            
-            if (pendente && nomeSalvo) {
-                txidAtual = pendente;
-                nome = nomeSalvo;
-                // Pula direto para o pagamento
-                document.getElementById('tela-inicio').classList.add('hidden');
-                document.getElementById('tela-pagamento').classList.remove('hidden');
-                // Força geração visual do Pix que já existe
-                gerarPix(); 
+            if (pendente) {
+                _quizApp.mostrarTela('tela-pagamento');
+                document.getElementById('area-qr').innerHTML = `<p class="text-black text-xs p-4">Recuperando seu QR Code...</p><button class="w-full bg-slate-800 text-white py-3 rounded-xl text-xs font-bold" onclick="localStorage.removeItem('neuro_txid_pendente');location.reload();">Reiniciar Teste</button>`;
+                _quizApp.startStatusCheck(pendente);
             }
         };
 
-        const perguntas = [
-            { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
-            { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
-            { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
-            { q: "Cliente gritou. Reação:", opts: ["Resolve calmo", "Grita", "Chora"], type: "QE", c: 0 },
-            { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
-            { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
-            { q: "Em grupo prefere:", opts: ["Liderar", "Esperar", "Fazer só"], type: "QE", c: 0 },
-            { q: "Erro na empresa:", opts: ["Assume", "Esconde", "Culpa outro"], type: "QE", c: 0 },
-            { q: "20% de 500 é:", opts: ["100", "50", "200"], type: "QI", c: 0 },
-            { q: "Se ontem fosse amanhã, hoje seria sábado. Hoje é:", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
-            { q: "Feedback duro:", opts: ["Cresce", "Raiva", "Desiste"], type: "QE", c: 0 },
-            { q: "Médico : Hospital :: Professor : ?", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
-            { q: "Colega triste:", opts: ["Ajuda", "Ignora", "Piada"], type: "QE", c: 0 },
-            { q: "Negociação:", opts: ["Acordo", "Vencer", "Não perder"], type: "QE", c: 0 },
-            { q: "Carro 80km/h em 30min:", opts: ["40km", "80km", "60km"], type: "QI", c: 0 },
-            { q: "Inteligência Emocional:", opts: ["Gerir emoções", "Nada", "Feliz"], type: "QE", c: 0 },
-            { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
-            { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
-            { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
-            { q: "Para calibrar sua liderança: Qual sua fase atual?", opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], type: "SEG", c: 0 }
-        ];
-
-        function startQuiz() {
-            nome = document.getElementById('nome-usuario').value;
-            email = document.getElementById('email-usuario').value;
-            whatsapp = document.getElementById('whatsapp-usuario').value;
-            if (nome === "" || email === "" || whatsapp === "") return alert("Preencha todos os campos!");
-            document.getElementById('tela-inicio').classList.add('hidden');
-            document.getElementById('tela-perguntas').classList.remove('hidden');
-            renderizar();
-        }
-
-        function renderizar() {
-            if (indiceAtual >= perguntas.length) return finalizar();
-            const q = perguntas[indiceAtual];
-            document.getElementById('num-pergunta').innerText = indiceAtual + 1;
-            document.getElementById('texto-pergunta').innerText = q.q;
-            document.getElementById('barra-progresso').style.width = ((indiceAtual / perguntas.length) * 100) + '%';
-            const div = document.getElementById('area-opcoes');
-            div.innerHTML = '';
-            q.opts.forEach((opcao, i) => {
-                const btn = document.createElement('button');
-                btn.className = 'opcao-btn';
-                btn.innerText = opcao;
-                btn.onclick = function() { responder(i, q.type, q.c, opcao); };
-                div.appendChild(btn);
-            });
-        }
-
-        function responder(i, tipo, correta, textoOpcao) {
-            if (tipo === 'SEG') {
-                profissaoSelecionada = textoOpcao;
-            } else {
-                if (i === correta) { 
-                     if (tipo === 'QI') scoreQI++;
-                     else scoreQE++;
-                }
-            }
-            indiceAtual++;
-            renderizar();
-        }
-
-        function finalizar() {
-            txidAtual = 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-            // SALVA NO CACHE DO CELULAR
-            localStorage.setItem('neuro_txid_pendente', txidAtual);
-            localStorage.setItem('neuro_nome_pendente', nome);
-
-            document.getElementById('tela-perguntas').classList.add('hidden');
-            document.getElementById('tela-pagamento').classList.remove('hidden');
-            salvarBanco();
-        }
-
-        async function salvarBanco() {
-            if (!supabaseClient) return;
-            try {
-                const payload = {
-                    nome: nome, email: email, whatsapp: whatsapp, fase_profissional: profissaoSelecionada,
-                    qi_score: scoreQI, qe_score: scoreQE, txid: txidAtual, status_pagamento: 'pendente'
-                };
-                await supabaseClient.from('leads').insert([payload]);
-            } catch (err) { console.log("Erro Conexão: " + err.message); }
-        }
-
-       function gerarPix() {
-            const areaQr = document.getElementById('area-qr');
-            const qrContent = document.getElementById('qr-content');
-            const opcoes = document.getElementById('opcoes-liberacao');
+        var _quizApp = {
+            dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, perfil: null, fase: 'Não Informado' },
             
-            opcoes.classList.add('hidden');
-            areaQr.classList.remove('hidden');
-            
-            if (qrContent.innerHTML.includes('img')) {
-                iniciarRadarPagamento();
-                return; 
-            }
+            // --- SUAS PERGUNTAS E RESPOSTAS ORIGINAIS ---
+            perguntas: [
+                { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
+                { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
+                { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
+                { q: "Cliente gritou. Reação:", opts: ["Resolve calmo", "Grita", "Chora"], type: "QE", c: 0 },
+                { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
+                { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
+                { q: "Em grupo prefere:", opts: ["Liderar", "Esperar", "Fazer só"], type: "QE", c: 0 },
+                { q: "Erro na empresa:", opts: ["Assume", "Esconde", "Culpa outro"], type: "QE", c: 0 },
+                { q: "20% de 500 é:", opts: ["100", "50", "200"], type: "QI", c: 0 },
+                { q: "Se ontem fosse amanhã, hoje seria sábado. Hoje é:", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
+                { q: "Feedback duro:", opts: ["Cresce", "Raiva", "Desiste"], type: "QE", c: 0 },
+                { q: "Médico : Hospital :: Professor : ?", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
+                { q: "Colega triste:", opts: ["Ajuda", "Ignora", "Piada"], type: "QE", c: 0 },
+                { q: "Negociação:", opts: ["Acordo", "Vencer", "Não perder"], type: "QE", c: 0 },
+                { q: "Carro 80km/h em 30min:", opts: ["40km", "80km", "60km"], type: "QI", c: 0 },
+                { q: "Inteligência Emocional:", opts: ["Gerir emoções", "Nada", "Feliz"], type: "QE", c: 0 },
+                { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
+                { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
+                { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
+                { q: "Para calibrar sua liderança: Qual sua fase atual?", opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], type: "SEG", c: 0 }
+            ],
 
-            qrContent.innerHTML = `<div class="p-8 text-slate-800 font-bold animate-pulse text-xs">GERANDO CÓDIGO...</div>`;
+            iniciar: async () => {
+                const n = document.getElementById('nome-usuario').value;
+                const e = document.getElementById('email-usuario').value;
+                const z = document.getElementById('whatsapp-usuario').value;
+                if(!n || !e.includes('@') || !z) return alert('Preencha os dados!');
+                _quizApp.dados.nome = n; _quizApp.dados.email = e; _quizApp.dados.whatsapp = z;
+                _quizApp.mostrarTela('tela-perguntas');
+                _quizApp.renderizar();
+            },
 
-            setTimeout(() => {
-                // 1. Limpeza de dados para o Pix
-                const minhaChave = MINHA_CHAVE_PIX.trim();
-                const nomeLimpo = "Anderson Oliveira Reis Dias"; // Nome do recebedor (Sem acentos, max 25 letras)
-                const cidade = "Simoes Filho"; // Cidade do recebedor
-                
-                // 2. Cálculo de tamanhos (O Pix exige saber o tamanho de cada campo)
-                const lenChave = minhaChave.length.toString().padStart(2, '0');
-                const lenNome = nomeLimpo.length.toString().padStart(2, '0');
-                const lenCidade = cidade.length.toString().padStart(2, '0');
-                const lenTxid = txidAtual.length.toString().padStart(2, '0');
+            renderizar: () => {
+                if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
+                const q = _quizApp.perguntas[_quizApp.dados.idx];
+                document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
+                document.getElementById('texto-pergunta').innerText = q.q;
+                document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / _quizApp.perguntas.length) * 100) + '%';
+                const div = document.getElementById('area-opcoes');
+                div.innerHTML = '';
+                q.opts.forEach((opt, i) => {
+                    const btn = document.createElement('div');
+                    btn.className = 'opcao-btn'; btn.innerText = opt;
+                    btn.onclick = () => {
+                        if(q.type === 'SEG') _quizApp.dados.fase = opt;
+                        else if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
+                        _quizApp.dados.idx++; _quizApp.renderizar();
+                    };
+                    div.appendChild(btn);
+                });
+            },
 
-                // 3. Montagem do Payload Padrão Banco Central
-                // [00] Payload Indicator | [26] Merchant Account (Chave) | [52] Categoria | [53] Moeda BRL
-                // [54] Valor (Omitido para permitir R$ 1,00 ou qualquer valor) | [58] BR | [59] Nome | [60] Cidade
-                // [62] Campo Adicional (TXID)
-                
-                let payload = "000201";
-                payload += "26" + (22 + minhaChave.length); // Tamanho total do bloco 26
-                payload += "0014BR.GOV.BCB.PIX";
-                payload += "01" + lenChave + minhaChave;
-                payload += "5204000053039865802BR";
-                payload += "59" + lenNome + nomeLimpo;
-                payload += "60" + lenCidade + cidade;
-                payload += "62" + (07 + txidAtual.length); // Tamanho total do bloco 62
-                payload += "05" + lenTxid + txidAtual;
-                payload += "6304"; // Início do Checksum
+            finalizar: () => { _quizApp.mostrarTela('tela-carregando'); _quizApp.gerarPix(); },
 
-                // 4. Gerar Checksum Simples (CRC16) - Alguns bancos aceitam sem, mas vamos garantir a imagem
-                // Gerador de imagem QR via API
-                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(payload)}`;
-
-                qrContent.innerHTML = `
-                    <p class="text-[10px] text-slate-500 mb-2 font-bold uppercase">ID: ${txidAtual}</p>
-                    <img src="${qrUrl}" class="w-48 h-48 rounded-xl mb-4 mx-auto border border-gray-200 shadow-sm">
-                    <div class="bg-slate-50 p-3 rounded-lg border mb-4">
-                         <p class="text-[9px] text-slate-400 uppercase font-bold mb-1">Copia e Cola:</p>
-                         <p class="text-[9px] text-slate-600 break-all font-mono">${payload}</p>
-                    </div>
-                    <button onclick="navigator.clipboard.writeText('${payload}');alert('Código Copiado!')" class="w-full bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase shadow-md active:bg-blue-800">Copiar Código Pix</button>
-                `;
-                
-                document.getElementById('status-pagamento-txt').classList.remove('hidden');
-                iniciarRadarPagamento();
-            }, 1000);
-        }
-
-        function iniciarRadarPagamento() {
-            if(!supabaseClient) return;
-            if(verificadorIntervalo) clearInterval(verificadorIntervalo);
-
-            verificadorIntervalo = setInterval(async () => {
+            // --- FUNÇÃO PIX ORIGINAL (CORRIGIDA PARA SEU VISUAL) ---
+            gerarPix: async () => {
                 try {
-                    const { data } = await supabaseClient.from('leads').select('status_pagamento').eq('txid', txidAtual).maybeSingle();
-                    if(data && data.status_pagamento === 'pago') {
-                        clearInterval(verificadorIntervalo);
-                        // LIMPA O CACHE AO CONFIRMAR
-                        localStorage.removeItem('neuro_txid_pendente');
-                        localStorage.removeItem('neuro_nome_pendente');
-                        alert("Pagamento Confirmado!");
-                        window.location.href = `resultado-teste.html?txid=${txidAtual}&nome=${encodeURIComponent(nome)}`;
+                    const res = await fetch('/api/pix', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            nome: _quizApp.dados.nome, email: _quizApp.dados.email, 
+                            whatsapp: _quizApp.dados.whatsapp, qi: _quizApp.dados.qi, 
+                            qe: _quizApp.dados.qe, fase: _quizApp.dados.fase 
+                        })
+                    });
+                    const data = await res.json();
+                    if(data.txid) {
+                        localStorage.setItem('neuro_txid_pendente', data.txid);
+                        document.getElementById('area-qr').innerHTML = `
+                            <img src="${data.img}" class="w-48 mx-auto rounded-xl shadow-sm mb-4">
+                            <textarea class="w-full text-[9px] text-slate-500 p-2 bg-slate-50 border rounded-lg mb-4 text-center break-all" rows="3" readonly>${data.code}</textarea>
+                            <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="navigator.clipboard.writeText('${data.code}');alert('Copiado!')">Copiar Pix</button>
+                        `;
+                        _quizApp.mostrarTela('tela-pagamento');
+                        _quizApp.startStatusCheck(data.txid);
                     }
-                } catch(e) {}
-            }, 3000);
-        }
+                } catch(e) { alert("Erro ao gerar Pix"); }
+            },
 
-        function verAnuncio() { window.location.href = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(nome)}`; }
-        function resetTotal() { localStorage.clear(); window.location.reload(); }
+            startStatusCheck: (txid) => {
+                if (window.loopVerificacao) clearInterval(window.loopVerificacao);
+                window.loopVerificacao = setInterval(async () => {
+                    try {
+                        const res = await fetch('/api/status?txid=' + txid);
+                        const json = await res.json();
+                        if (json.status === 'pago') {
+                            clearInterval(window.loopVerificacao);
+                            localStorage.removeItem('neuro_txid_pendente');
+                            window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(_quizApp.dados.nome)}`;
+                        }
+                    } catch (e) {}
+                }, 3000);
+            },
+
+            mostrarTela: (id) => {
+                document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
+                document.getElementById(id).classList.add('ativa');
+            }
+        };
     </script>
 </body>
 </html>
