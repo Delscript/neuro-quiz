@@ -78,162 +78,222 @@
       var _quizApp = {
         dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: 'Não Informado' },
         
-       <script>
-    
-    var _quizApp = {
-        dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: 'Não Informado' },
-        
-        // BANCO TOTAL COM 40 PERGUNTAS (As 20 originais + 20 fundamentadas em Goleman e Cattell)
-        bancoTotal: [
-            { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
-            { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
-            { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
-            { q: "Cliente gritou. Reação:", opts: ["Resolve calmo", "Grita", "Chora"], type: "QE", c: 0 },
-            { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
-            { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
-            { q: "Em grupo prefere:", opts: ["Liderar", "Esperar", "Fazer só"], type: "QE", c: 0 },
-            { q: "Erro na empresa:", opts: ["Assume", "Esconde", "Culpa outro"], type: "QE", c: 0 },
-            { q: "20% de 500 é:", opts: ["100", "50", "200"], type: "QI", c: 0 },
-            { q: "Se ontem fosse amanhã, hoje seria sábado. Hoje é:", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
-            { q: "Feedback duro:", opts: ["Cresce", "Raiva", "Desiste"], type: "QE", c: 0 },
-            { q: "Médico : Hospital :: Professor : ?", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
-            { q: "Colega triste:", opts: ["Ajuda", "Ignora", "Piada"], type: "QE", c: 0 },
-            { q: "Negociação:", opts: ["Acordo", "Vencer", "Não perder"], type: "QE", c: 0 },
-            { q: "Carro 80km/h em 30min:", opts: ["40km", "80km", "60km"], type: "QI", c: 0 },
-            { q: "Inteligência Emocional:", opts: ["Gerir emoções", "Nada", "Feliz"], type: "QE", c: 0 },
-            { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
-            { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
-            { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
-            { q: "Ao perceber um colega sob forte estresse, sua atitude é:", opts: ["Ouvir e validar o sentimento", "Dar um conselho técnico", "Focar apenas no seu trabalho"], type: "QE", c: 0 },
-            { q: "Ao receber uma crítica dura sobre um projeto querido:", opts: ["Analisa fatos para melhorar", "Sente-se atacado", "Desmotiva-se"], type: "QE", c: 0 },
-            { q: "Sua facilidade em identificar o que sente agora é:", opts: ["Alta: Sei nomear a emoção", "Média: Às vezes me confundo", "Baixa: Apenas sinto mal-estar"], type: "QE", c: 0 },
-            { q: "Em negociações com interesses opostos, você busca:", opts: ["Equilíbrio benéfico mútuo", "Defender sua posição", "Ceder para evitar conflito"], type: "QE", c: 0 },
-            { q: "Se um imprevisto destrói seu planejamento do dia:", opts: ["Recalcula a rota e prioriza", "Fica irritado e perde ritmo", "Tenta seguir o plano antigo"], type: "QE", c: 0 },
-            { q: "Acredita que a liderança inspiradora vem de:", opts: ["Propósito e Valores", "Metas e Pressão", "Controle e Instrução"], type: "QE", c: 0 },
-            { q: "Consegue ler microexpressões no rosto das pessoas?", opts: ["Sim, percebo detalhes", "Razoável", "Não, foco nas palavras"], type: "QE", c: 0 },
-            { q: "Diante de um erro grave da equipe, você:", opts: ["Assume a responsabilidade", "Identifica o culpado", "Relata ao superior"], type: "QE", c: 0 },
-            { q: "Mantém o entusiasmo sem resultados imediatos?", opts: ["Sim, foco no longo prazo", "Só se houver incentivos", "Tenho muita dificuldade"], type: "QE", c: 0 },
-            { q: "Em uma discussão calorosa, você costuma:", opts: ["Pausar para acalmar os ânimos", "Elevar o tom para ser ouvido", "Retirar-se e ignorar"], type: "QE", c: 0 },
-            { q: "Se o dia depois de amanhã é terça, que dia foi ontem?", opts: ["Sábado", "Domingo", "Sexta"], type: "QI", c: 0 },
-            { q: "Luz está para Olho como Som está para:", opts: ["Ouvido", "Voz", "Eco"], type: "QI", c: 0 },
-            { q: "Livro A à esquerda de B. C à direita de B. Quem está no meio?", opts: ["B", "A", "C"], type: "QI", c: 0 },
-            { q: "Lógica: 1, 3, 6, 10... Qual o próximo?", opts: ["15", "12", "14"], type: "QI", c: 0 },
-            { q: "Todos os cientistas são curiosos. Pedro é cientista. Logo:", opts: ["Pedro é curioso", "Pedro pode ser curioso", "Não há conclusão"], type: "QI", c: 0 },
-            { q: "6 maçãs/6 pessoas/6 min. 60 maçãs/60 pessoas levam:", opts: ["6 minutos", "60 minutos", "1 minuto"], type: "QI", c: 0 },
-            { q: "Qual o antônimo da palavra 'Explícito'?", opts: ["Tácito", "Claro", "Direto"], type: "QI", c: 0 },
-            { q: "Avião cai na fronteira. Onde enterram os sobreviventes?", opts: ["Não se enterra sobreviventes", "No Brasil", "Na Argentina"], type: "QI", c: 0 },
-            { q: "Invertendo o número 8102, temos:", opts: ["2018", "2108", "8012"], type: "QI", c: 0 },
-            { q: "Pai de Maria tem 5 filhas: Lala, Lele, Lili, Lolo e...?", opts: ["Maria", "Lulu", "Leila"], type: "QI", c: 0 }
-        ],
+      <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sier Growth - Neuro Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; margin: 0; padding: 0; }
+        .card-quiz { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; padding: 2rem; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .opcao-btn { background: #1e293b; border: 1px solid #334155; padding: 16px; border-radius: 16px; width: 100%; text-align: left; margin-bottom: 12px; font-weight: 500; cursor: pointer; transition: 0.2s; }
+        .opcao-btn:active { background: #3b82f6; border-color: #60a5fa; transform: scale(0.98); }
+        .hidden { display: none !important; }
+        .barra-progresso { height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
+        .progresso-fill { height: 100%; background: linear-gradient(to right, #f97316, #ea580c); width: 0%; transition: width 0.3s; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
 
-        perguntaFixa: { q: "Para calibrar sua liderança: Qual sua fase atual?", opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], type: "SEG", c: 0 },
-        
-        perguntas: [],
+    <div class="w-full max-w-md">
+        <div id="tela-inicio" class="card-quiz text-center">
+            <h1 class="text-2xl font-black text-orange-500 mb-1 uppercase tracking-tighter">Sier Growth</h1>
+            <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 italic font-semibold">Intelligence Engine v2.0</p>
+            <div class="space-y-4">
+                <input type="text" id="nome-usuario" placeholder="Nome Completo" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 outline-none text-white text-sm">
+                <input type="email" id="email-usuario" placeholder="E-mail" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 outline-none text-white text-sm">
+                <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp (DDD)" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 outline-none text-white text-sm">
+                <button onclick="_quizApp.iniciar()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-extrabold text-lg shadow-lg transition-all">Iniciar Avaliação</button>
+            </div>
+        </div>
 
-        prepararQuiz: function() {
-            // Embaralha o banco de 39 perguntas (exceto a fixa)
-            let embaralhadas = this.bancoTotal.sort(() => Math.random() - 0.5);
-            // Pega 19 aleatórias
-            this.perguntas = embaralhadas.slice(0, 19);
-            // Adiciona a de segmentação como a 20ª
-            this.perguntas.push(this.perguntaFixa);
-        },
+        <div id="tela-perguntas" class="card-quiz hidden">
+            <div class="barra-progresso"><div id="barra-progresso" class="progresso-fill"></div></div>
+            <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-6 uppercase tracking-widest text-center">
+                <span>QUESTÃO <span id="num-pergunta">1</span>/20</span>
+                <span class="text-orange-500 italic">NEURO-DATA</span>
+            </div>
+            <h2 id="texto-pergunta" class="text-lg font-bold mb-8 text-center text-slate-100 leading-tight">...</h2>
+            <div id="area-opcoes"></div>
+        </div>
 
-        iniciar: () => {
-            const n = document.getElementById('nome-usuario').value;
-            const e = document.getElementById('email-usuario').value;
-            const w = document.getElementById('whatsapp-usuario').value;
+        <div id="tela-carregando" class="card-quiz text-center hidden">
+            <div class="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+            <h2 class="text-lg font-bold text-orange-500">Mapeando Sinapses...</h2>
+            <p class="text-xs text-slate-500 mt-2 uppercase tracking-widest">Processando Inteligência Fluida</p>
+        </div>
 
-            if(!n || !e || !w) return alert("Por favor, preencha todos os campos.");
+        <div id="tela-pagamento" class="card-quiz text-center hidden">
+            <h2 class="text-2xl font-black text-green-500 mb-2 italic uppercase">Análise Concluída!</h2>
+            <div id="area-qr" class="bg-white p-6 rounded-[32px] text-black my-4 flex flex-col items-center shadow-inner">
+                Gerando Pix Seguro...
+            </div>
+            <p id="status-pagamento" class="text-[10px] text-blue-500 font-bold uppercase animate-pulse mb-6">⏳ Aguardando confirmação do banco...</p>
+            <div class="space-y-4">
+                <button onclick="_quizApp.verAnuncio()" class="w-full bg-slate-800 border border-slate-700 py-4 rounded-xl font-bold text-blue-400 text-xs hover:bg-slate-700 transition-all">
+                    📺 ASSISTIR VÍDEO (LIBERAR RELATÓRIO GRÁTIS)
+                </button>
+                <button onclick="localStorage.clear(); location.reload();" class="text-[9px] text-slate-600 uppercase font-bold tracking-widest">Reiniciar Teste</button>
+            </div>
+        </div>
+    </div>
 
-            _quizApp.dados.nome = n;
-            _quizApp.dados.email = e;
-            _quizApp.dados.whatsapp = w;
-
-            _quizApp.prepararQuiz(); // Sorteia as perguntas aqui
-            _quizApp.mostrarTela('tela-perguntas');
-            _quizApp.renderizar();
-        },
-
-        renderizar: () => {
-            if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
+    <script>
+        var _quizApp = {
+            dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: '' },
             
-            const q = _quizApp.perguntas[_quizApp.dados.idx];
-            document.getElementById('texto-pergunta').innerText = q.q;
-            document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / 20) * 100) + '%';
-            
-            const div = document.getElementById('area-opcoes');
-            div.innerHTML = '';
-            
-            q.opts.forEach((opt, i) => {
-                const btn = document.createElement('button');
-                btn.className = 'opcao-btn'; 
-                btn.innerText = opt;
-                btn.onclick = () => {
-                    if(q.type === 'SEG') _quizApp.dados.fase = opt;
-                    else if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
-                    
-                    _quizApp.dados.idx++; 
-                    _quizApp.renderizar();
-                };
-                div.appendChild(btn);
-            });
-        },
+            banco: [
+                { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
+                { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
+                { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
+                { q: "Cliente gritou. Reação:", opts: ["Resolve calmo", "Grita", "Chora"], type: "QE", c: 0 },
+                { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
+                { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
+                { q: "Em grupo prefere:", opts: ["Liderar", "Esperar", "Fazer só"], type: "QE", c: 0 },
+                { q: "Erro na empresa:", opts: ["Assume", "Esconde", "Culpa outro"], type: "QE", c: 0 },
+                { q: "20% de 500 é:", opts: ["100", "50", "200"], type: "QI", c: 0 },
+                { q: "Se ontem fosse amanhã, hoje seria sábado. Hoje é:", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
+                { q: "Feedback duro:", opts: ["Cresce", "Raiva", "Desiste"], type: "QE", c: 0 },
+                { q: "Médico : Hospital :: Professor : ?", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
+                { q: "Colega triste:", opts: ["Ajuda", "Ignora", "Piada"], type: "QE", c: 0 },
+                { q: "Negociação:", opts: ["Acordo", "Vencer", "Não perder"], type: "QE", c: 0 },
+                { q: "Carro 80km/h em 30min:", opts: ["40km", "80km", "60km"], type: "QI", c: 0 },
+                { q: "Inteligência Emocional:", opts: ["Gerir emoções", "Nada", "Feliz"], type: "QE", c: 0 },
+                { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
+                { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
+                { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
+                { q: "Ao notar um colega estressado, sua atitude é:", opts: ["Validar o sentimento dele", "Dar conselho técnico", "Ignorar"], type: "QE", c: 0 },
+                { q: "Ao receber uma crítica dura no trabalho:", opts: ["Analisa fatos para melhorar", "Sente-se atacado", "Desmotiva-se"], type: "QE", c: 0 },
+                { q: "Consegue identificar o que sente agora?", opts: ["Sim, sei nomear a emoção", "Às vezes me confundo", "Não"], type: "QE", c: 0 },
+                { q: "Em conflitos de interesse, busca:", opts: ["Equilíbrio benéfico mútuo", "Defender sua posição", "Ceder"], type: "QE", c: 0 },
+                { q: "Imprevisto destrói seu planejamento:", opts: ["Recalcula e prioriza", "Fica irritado", "Tenta seguir o plano"], type: "QE", c: 0 },
+                { q: "Liderar pessoas exige focar em:", opts: ["Propósito e Valores", "Metas e Pressão", "Controle"], type: "QE", c: 0 },
+                { q: "Lê microexpressões no rosto alheio?", opts: ["Sim, percebo detalhes", "Razoável", "Não, foco nas palavras"], type: "QE", c: 0 },
+                { q: "Diante de erro grave da equipe:", opts: ["Assume a responsabilidade", "Busca o culpado", "Relata ao chefe"], type: "QE", c: 0 },
+                { q: "Mantém entusiasmo sem resultados imediatos?", opts: ["Sim, foco no propósito", "Só se houver bônus", "Dificuldade"], type: "QE", c: 0 },
+                { q: "Em discussões calorosas, você:", opts: ["Pausa para acalmar", "Grita para ser ouvido", "Ignora"], type: "QE", c: 0 },
+                { q: "Se o dia depois de amanhã é terça, que dia foi ontem?", opts: ["Sábado", "Domingo", "Sexta"], type: "QI", c: 0 },
+                { q: "Luz está para Olho como Som está para:", opts: ["Ouvido", "Voz", "Eco"], type: "QI", c: 0 },
+                { q: "A à esquerda de B. C à direita de B. Quem está no meio?", opts: ["B", "A", "C"], type: "QI", c: 0 },
+                { q: "Lógica: 1, 3, 6, 10... Qual o próximo?", opts: ["15", "12", "14"], type: "QI", c: 0 },
+                { q: "Cientistas são curiosos. Pedro é cientista. Então:", opts: ["Pedro é curioso", "Pedro pode ser curioso", "Sem conclusão"], type: "QI", c: 0 },
+                { q: "6 maçãs/6 pessoas/6 min. 60 maçãs/60 pessoas leva:", opts: ["6 min", "60 min", "1 min"], type: "QI", c: 0 },
+                { q: "Antônimo de 'Explícito'?", opts: ["Tácito", "Claro", "Direto"], type: "QI", c: 0 },
+                { q: "Avião cai na fronteira. Onde enterram sobreviventes?", opts: ["Não se enterra vivos", "No Brasil", "Argentina"], type: "QI", c: 0 },
+                { q: "Invertendo o número 8102:", opts: ["2018", "2108", "8012"], type: "QI", c: 0 },
+                { q: "Pai de Maria tem 5 filhas: Lala, Lele, Lili, Lolo e...?", opts: ["Maria", "Lulu", "Leila"], type: "QI", c: 0 }
+            ],
 
-        finalizar: () => {
-            _quizApp.mostrarTela('tela-carregando');
-            const txid = 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-            
-            // Salva no Banco de Dados
-            supabase.from('leads').insert([{
-                nome: _quizApp.dados.nome, 
-                email: _quizApp.dados.email, 
-                whatsapp: _quizApp.dados.whatsapp,
-                qi_score: _quizApp.dados.qi, 
-                qe_score: _quizApp.dados.qe, 
-                txid: txid, 
-                status_pagamento: 'pendente'
-            }]).then(() => {
+            perguntaFixa: { q: "Para calibrar sua liderança: Qual sua fase atual?", opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], type: "SEG", c: 0 },
+            perguntas: [],
+
+            prepararQuiz: function() {
+                let shuffle = this.banco.sort(() => Math.random() - 0.5);
+                this.perguntas = shuffle.slice(0, 19);
+                this.perguntas.push(this.perguntaFixa);
+            },
+
+            iniciar: () => {
+                _quizApp.dados.nome = document.getElementById('nome-usuario').value;
+                _quizApp.dados.email = document.getElementById('email-usuario').value;
+                _quizApp.dados.whatsapp = document.getElementById('whatsapp-usuario').value;
+                if(!_quizApp.dados.nome || !_quizApp.dados.email.includes('@')) return alert("Preencha Nome e E-mail!");
+                
+                _quizApp.prepararQuiz();
+                _quizApp.mostrarTela('tela-perguntas');
+                _quizApp.renderizar();
+            },
+
+            renderizar: () => {
+                if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
+                const q = _quizApp.perguntas[_quizApp.dados.idx];
+                document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
+                document.getElementById('texto-pergunta').innerText = q.q;
+                document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / 20) * 100) + '%';
+                const div = document.getElementById('area-opcoes');
+                div.innerHTML = '';
+                q.opts.forEach((opt, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'opcao-btn'; btn.innerText = opt;
+                    btn.onclick = () => {
+                        if(q.type === 'SEG') _quizApp.dados.fase = opt;
+                        else if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
+                        _quizApp.dados.idx++; _quizApp.renderizar();
+                    };
+                    div.appendChild(btn);
+                });
+            },
+
+            finalizar: () => {
+                _quizApp.mostrarTela('tela-carregando');
+                const txid = 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                localStorage.setItem('neuro_txid', txid);
+                localStorage.setItem('neuro_nome', _quizApp.dados.nome);
+                
+                supabase.from('leads').insert([{
+                    nome: _quizApp.dados.nome, email: _quizApp.dados.email, whatsapp: _quizApp.dados.whatsapp,
+                    qi_score: _quizApp.dados.qi, qe_score: _quizApp.dados.qe, txid: txid, status_pagamento: 'pendente'
+                }]).then(() => {
+                    setTimeout(() => {
+                        _quizApp.mostrarTela('tela-pagamento');
+                        _quizApp.gerarPixVisual(txid);
+                    }, 2000);
+                });
+            },
+
+            gerarPixVisual: (txid) => {
+                const nPix = _quizApp.dados.nome.split(' ')[0].toUpperCase().substring(0,10);
+                const payload = `00020126580014BR.GOV.BCB.PIX0114${_CHAVE_PIX}5204000053039865802BR59${nPix.length.toString().padStart(2, '0')}${nPix}6009SAOPAULO62${(txid.length+4).toString().padStart(2, '0')}05${txid.length.toString().padStart(2, '0')}${txid}6304`;
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(payload)}`;
+                
+                document.getElementById('area-qr').innerHTML = `
+                    <img src="${qrUrl}" class="w-48 mb-4 mx-auto rounded-xl border">
+                    <textarea class="w-full text-[9px] p-2 bg-slate-50 border rounded-lg mb-4 text-center font-mono" rows="2" readonly>${payload}</textarea>
+                    <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="navigator.clipboard.writeText('${payload}');alert('Código Copiado!')">Copiar Pix</button>
+                `;
+                _quizApp.startRadar(txid);
+            },
+
+            startRadar: (txid) => {
+                if (window.loopV) clearInterval(window.loopV);
+                window.loopV = setInterval(async () => {
+                    const { data } = await supabase.from('leads').select('status_pagamento').eq('txid', txid).maybeSingle();
+                    if(data && data.status_pagamento === 'pago') {
+                        clearInterval(window.loopV);
+                        localStorage.removeItem('neuro_txid');
+                        window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
+                    }
+                }, 3000);
+            },
+
+            verAnuncio: () => {
+                window.location.href = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
+            },
+
+            mostrarTela: (id) => {
+                document.getElementById('tela-inicio').classList.add('hidden');
+                document.getElementById('tela-perguntas').classList.add('hidden');
+                document.getElementById('tela-carregando').classList.add('hidden');
+                document.getElementById('tela-pagamento').classList.add('hidden');
+                document.getElementById(id).classList.remove('hidden');
+            }
+        };
+
+        window.onload = () => {
+            const p = localStorage.getItem('neuro_txid');
+            const n = localStorage.getItem('neuro_nome');
+            if(p && n) {
+                _quizApp.dados.nome = n;
                 _quizApp.mostrarTela('tela-pagamento');
-                _quizApp.gerarPixVisual(txid);
-            });
-        },
-
-        gerarPixVisual: (txid) => {
-            const nomeSimples = _quizApp.dados.nome.split(' ')[0].toUpperCase();
-            const payload = `00020126580014BR.GOV.BCB.PIX0114${_CHAVE_PIX}5204000053039865802BR59${nomeSimples.length.toString().padStart(2, '0')}${nomeSimples}6009SAOPAULO62${(txid.length+4).toString().padStart(2, '0')}05${txid.length.toString().padStart(2, '0')}${txid}6304`;
-            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(payload)}`;
-            
-            document.getElementById('area-qr').innerHTML = `
-                <img src="${qrUrl}" class="w-48 mb-4 rounded-xl border">
-                <textarea class="w-full text-[9px] p-2 bg-slate-50 border rounded-lg mb-4 text-center" rows="2" readonly>${payload}</textarea>
-                <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black" onclick="navigator.clipboard.writeText('${payload}');alert('Copiado!')">Copiar Código Pix</button>
-            `;
-            _quizApp.startRadar(txid);
-        },
-
-        startRadar: (txid) => {
-            setInterval(async () => {
-                const { data } = await supabase.from('leads').select('status_pagamento').eq('txid', txid).maybeSingle();
-                if(data && data.status_pagamento === 'pago') {
-                    window.location.href = `resultado-teste.html?txid=${txid}&nome=${_quizApp.dados.nome}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${_quizApp.dados.fase}`;
-                }
-            }, 3000);
-        },
-
-        verAnuncio: () => {
-            window.location.href = `resultado-teste.html?txid=FREE&nome=${_quizApp.dados.nome}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${_quizApp.dados.fase}`;
-        },
-
-        mostrarTela: (id) => {
-            ['tela-inicio', 'tela-perguntas', 'tela-carregando', 'tela-pagamento'].forEach(t => {
-                const el = document.getElementById(t);
-                if(el) el.classList.add('hidden');
-            });
-            const ativa = document.getElementById(id);
-            if(ativa) ativa.classList.remove('hidden');
-        }
-    };
-</script>
+                _quizApp.gerarPixVisual(p);
+            }
+        };
+    </script>
+</body>
+</html>
 </body>
 </html>
