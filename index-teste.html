@@ -75,9 +75,10 @@
             }
         };
 
-        var _quizApp = {
-            dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: 'Não Informado' },
-            perguntas: [
+       var _quizApp = {
+            dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: '' },
+            
+            banco: [
                 { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
                 { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
                 { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
@@ -97,6 +98,26 @@
                 { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
                 { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
                 { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
+                { q: "Ao notar um colega estressado, sua atitude é:", opts: ["Validar o sentimento dele", "Dar conselho técnico", "Ignorar"], type: "QE", c: 0 },
+                { q: "Ao receber uma crítica dura no trabalho:", opts: ["Analisa fatos para melhorar", "Sente-se atacado", "Desmotiva-se"], type: "QE", c: 0 },
+                { q: "Consegue identificar o que sente agora?", opts: ["Sim, sei nomear a emoção", "Às vezes me confundo", "Não"], type: "QE", c: 0 },
+                { q: "Em conflitos de interesse, busca:", opts: ["Equilíbrio benéfico mútuo", "Defender sua posição", "Ceder"], type: "QE", c: 0 },
+                { q: "Imprevisto destrói seu planejamento:", opts: ["Recalcula e prioriza", "Fica irritado", "Tenta seguir o plano"], type: "QE", c: 0 },
+                { q: "Liderar pessoas exige focar em:", opts: ["Propósito e Valores", "Metas e Pressão", "Controle"], type: "QE", c: 0 },
+                { q: "Lê microexpressões no rosto alheio?", opts: ["Sim, percebo detalhes", "Razoável", "Não, foco nas palavras"], type: "QE", c: 0 },
+                { q: "Diante de erro grave da equipe:", opts: ["Assume a responsabilidade", "Busca o culpado", "Relata ao chefe"], type: "QE", c: 0 },
+                { q: "Mantém entusiasmo sem resultados imediatos?", opts: ["Sim, foco no propósito", "Só se houver bônus", "Dificuldade"], type: "QE", c: 0 },
+                { q: "Em discussões calorosas, você:", opts: ["Pausa para acalmar", "Grita para ser ouvido", "Ignora"], type: "QE", c: 0 },
+                { q: "Se o dia depois de amanhã é terça, que dia foi ontem?", opts: ["Sábado", "Domingo", "Sexta"], type: "QI", c: 0 },
+                { q: "Luz está para Olho como Som está para:", opts: ["Ouvido", "Voz", "Eco"], type: "QI", c: 0 },
+                { q: "A à esquerda de B. C à direita de B. Quem está no meio?", opts: ["B", "A", "C"], type: "QI", c: 0 },
+                { q: "Lógica: 1, 3, 6, 10... Qual o próximo?", opts: ["15", "12", "14"], type: "QI", c: 0 },
+                { q: "Cientistas são curiosos. Pedro é cientista. Então:", opts: ["Pedro é curioso", "Pedro pode ser curioso", "Sem conclusão"], type: "QI", c: 0 },
+                { q: "6 maçãs/6 pessoas/6 min. 60 maçãs/60 pessoas leva:", opts: ["6 min", "60 min", "1 min"], type: "QI", c: 0 },
+                { q: "Antônimo de 'Explícito'?", opts: ["Tácito", "Claro", "Direto"], type: "QI", c: 0 },
+                { q: "Avião cai na fronteira. Onde enterram sobreviventes?", opts: ["Não se enterra vivos", "No Brasil", "Argentina"], type: "QI", c: 0 },
+                { q: "Invertendo o número 8102:", opts: ["2018", "2108", "8012"], type: "QI", c: 0 },
+                { q: "Pai de Maria tem 5 filhas: Lala, Lele, Lili, Lolo e...?", opts: ["Maria", "Lulu", "Leila"], type: "QI", c: 0 }
                 { q: "Para calibrar sua liderança: Qual sua fase atual?", opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], type: "SEG", c: 0 }
             ],
 
