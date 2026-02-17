@@ -75,9 +75,12 @@
             }
         };
 
-        var _quizApp = {
-            dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: 'Não Informado' },
-            perguntas: [
+       var _quizApp = {
+            dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: '' },
+            
+            // BANCO COMPLETO DE 40 PERGUNTAS (19 aleatórias serão exibidas)
+            banco: [
+                // --- ORIGINAIS ---
                 { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
                 { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
                 { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
@@ -97,15 +100,46 @@
                 { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
                 { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
                 { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
-                { q: "Para calibrar sua liderança: Qual sua fase atual?", opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], type: "SEG", c: 0 }
+                // --- NOVAS FUNDAMENTADAS (QE GOLEMAN) ---
+                { q: "Ao notar um colega sob forte estresse, sua atitude é:", opts: ["Validar o sentimento dele", "Dar conselho técnico", "Ignorar e focar no trabalho"], type: "QE", c: 0 },
+                { q: "Ao receber uma crítica dura sobre seu trabalho:", opts: ["Analisa fatos para melhorar", "Sente-se atacado e justifica", "Desmotiva-se por dias"], type: "QE", c: 0 },
+                { q: "Consegue identificar exatamente o que sente agora?", opts: ["Sim, sei nomear a emoção", "Às vezes me confundo", "Não, apenas sinto desconforto"], type: "QE", c: 0 },
+                { q: "Em conflitos de interesses opostos, busca:", opts: ["Equilíbrio benéfico mútuo", "Defender sua posição", "Ceder para evitar briga"], type: "QE", c: 0 },
+                { q: "Se um imprevisto destrói seu plano do dia:", opts: ["Recalcula e prioriza o novo", "Irrita-se e perde o dia", "Tenta seguir o plano antigo"], type: "QE", c: 0 },
+                { q: "Liderar pessoas exige focar em:", opts: ["Propósito e Valores", "Metas e Pressão", "Controle e Instruções"], type: "QE", c: 0 },
+                { q: "Consegue ler microexpressões no rosto alheio?", opts: ["Sim, percebo detalhes", "Razoável", "Não, foco nas palavras"], type: "QE", c: 0 },
+                { q: "Diante de erro grave da equipe, você:", opts: ["Assume a responsabilidade", "Busca o culpado", "Relata ao superior"], type: "QE", c: 0 },
+                { q: "Mantém entusiasmo sem resultados imediatos?", opts: ["Sim, foco no longo prazo", "Só se houver bônus", "Tenho dificuldade"], type: "QE", c: 0 },
+                { q: "Em discussões calorosas, você:", opts: ["Pausa para acalmar os ânimos", "Grita para ser ouvido", "Ignora e sai de perto"], type: "QE", c: 0 },
+                // --- NOVAS FUNDAMENTADAS (QI LÓGICA) ---
+                { q: "Se o dia depois de amanhã é terça, que dia foi ontem?", opts: ["Sábado", "Domingo", "Sexta"], type: "QI", c: 0 },
+                { q: "Luz está para Olho como Som está para:", opts: ["Ouvido", "Voz", "Eco"], type: "QI", c: 0 },
+                { q: "A está à esquerda de B. C está à direita de B. Quem está no meio?", opts: ["B", "A", "C"], type: "QI", c: 0 },
+                { q: "Lógica: 1, 3, 6, 10... Qual o próximo?", opts: ["15", "12", "14"], type: "QI", c: 0 },
+                { q: "Cientistas são curiosos. Pedro é cientista. Então:", opts: ["Pedro é curioso", "Pedro pode ser curioso", "Não há conclusão"], type: "QI", c: 0 },
+                { q: "6 maçãs/6 pessoas/6 min. 60 maçãs/60 pessoas leva:", opts: ["6 min", "60 min", "1 min"], type: "QI", c: 0 },
+                { q: "Qual o antônimo de 'Explícito'?", opts: ["Tácito", "Claro", "Direto"], type: "QI", c: 0 },
+                { q: "Avião cai na fronteira. Onde enterram sobreviventes?", opts: ["Não se enterra vivos", "No Brasil", "Na Argentina"], type: "QI", c: 0 },
+                { q: "Invertendo o número 8102, temos:", opts: ["2018", "2108", "8012"], type: "QI", c: 0 },
+                { q: "Pai de Maria tem 5 filhas: Lala, Lele, Lili, Lolo e...?", opts: ["Maria", "Lulu", "Leila"], type: "QI", c: 0 }
             ],
 
+            perguntaFixa: { q: "Para calibrar sua liderança: Qual sua fase atual?", opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], type: "SEG", c: 0 },
+            perguntas: [],
+
+            prepararQuiz: function() {
+                let shuffle = this.banco.sort(() => Math.random() - 0.5);
+                this.perguntas = shuffle.slice(0, 19);
+                this.perguntas.push(this.perguntaFixa);
+            },
+
             iniciar: () => {
-                const n = document.getElementById('nome-usuario').value;
-                const e = document.getElementById('email-usuario').value;
-                const z = document.getElementById('whatsapp-usuario').value;
-                if(!n || !e.includes('@') || !z) return alert('Preencha os dados!');
-                _quizApp.dados.nome = n; _quizApp.dados.email = e; _quizApp.dados.whatsapp = z;
+                _quizApp.dados.nome = document.getElementById('nome-usuario').value;
+                _quizApp.dados.email = document.getElementById('email-usuario').value;
+                _quizApp.dados.whatsapp = document.getElementById('whatsapp-usuario').value;
+                if(!_quizApp.dados.nome || !_quizApp.dados.email.includes('@')) return alert("Preencha Nome e E-mail!");
+                
+                _quizApp.prepararQuiz();
                 _quizApp.mostrarTela('tela-perguntas');
                 _quizApp.renderizar();
             },
