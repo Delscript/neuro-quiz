@@ -75,62 +75,80 @@
             }
         };
 
-       var _quizApp = {
-            dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: '' },
-            
-            banco: [
-                { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
-                { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
-                { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
-                { q: "Cliente gritou. Reação:", opts: ["Resolve calmo", "Grita", "Chora"], type: "QE", c: 0 },
-                { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
-                { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
-                { q: "Em grupo prefere:", opts: ["Liderar", "Esperar", "Fazer só"], type: "QE", c: 0 },
-                { q: "Erro na empresa:", opts: ["Assume", "Esconde", "Culpa outro"], type: "QE", c: 0 },
-                { q: "20% de 500 é:", opts: ["100", "50", "200"], type: "QI", c: 0 },
-                { q: "Se ontem fosse amanhã, hoje seria sábado. Hoje é:", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
-                { q: "Feedback duro:", opts: ["Cresce", "Raiva", "Desiste"], type: "QE", c: 0 },
-                { q: "Médico : Hospital :: Professor : ?", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
-                { q: "Colega triste:", opts: ["Ajuda", "Ignora", "Piada"], type: "QE", c: 0 },
-                { q: "Negociação:", opts: ["Acordo", "Vencer", "Não perder"], type: "QE", c: 0 },
-                { q: "Carro 80km/h em 30min:", opts: ["40km", "80km", "60km"], type: "QI", c: 0 },
-                { q: "Inteligência Emocional:", opts: ["Gerir emoções", "Nada", "Feliz"], type: "QE", c: 0 },
-                { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
-                { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
-                { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
-                { q: "Ao notar um colega estressado, sua atitude é:", opts: ["Validar o sentimento dele", "Dar conselho técnico", "Ignorar"], type: "QE", c: 0 },
-                { q: "Ao receber uma crítica dura no trabalho:", opts: ["Analisa fatos para melhorar", "Sente-se atacado", "Desmotiva-se"], type: "QE", c: 0 },
-                { q: "Consegue identificar o que sente agora?", opts: ["Sim, sei nomear a emoção", "Às vezes me confundo", "Não"], type: "QE", c: 0 },
-                { q: "Em conflitos de interesse, busca:", opts: ["Equilíbrio benéfico mútuo", "Defender sua posição", "Ceder"], type: "QE", c: 0 },
-                { q: "Imprevisto destrói seu planejamento:", opts: ["Recalcula e prioriza", "Fica irritado", "Tenta seguir o plano"], type: "QE", c: 0 },
-                { q: "Liderar pessoas exige focar em:", opts: ["Propósito e Valores", "Metas e Pressão", "Controle"], type: "QE", c: 0 },
-                { q: "Lê microexpressões no rosto alheio?", opts: ["Sim, percebo detalhes", "Razoável", "Não, foco nas palavras"], type: "QE", c: 0 },
-                { q: "Diante de erro grave da equipe:", opts: ["Assume a responsabilidade", "Busca o culpado", "Relata ao chefe"], type: "QE", c: 0 },
-                { q: "Mantém entusiasmo sem resultados imediatos?", opts: ["Sim, foco no propósito", "Só se houver bônus", "Dificuldade"], type: "QE", c: 0 },
-                { q: "Em discussões calorosas, você:", opts: ["Pausa para acalmar", "Grita para ser ouvido", "Ignora"], type: "QE", c: 0 },
-                { q: "Se o dia depois de amanhã é terça, que dia foi ontem?", opts: ["Sábado", "Domingo", "Sexta"], type: "QI", c: 0 },
-                { q: "Luz está para Olho como Som está para:", opts: ["Ouvido", "Voz", "Eco"], type: "QI", c: 0 },
-                { q: "A à esquerda de B. C à direita de B. Quem está no meio?", opts: ["B", "A", "C"], type: "QI", c: 0 },
-                { q: "Lógica: 1, 3, 6, 10... Qual o próximo?", opts: ["15", "12", "14"], type: "QI", c: 0 },
-                { q: "Cientistas são curiosos. Pedro é cientista. Então:", opts: ["Pedro é curioso", "Pedro pode ser curioso", "Sem conclusão"], type: "QI", c: 0 },
-                { q: "6 maçãs/6 pessoas/6 min. 60 maçãs/60 pessoas leva:", opts: ["6 min", "60 min", "1 min"], type: "QI", c: 0 },
-                { q: "Antônimo de 'Explícito'?", opts: ["Tácito", "Claro", "Direto"], type: "QI", c: 0 },
-                { q: "Avião cai na fronteira. Onde enterram sobreviventes?", opts: ["Não se enterra vivos", "No Brasil", "Argentina"], type: "QI", c: 0 },
-                { q: "Invertendo o número 8102:", opts: ["2018", "2108", "8012"], type: "QI", c: 0 },
-                { q: "Pai de Maria tem 5 filhas: Lala, Lele, Lili, Lolo e...?", opts: ["Maria", "Lulu", "Leila"], type: "QI", c: 0 }
-                { q: "Para calibrar sua liderança: Qual sua fase atual?", opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], type: "SEG", c: 0 }
-            ],
+      var _quizApp = {
+        dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: 'Não Informado' },
+        
+        // BANCO TOTAL COM 40 PERGUNTAS (As 20 originais + 20 fundamentadas em Goleman e Cattell)
+        bancoTotal: [
+            { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
+            { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
+            { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
+            { q: "Cliente gritou. Reação:", opts: ["Resolve calmo", "Grita", "Chora"], type: "QE", c: 0 },
+            { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
+            { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
+            { q: "Em grupo prefere:", opts: ["Liderar", "Esperar", "Fazer só"], type: "QE", c: 0 },
+            { q: "Erro na empresa:", opts: ["Assume", "Esconde", "Culpa outro"], type: "QE", c: 0 },
+            { q: "20% de 500 é:", opts: ["100", "50", "200"], type: "QI", c: 0 },
+            { q: "Se ontem fosse amanhã, hoje seria sábado. Hoje é:", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
+            { q: "Feedback duro:", opts: ["Cresce", "Raiva", "Desiste"], type: "QE", c: 0 },
+            { q: "Médico : Hospital :: Professor : ?", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
+            { q: "Colega triste:", opts: ["Ajuda", "Ignora", "Piada"], type: "QE", c: 0 },
+            { q: "Negociação:", opts: ["Acordo", "Vencer", "Não perder"], type: "QE", c: 0 },
+            { q: "Carro 80km/h em 30min:", opts: ["40km", "80km", "60km"], type: "QI", c: 0 },
+            { q: "Inteligência Emocional:", opts: ["Gerir emoções", "Nada", "Feliz"], type: "QE", c: 0 },
+            { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
+            { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
+            { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
+            { q: "Ao perceber um colega sob forte estresse, sua atitude é:", opts: ["Ouvir e validar o sentimento", "Dar um conselho técnico", "Focar apenas no seu trabalho"], type: "QE", c: 0 },
+            { q: "Ao receber uma crítica dura sobre um projeto querido:", opts: ["Analisa fatos para melhorar", "Sente-se atacado", "Desmotiva-se"], type: "QE", c: 0 },
+            { q: "Sua facilidade em identificar o que sente agora é:", opts: ["Alta: Sei nomear a emoção", "Média: Às vezes me confundo", "Baixa: Apenas sinto mal-estar"], type: "QE", c: 0 },
+            { q: "Em negociações com interesses opostos, você busca:", opts: ["Equilíbrio benéfico mútuo", "Defender sua posição", "Ceder para evitar conflito"], type: "QE", c: 0 },
+            { q: "Se um imprevisto destrói seu planejamento do dia:", opts: ["Recalcula a rota e prioriza", "Fica irritado e perde ritmo", "Tenta seguir o plano antigo"], type: "QE", c: 0 },
+            { q: "Acredita que a liderança inspiradora vem de:", opts: ["Propósito e Valores", "Metas e Pressão", "Controle e Instrução"], type: "QE", c: 0 },
+            { q: "Consegue ler microexpressões no rosto das pessoas?", opts: ["Sim, percebo detalhes", "Razoável", "Não, foco nas palavras"], type: "QE", c: 0 },
+            { q: "Diante de um erro grave da equipe, você:", opts: ["Assume a responsabilidade", "Identifica o culpado", "Relata ao superior"], type: "QE", c: 0 },
+            { q: "Mantém o entusiasmo sem resultados imediatos?", opts: ["Sim, foco no longo prazo", "Só se houver incentivos", "Tenho muita dificuldade"], type: "QE", c: 0 },
+            { q: "Em uma discussão calorosa, você costuma:", opts: ["Pausar para acalmar os ânimos", "Elevar o tom para ser ouvido", "Retirar-se e ignorar"], type: "QE", c: 0 },
+            { q: "Se o dia depois de amanhã é terça, que dia foi ontem?", opts: ["Sábado", "Domingo", "Sexta"], type: "QI", c: 0 },
+            { q: "Luz está para Olho como Som está para:", opts: ["Ouvido", "Voz", "Eco"], type: "QI", c: 0 },
+            { q: "Livro A à esquerda de B. C à direita de B. Quem está no meio?", opts: ["B", "A", "C"], type: "QI", c: 0 },
+            { q: "Lógica: 1, 3, 6, 10... Qual o próximo?", opts: ["15", "12", "14"], type: "QI", c: 0 },
+            { q: "Todos os cientistas são curiosos. Pedro é cientista. Logo:", opts: ["Pedro é curioso", "Pedro pode ser curioso", "Não há conclusão"], type: "QI", c: 0 },
+            { q: "6 maçãs/6 pessoas/6 min. 60 maçãs/60 pessoas levam:", opts: ["6 minutos", "60 minutos", "1 minuto"], type: "QI", c: 0 },
+            { q: "Qual o antônimo da palavra 'Explícito'?", opts: ["Tácito", "Claro", "Direto"], type: "QI", c: 0 },
+            { q: "Avião cai na fronteira. Onde enterram os sobreviventes?", opts: ["Não se enterra sobreviventes", "No Brasil", "Na Argentina"], type: "QI", c: 0 },
+            { q: "Invertendo o número 8102, temos:", opts: ["2018", "2108", "8012"], type: "QI", c: 0 },
+            { q: "Pai de Maria tem 5 filhas: Lala, Lele, Lili, Lolo e...?", opts: ["Maria", "Lulu", "Leila"], type: "QI", c: 0 }
+        ],
 
-            iniciar: () => {
-                const n = document.getElementById('nome-usuario').value;
-                const e = document.getElementById('email-usuario').value;
-                const z = document.getElementById('whatsapp-usuario').value;
-                if(!n || !e.includes('@') || !z) return alert('Preencha os dados!');
-                _quizApp.dados.nome = n; _quizApp.dados.email = e; _quizApp.dados.whatsapp = z;
-                _quizApp.mostrarTela('tela-perguntas');
-                _quizApp.renderizar();
-            },
+        perguntaFixa: { q: "Para calibrar sua liderança: Qual sua fase atual?", opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], type: "SEG", c: 0 },
+        
+        perguntas: [],
 
+        prepararQuiz: function() {
+            // Embaralha o banco de 39 perguntas (exceto a fixa)
+            let embaralhadas = this.bancoTotal.sort(() => Math.random() - 0.5);
+            // Pega 19 aleatórias
+            this.perguntas = embaralhadas.slice(0, 19);
+            // Adiciona a de segmentação como a 20ª
+            this.perguntas.push(this.perguntaFixa);
+        },
+
+        iniciar: () => {
+            const n = document.getElementById('nome-usuario').value;
+            const e = document.getElementById('email-usuario').value;
+            const w = document.getElementById('whatsapp-usuario').value;
+
+            if(!n || !e || !w) return alert("Por favor, preencha todos os campos.");
+
+            _quizApp.dados.nome = n;
+            _quizApp.dados.email = e;
+            _quizApp.dados.whatsapp = w;
+
+            _quizApp.prepararQuiz(); // Sorteia as perguntas aqui
+            _quizApp.mostrarTela('tela-perguntas');
+            _quizApp.renderizar();
+        },
             renderizar: () => {
                 if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
                 const q = _quizApp.perguntas[_quizApp.dados.idx];
