@@ -137,117 +137,108 @@
 
         window.onload = carregarDados;
 
-        async function init() {
-            try {
-                const params = new URLSearchParams(window.location.search);
-                const txid = params.get('txid');
-                
-                // 1. PEGAR DADOS DA URL (Garante que QI e QE apareçam na hora)
-                const nomeURL = params.get('nome') || "Cliente";
-                const qiURL = parseInt(params.get('qi')) || 0;
-                const qeURL = parseInt(params.get('qe')) || 0;
+       async function carregarDados() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const txid = params.get('txid');
+            
+            // 1. Captura dados da URL (Prioridade para evitar delay)
+            const nomeURL = params.get('nome') || "Cliente VIP";
+            const qiURL = parseInt(params.get('qi')) || 0;
+            const qeURL = parseInt(params.get('qe')) || 0;
+            const faseURL = params.get('fase') || "Profissional";
 
-                // 2. EXIBIÇÃO IMEDIATA (Acaba com o QI 0 e QE 0)
-                document.getElementById('nome-cliente').innerText = nomeURL;
-                document.getElementById('score-qi').innerText = qiURL;
-                document.getElementById('score-qe').innerText = qeURL;
-                document.getElementById('txid-display').innerText = txid ? txid.slice(0, 8) : "FREE";
-                document.getElementById('data-hoje').innerText = new Date().toLocaleDateString('pt-BR');
+            // 2. Se não for FREE, tenta buscar no banco apenas para validar, 
+            // mas já prepara os dados para exibir
+            let dadosFinais = {
+                nome: nomeURL,
+                qi_score: qiURL,
+                qe_score: qeURL,
+                fase_profissional: faseURL
+            };
 
-                // 3. DEFINIR O PERFIL COM BASE NOS NÚMEROS DA URL
-                let p = "Em Construção";
-                if (qiURL > 6 && qeURL > 6) p = "Potência Expansiva";
-                else if (qiURL > 6) p = "Executor Solitário";
-                else if (qeURL > 6) p = "Conector Nato";
-
-                const resumo = PERFIS[p];
-                document.getElementById('titulo-perfil').innerText = resumo.titulo;
-                document.getElementById('subtitulo-perfil').innerText = resumo.sub;
-                document.getElementById('texto-analise-1').innerText = resumo.analise;
-                document.getElementById('texto-analise-2').innerText = resumo.potencial;
-                document.getElementById('texto-analise-3').innerText = resumo.acao;
-
-                // 4. FALLBACK: TENTAR BUSCAR NO BANCO SÓ SE NÃO FOR "FREE"
-                if (txid && txid !== 'FREE') {
-                    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                    const { data } = await supabase.from('leads').select('*').eq('txid', txid).single();
-                    if (data) {
-                        // Se o banco tiver dados mais atualizados, ele corrige, mas o usuário já viu o resultado
-                        document.getElementById('score-qi').innerText = data.qi_score;
-                        document.getElementById('score-qe').innerText = data.qe_score;
-                    }
+            if (txid && txid !== 'FREE') {
+                const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                const { data, error } = await supabase.from('leads').select('*').eq('txid', txid).single();
+                if (data) {
+                    dadosFinais = data; // Se achou no banco, usa o dado oficial
                 }
-
-                // MOSTRAR O RELATÓRIO
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('relatorio').style.display = 'block';
-                document.getElementById('btn-area').classList.remove('hidden');
-
-            } catch (error) {
-                console.error("Erro no carregamento:", error);
-                alert("Erro ao carregar relatório. Tente novamente.");
             }
-        }
-    // ... (Mantenha as chaves do Supabase e a função carregarDados iguais) ...
 
-    function preencherRelatorio(dados) {
+            // 3. Renderiza o Relatório
+            exibirRelatorio(dadosFinais, txid);
+
+        } catch (error) {
+            console.error("Erro fatal no carregamento:", error);
+            // Se der erro, tenta mostrar com o que tem na URL pelo menos
+            alert("Houve um problema ao carregar os dados completos. Gerando com base na sessão atual.");
+        }
+    }
+
+    function exibirRelatorio(dados, txid) {
+        // Preenche campos básicos
         document.getElementById('nome-cliente').innerText = dados.nome;
-        document.getElementById('profissao-cliente').innerText = dados.fase_profissional;
-        document.getElementById('val-qi').innerText = dados.qi_score;
-        document.getElementById('val-qe').innerText = dados.qe_score;
+        document.getElementById('score-qi').innerText = dados.qi_score;
+        document.getElementById('score-qe').innerText = dados.qe_score;
+        
+        // Elementos extras se existirem no seu HTML
+        if(document.getElementById('val-qi')) document.getElementById('val-qi').innerText = dados.qi_score;
+        if(document.getElementById('val-qe')) document.getElementById('val-qe').innerText = dados.qe_score;
+        if(document.getElementById('profissao-cliente')) document.getElementById('profissao-cliente').innerText = dados.fase_profissional;
+        if(document.getElementById('txid-display')) document.getElementById('txid-display').innerText = txid ? txid.slice(0, 8) : "FREE";
+        if(document.getElementById('data-hoje')) document.getElementById('data-hoje').innerText = new Date().toLocaleDateString('pt-BR');
 
         const qi = dados.qi_score;
         const qe = dados.qe_score;
         let t, s, d, r;
 
-        // --- NOVA LÓGICA DE ARQUÉTIPOS CRUZADOS (16 COMBINAÇÕES) ---
-
+        // --- LÓGICA DE ARQUÉTIPOS CRUZADOS ---
         if (qi >= 8 && qe >= 8) {
             t = "Mente Visionária (Arquétipo Alfa)";
             s = "Alta Performance Cognitiva e Liderança Empática.";
-            d = "Você possui o equilíbrio raro dos grandes líderes globais. Sua capacidade de processar dados complexos é amplificada por uma leitura humana precisa, permitindo que você tome decisões sob pressão sem perder a conexão com o time.";
-            r = "Seu foco deve ser em Expansão e Escala. Você tem competência para gerir ecossistemas inteiros e inspirar movimentos de mercado.";
+            d = "Você possui o equilíbrio raro dos grandes líderes globais. Sua capacidade de processar dados complexos é amplificada por uma leitura humana precisa.";
+            r = "Seu foco deve ser em Expansão e Escala. Você tem competência para gerir ecossistemas inteiros.";
         } 
         else if (qi >= 8 && qe >= 5) {
             t = "Estrategista de Precisão";
             s = "Lógica dominante com inteligência social funcional.";
-            d = "Sua mente trabalha em alta velocidade para encontrar falhas e soluções. Você é movido por eficiência e métricas. Sua inteligência emocional é usada de forma tática para alcançar objetivos.";
-            r = "Desenvolva a escuta ativa. Sua eficiência é sua arma, mas sua capacidade de delegar com empatia será o que dobrará seu faturamento.";
+            d = "Sua mente trabalha em alta velocidade para encontrar falhas e soluções. Você é movido por eficiência e métricas.";
+            r = "Desenvolva a escuta ativa. Sua eficiência é sua arma, mas delegar com empatia dobrará seu faturamento.";
         }
         else if (qi >= 8 && qe < 5) {
             t = "Analista de Elite";
             s = "Processamento lógico superior, desafio em conexões.";
-            d = "Você é um mestre da técnica. Onde outros veem confusão, você entrega clareza. No entanto, sua alta exigência lógica pode criar barreiras de comunicação com quem não acompanha seu ritmo.";
-            r = "Busque parcerias com 'Conectores'. Seu valor está na profundidade técnica, mas você precisa de pontes humanas para que suas ideias ganhem o mundo.";
+            d = "Você é um mestre da técnica. Onde outros veem confusão, você entrega clareza. No entanto, sua alta exigência pode criar barreiras de comunicação.";
+            r = "Busque parcerias com 'Conectores'. Seu valor está na profundidade técnica, mas precisa de pontes humanas.";
         }
         else if (qi >= 5 && qe >= 8) {
             t = "Líder Inspirador";
             s = "Inteligência emocional dominante com lógica aplicada.";
-            d = "Sua força está nas pessoas. Você sabe motivar, mediar conflitos e extrair o melhor de cada indivíduo. Sua lógica é focada em viabilizar visões humanas e projetos coletivos.";
-            r = "Cuidado com o excesso de otimismo. Utilize ferramentas de gestão de dados para ancorar suas decisões emocionais em fatos sólidos.";
+            d = "Sua força está nas pessoas. Você sabe motivar, mediar conflitos e extrair o melhor de cada indivíduo.";
+            r = "Cuidado com o excesso de otimismo. Utilize ferramentas de gestão para ancorar decisões em fatos.";
         }
         else if (qi < 5 && qe >= 8) {
             t = "Diplomata Empático";
             s = "Alta percepção social, necessidade de rigor lógico.";
-            d = "Você é o 'cola' que mantém qualquer grupo unido. Sua sensibilidade para captar o que não é dito é sua maior vantagem competitiva em negociações e vendas.";
-            r = "Trabalhe sua análise de dados. Sua intuição humana é ótima, mas fortalecer seu raciocínio matemático trará mais segurança para seus investimentos.";
+            d = "Você é a 'cola' que mantém os grupos unidos. Sua sensibilidade para captar o que não é dito é sua maior vantagem.";
+            r = "Trabalhe sua análise de dados. Fortalecer seu raciocínio matemático trará mais segurança financeira.";
         }
         else if (qi >= 5 && qe >= 5) {
             t = "Profissional Polivalente";
             s = "Equilíbrio operacional e social estável.";
-            d = "Você é versátil e confiável. Consegue transitar entre a execução técnica e o trato com o cliente de forma fluida. É o perfil que sustenta o crescimento orgânico de empresas.";
-            r = "Saia da zona de conforto. Escolha um dos pilares (QI ou QE) para hiper-desenvolver nos próximos 6 meses e se tornar um especialista de destaque.";
+            d = "Você é versátil e confiável. Consegue transitar entre a execução técnica e o trato com o cliente de forma fluida.";
+            r = "Saia da zona de conforto. Escolha um dos pilares para hiper-desenvolver nos próximos meses.";
         }
         else if (qi < 5 && qe < 5) {
             t = "Perfil em Transição";
             s = "Potencial latente aguardando direcionamento.";
-            d = "Seu resultado sugere um momento de bloqueio ou saturação mental. Você ainda não está utilizando sua potência máxima nem na lógica, nem na emoção, possivelmente por cansaço ou falta de método.";
-            r = "Pare tudo e defina uma base. Escolha uma única habilidade técnica para dominar. A clareza lógica trará, em seguida, a segurança emocional.";
+            d = "Seu resultado sugere um momento de saturação mental ou falta de método claro no momento.";
+            r = "Pare tudo e defina uma base. Escolha uma única habilidade técnica para dominar primeiro.";
         }
         else {
             t = "Arquiteto de Soluções";
             s = "Foco em processos e harmonia de sistemas.";
-            d = "Você busca ordem e equilíbrio. Seu perfil é ideal para organizar fluxos de trabalho onde o humano e a máquina precisam coexistir sem atritos.";
+            d = "Você busca ordem e equilíbrio. Seu perfil é ideal para organizar fluxos onde o humano e o processo coexistem.";
             r = "Aposte em automação. Use sua visão de processos para criar sistemas que trabalham por você.";
         }
 
