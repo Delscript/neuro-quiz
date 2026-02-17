@@ -171,37 +171,67 @@
         }
 
         function preencherRelatorio(dados) {
-            document.getElementById('nome-cliente').innerText = dados.nome;
-            document.getElementById('profissao-cliente').innerText = dados.fase_profissional;
-            document.getElementById('val-qi').innerText = dados.qi_score;
-            document.getElementById('val-qe').innerText = dados.qe_score;
+        document.getElementById('nome-cliente').innerText = dados.nome;
+        document.getElementById('profissao-cliente').innerText = dados.fase_profissional;
+        document.getElementById('val-qi').innerText = dados.qi_score;
+        document.getElementById('val-qe').innerText = dados.qe_score;
 
-            let qi = dados.qi_score;
-            let qe = dados.qe_score;
-            let t, s, d, r;
+        const qi = dados.qi_score;
+        const qe = dados.qe_score;
+        let t, s, d, r;
 
-            if (qi > 6 && qe > 6) {
-                t = "Potência Expansiva";
-                s = "Alto desempenho em Razão e Emoção.";
-                d = "Você atingiu um nível de equilíbrio raro. Sua capacidade de resolver problemas lógicos complexos caminha junto com uma leitura emocional precisa.";
-                r = "Seu desafio agora é escala. Você tem o perfil exato para liderar grandes movimentos ou empresas.";
-            } else if (qi > 6) {
-                t = "Executor Solitário";
-                s = "Alta capacidade técnica, desafio em conexão.";
-                d = "Sua mente é uma máquina de resolver problemas. Onde outros veem caos, você vê padrões.";
-                r = "Para crescer, você precisa focar em vender sua visão. A lógica constrói, mas é a emoção que vende.";
-            } else if (qe > 6) {
-                t = "Conector Nato";
-                s = "Influência alta, precisa de método.";
-                d = "Você abre portas que ninguém mais consegue. Sua habilidade de ler o ambiente é seu maior ativo.";
-                r = "Use seu carisma para liderar, mas use dados para decidir. Sua alavanca de crescimento está em se associar a processos sólidos.";
-            } else {
-                t = "Em Construção";
-                s = "O início da jornada de consciência.";
-                d = "Este resultado indica que você pode estar em um momento de transição ou bloqueio.";
-                r = "Foque em desenvolver uma habilidade técnica forte primeiro. Você é uma folha em branco pronta para ser moldada.";
-            }
+        // --- NOVA LÓGICA DE ARQUÉTIPOS CRUZADOS (16 COMBINAÇÕES) ---
 
+        if (qi >= 8 && qe >= 8) {
+            t = "Mente Visionária (Arquétipo Alfa)";
+            s = "Alta Performance Cognitiva e Liderança Empática.";
+            d = "Você possui o equilíbrio raro dos grandes líderes globais. Sua capacidade de processar dados complexos é amplificada por uma leitura humana precisa, permitindo que você tome decisões sob pressão sem perder a conexão com o time.";
+            r = "Seu foco deve ser em Expansão e Escala. Você tem competência para gerir ecossistemas inteiros e inspirar movimentos de mercado.";
+        } 
+        else if (qi >= 8 && qe >= 5) {
+            t = "Estrategista de Precisão";
+            s = "Lógica dominante com inteligência social funcional.";
+            d = "Sua mente trabalha em alta velocidade para encontrar falhas e soluções. Você é movido por eficiência e métricas. Sua inteligência emocional é usada de forma tática para alcançar objetivos.";
+            r = "Desenvolva a escuta ativa. Sua eficiência é sua arma, mas sua capacidade de delegar com empatia será o que dobrará seu faturamento.";
+        }
+        else if (qi >= 8 && qe < 5) {
+            t = "Analista de Elite";
+            s = "Processamento lógico superior, desafio em conexões.";
+            d = "Você é um mestre da técnica. Onde outros veem confusão, você entrega clareza. No entanto, sua alta exigência lógica pode criar barreiras de comunicação com quem não acompanha seu ritmo.";
+            r = "Busque parcerias com 'Conectores'. Seu valor está na profundidade técnica, mas você precisa de pontes humanas para que suas ideias ganhem o mundo.";
+        }
+        else if (qi >= 5 && qe >= 8) {
+            t = "Líder Inspirador";
+            s = "Inteligência emocional dominante com lógica aplicada.";
+            d = "Sua força está nas pessoas. Você sabe motivar, mediar conflitos e extrair o melhor de cada indivíduo. Sua lógica é focada em viabilizar visões humanas e projetos coletivos.";
+            r = "Cuidado com o excesso de otimismo. Utilize ferramentas de gestão de dados para ancorar suas decisões emocionais em fatos sólidos.";
+        }
+        else if (qi < 5 && qe >= 8) {
+            t = "Diplomata Empático";
+            s = "Alta percepção social, necessidade de rigor lógico.";
+            d = "Você é o 'cola' que mantém qualquer grupo unido. Sua sensibilidade para captar o que não é dito é sua maior vantagem competitiva em negociações e vendas.";
+            r = "Trabalhe sua análise de dados. Sua intuição humana é ótima, mas fortalecer seu raciocínio matemático trará mais segurança para seus investimentos.";
+        }
+        else if (qi >= 5 && qe >= 5) {
+            t = "Profissional Polivalente";
+            s = "Equilíbrio operacional e social estável.";
+            d = "Você é versátil e confiável. Consegue transitar entre a execução técnica e o trato com o cliente de forma fluida. É o perfil que sustenta o crescimento orgânico de empresas.";
+            r = "Saia da zona de conforto. Escolha um dos pilares (QI ou QE) para hiper-desenvolver nos próximos 6 meses e se tornar um especialista de destaque.";
+        }
+        else if (qi < 5 && qe < 5) {
+            t = "Perfil em Transição";
+            s = "Potencial latente aguardando direcionamento.";
+            d = "Seu resultado sugere um momento de bloqueio ou saturação mental. Você ainda não está utilizando sua potência máxima nem na lógica, nem na emoção, possivelmente por cansaço ou falta de método.";
+            r = "Pare tudo e defina uma base. Escolha uma única habilidade técnica para dominar. A clareza lógica trará, em seguida, a segurança emocional.";
+        }
+        else {
+            t = "Arquiteto de Soluções";
+            s = "Foco em processos e harmonia de sistemas.";
+            d = "Você busca ordem e equilíbrio. Seu perfil é ideal para organizar fluxos de trabalho onde o humano e a máquina precisam coexistir sem atritos.";
+            r = "Aposte em automação. Use sua visão de processos para criar sistemas que trabalham por você.";
+        }
+
+        // Preenchimento do Relatório Visual
             document.getElementById('titulo-perfil').innerText = t;
             document.getElementById('subtitulo-perfil').innerText = s;
             document.getElementById('texto-analise-1').innerText = d;
