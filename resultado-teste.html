@@ -116,113 +116,129 @@
         </a>
     </div>
 
-    <script>
-        const _URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
-        const _KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-        const supabaseClient = window.supabase.createClient(_URL_DB, _KEY_DB);
+   <script>
+    const SUPABASE_URL = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
 
-        window.onload = carregarDados;
+    window.onload = carregarDados;
 
-        async function carregarDados() {
+    async function carregarDados() {
+        try {
             const params = new URLSearchParams(window.location.search);
             const txid = params.get('txid');
             const nomeURL = params.get('nome') || "Líder";
+            
+            // Pega QI/QE direto da URL para garantir que nunca apareça zero (Mesmo no modo FREE)
             const qiURL = parseInt(params.get('qi')) || 0;
             const qeURL = parseInt(params.get('qe')) || 0;
             const faseURL = params.get('fase') || "Executivo";
 
-            document.getElementById('data-hoje').innerText = "Data: " + new Date().toLocaleDateString('pt-BR');
-
-            // --- PRIORIDADE TOTAL PARA DADOS DA URL (Acaba com o Loading Infinito) ---
-            if (qiURL > 0 || qeURL > 0 || txid === 'FREE') {
-                preencherRelatorio({
-                    nome: nomeURL,
-                    fase_profissional: faseURL,
-                    qi_score: qiURL,
-                    qe_score: qeURL
-                });
-                return;
-            }
-
-            // BUSCA NO BANCO APENAS SE A URL ESTIVER VAZIA
-            try {
-                const { data } = await supabaseClient.from('leads').select('*').eq('txid', txid).single();
-                if (data) preencherRelatorio(data);
-            } catch (err) { console.error(err); }
-        }
-
-        function preencherRelatorio(dados) {
-            document.getElementById('nome-cliente').innerText = dados.nome;
-            document.getElementById('profissao-cliente').innerText = dados.fase_profissional;
-            document.getElementById('val-qi').innerText = dados.qi_score;
-            document.getElementById('val-qe').innerText = dados.qe_score;
-
-            const qi = dados.qi_score;
-            const qe = dados.qe_score;
-            let t, s, d, r, p;
-
-            // --- MATRIZ DE ARQUÉTIPOS REFINADA ---
-            if (qi >= 8 && qe >= 8) {
-                t = "Mente Visionária (Alfa)"; s = "Equilíbrio raro de alta performance.";
-                d = "Você processa dados complexos com precisão e lidera pessoas com empatia. É o perfil dos grandes fundadores.";
-                r = "Foque em escala. Você não deve mais executar, mas sim projetar o futuro da sua operação.";
-                p = "Excesso de autoconfiança pode isolar você. Aprenda a ouvir quem está no 'chão de fábrica'.";
-            } 
-            else if (qi >= 8 && qe >= 5) {
-                t = "Estrategista de Precisão"; s = "Lógica dominante e pragmatismo.";
-                d = "Sua mente detecta falhas em processos antes de qualquer um. Você é movido por eficiência.";
-                r = "Delegue a gestão de pessoas para perfis diplomáticos e foque no produto ou estratégia central.";
-                p = "Sua impaciência com ritmos mais lentos pode destruir a cultura da sua equipe.";
-            }
-            else if (qi >= 8) {
-                t = "Analista de Elite"; s = "Mestre técnico de alta profundidade.";
-                d = "Você resolve o que ninguém mais consegue. Sua clareza lógica é sua maior arma competitiva.";
-                r = "Associe-se a pessoas que dominam a venda. Você cria a máquina, eles trazem o cliente.";
-                p = "Dificuldade em expressar emoções pode ser lida como arrogância ou frieza extrema.";
-            }
-            else if (qe >= 8 && qi >= 5) {
-                t = "Líder Inspirador"; s = "Foco total no capital humano.";
-                d = "Você extrai o melhor de cada pessoa. Sua força está em mover montanhas através da influência.";
-                r = "Ancore suas decisões em números. Sua intuição é brilhante, mas os dados não mentem.";
-                p = "Tendência a evitar conflitos necessários para não ferir sentimentos alheios.";
-            }
-            else if (qe >= 8) {
-                t = "Diplomata Empático"; s = "Percepção social e vendas aguçadas.";
-                d = "Você lê ambientes como ninguém. Sua sensibilidade capta oportunidades de negócio no ar.";
-                r = "Estude análise financeira. Fortalecer seu raciocínio lógico trará o lucro que sua rede merece.";
-                p = "Risco de se perder em muitas conexões e esquecer de fechar o caixa ou focar no lucro real.";
-            }
-            else {
-                t = "Perfil em Transição"; s = "Fase de reestruturação mental.";
-                d = "Suas métricas indicam saturação ou busca por um novo método. Seu potencial ainda está guardado.";
-                r = "Escolha UMA habilidade lógica para dominar nos próximos 90 dias. Menos é mais agora.";
-                p = "Falta de foco claro. Você começa muitas coisas e termina poucas, drenando sua energia.";
-            }
-
-            document.getElementById('titulo-perfil').innerText = t;
-            document.getElementById('subtitulo-perfil').innerText = s;
-            document.getElementById('texto-analise-1').innerText = d;
-            document.getElementById('texto-analise-2').innerText = r;
-            document.getElementById('texto-analise-3').innerText = p;
-
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('relatorio').style.display = 'block';
-            document.getElementById('btn-area').classList.remove('hidden');
-        }
-
-        function gerarPDF() {
-            const btnArea = document.getElementById('btn-area');
-            btnArea.style.display = 'none';
-            const elemento = document.getElementById("relatorio");
-            const opt = {
-                margin: 0,
-                filename: `Relatorio_NeuroQuiz_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            let dadosFinais = {
+                nome: nomeURL,
+                qi_score: qiURL,
+                qe_score: qeURL,
+                fase_profissional: faseURL
             };
-            html2pdf().set(opt).from(elemento).save().then(() => { btnArea.style.display = 'flex'; });
+
+            // SE NÃO FOR "FREE", ELE TENTA ATUALIZAR COM OS DADOS OFICIAIS DO BANCO
+            if (txid && txid !== 'FREE') {
+                const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                const { data, error } = await supabase.from('leads').select('*').eq('txid', txid).maybeSingle();
+                
+                // IMPORTANTE: Mapeia os nomes das colunas do seu banco (qi_score e qe_score)
+                if (data) {
+                    dadosFinais.nome = data.nome || nomeURL;
+                    dadosFinais.qi_score = data.qi_score !== undefined ? data.qi_score : qiURL;
+                    dadosFinais.qe_score = data.qe_score !== undefined ? data.qe_score : qeURL;
+                    dadosFinais.fase_profissional = data.fase_profissional || faseURL;
+                }
+            }
+
+            preencherInterface(dadosFinais, txid);
+        } catch (error) {
+            console.error("Erro no carregamento:", error);
         }
-    </script>
+    }
+
+    function preencherInterface(dados, txid) {
+        // Preenche os números principais na tela
+        document.getElementById('nome-cliente').innerText = dados.nome;
+        document.getElementById('val-qi').innerText = dados.qi_score;
+        document.getElementById('val-qe').innerText = dados.qe_score;
+        
+        // Garante preenchimento dos scores em outros IDs se existirem
+        if(document.getElementById('score-qi')) document.getElementById('score-qi').innerText = dados.qi_score;
+        if(document.getElementById('score-qe')) document.getElementById('score-qe').innerText = dados.qe_score;
+
+        if(document.getElementById('profissao-cliente')) document.getElementById('profissao-cliente').innerText = dados.fase_profissional;
+        if(document.getElementById('data-hoje')) document.getElementById('data-hoje').innerText = "Emissão: " + new Date().toLocaleDateString('pt-BR');
+
+        const qi = dados.qi_score;
+        const qe = dados.qe_score;
+        let t, s, d, r, p;
+
+        // MATRIZ DE ARQUÉTIPOS DINÂMICA
+        if (qi >= 8 && qe >= 8) {
+            t = "Mente Visionária (Alfa)"; s = "Equilíbrio raro de alta performance.";
+            d = "Você processa dados complexos com precisão e lidera pessoas com empatia. É o perfil dos grandes fundadores.";
+            r = "Foque em escala. Você não deve mais executar, mas sim projetar o futuro da sua operação.";
+            p = "Sua visão acelerada pode isolar você. Aprenda a ouvir quem está no operacional.";
+        } 
+        else if (qi >= 8 && qe >= 5) {
+            t = "Estrategista de Precisão"; s = "Lógica dominante e pragmatismo.";
+            d = "Sua mente detecta falhas em processos antes de qualquer um. Você é movido por eficiência.";
+            r = "Delegue a gestão de pessoas e foque no produto ou estratégia central.";
+            p = "Sua impaciência com ritmos lentos pode desgastar a cultura da sua equipe.";
+        }
+        else if (qi >= 8) {
+            t = "Analista de Elite"; s = "Mestre técnico de alta profundidade.";
+            d = "Você resolve o que ninguém mais consegue. Sua clareza lógica é sua maior arma competitiva.";
+            r = "Associe-se a pessoas que dominam a venda. Você cria a máquina, eles trazem o cliente.";
+            p = "Dificuldade em expressar emoções pode ser lida como frieza extrema.";
+        }
+        else if (qe >= 8 && qi >= 5) {
+            t = "Líder Inspirador"; s = "Foco total no capital humano.";
+            d = "Você extrai o melhor de cada pessoa. Sua força está em mover montanhas através da influência.";
+            r = "Ancore suas decisões em números. Sua intuição é brilhante, mas os dados não mentem.";
+            p = "Tendência a evitar conflitos necessários para não ferir sentimentos alheios.";
+        }
+        else if (qe >= 8) {
+            t = "Diplomata Empático"; s = "Percepção social e vendas aguçadas.";
+            d = "Você lê ambientes como ninguém. Sua sensibilidade capta oportunidades de negócio no ar.";
+            r = "Estude análise financeira. Fortalecer seu raciocínio lógico trará o lucro que sua rede merece.";
+            p = "Risco de se perder em muitas conexões e esquecer de focar no lucro real.";
+        }
+        else {
+            t = "Perfil em Transição"; s = "Fase de reestruturação mental.";
+            d = "Suas métricas indicam saturação ou busca por um novo método. Seu potencial ainda está guardado.";
+            r = "Escolha UMA habilidade lógica para dominar nos próximos 90 dias.";
+            p = "Falta de foco claro. Você começa muitas coisas e termina poucas agora.";
+        }
+
+        document.getElementById('titulo-perfil').innerText = t;
+        document.getElementById('subtitulo-perfil').innerText = s;
+        document.getElementById('texto-analise-1').innerText = d;
+        document.getElementById('texto-analise-2').innerText = r;
+        document.getElementById('texto-analise-3').innerText = p;
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('relatorio').style.display = 'block';
+        document.getElementById('btn-area').classList.remove('hidden');
+    }
+
+    function gerarPDF() {
+        const btnArea = document.getElementById('btn-area');
+        btnArea.style.display = 'none';
+        const elemento = document.getElementById("relatorio");
+        const opt = {
+            margin: 0,
+            filename: `Relatorio_SierGrowth_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(elemento).save().then(() => { btnArea.style.display = 'flex'; });
+    }
+</script>
 </body>
 </html>
