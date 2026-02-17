@@ -137,40 +137,60 @@
 
         window.onload = carregarDados;
 
-        async function carregarDados() {
-            const params = new URLSearchParams(window.location.search);
-            const txid = params.get('txid');
-            const nomeURL = params.get('nome') || "Visitante";
-            const qiURL = params.get('qi') || 0;
-            const qeURL = params.get('qe') || 0;
-            const faseURL = params.get('fase') || "Profissional";
-
-            document.getElementById('data-hoje').innerText = "Data: " + new Date().toLocaleDateString('pt-BR');
-
-            if (txid === 'FREE' || !txid) {
-                console.log("Processando modo grátis...");
-                preencherRelatorio({
-                    nome: nomeURL,
-                    fase_profissional: faseURL,
-                    qi_score: parseInt(qiURL),
-                    qe_score: parseInt(qeURL)
-                });
-                return;
-            }
-
+        async function init() {
             try {
-                const { data, error } = await supabaseClient.from('leads').select('*').eq('txid', txid).single();
-                if (data) {
-                    preencherRelatorio(data);
-                } else {
-                    preencherRelatorio({ nome: nomeURL, fase_profissional: faseURL, qi_score: parseInt(qiURL), qe_score: parseInt(qeURL) });
+                const params = new URLSearchParams(window.location.search);
+                const txid = params.get('txid');
+                
+                // 1. PEGAR DADOS DA URL (Garante que QI e QE apareçam na hora)
+                const nomeURL = params.get('nome') || "Cliente";
+                const qiURL = parseInt(params.get('qi')) || 0;
+                const qeURL = parseInt(params.get('qe')) || 0;
+
+                // 2. EXIBIÇÃO IMEDIATA (Acaba com o QI 0 e QE 0)
+                document.getElementById('nome-cliente').innerText = nomeURL;
+                document.getElementById('score-qi').innerText = qiURL;
+                document.getElementById('score-qe').innerText = qeURL;
+                document.getElementById('txid-display').innerText = txid ? txid.slice(0, 8) : "FREE";
+                document.getElementById('data-hoje').innerText = new Date().toLocaleDateString('pt-BR');
+
+                // 3. DEFINIR O PERFIL COM BASE NOS NÚMEROS DA URL
+                let p = "Em Construção";
+                if (qiURL > 6 && qeURL > 6) p = "Potência Expansiva";
+                else if (qiURL > 6) p = "Executor Solitário";
+                else if (qeURL > 6) p = "Conector Nato";
+
+                const resumo = PERFIS[p];
+                document.getElementById('titulo-perfil').innerText = resumo.titulo;
+                document.getElementById('subtitulo-perfil').innerText = resumo.sub;
+                document.getElementById('texto-analise-1').innerText = resumo.analise;
+                document.getElementById('texto-analise-2').innerText = resumo.potencial;
+                document.getElementById('texto-analise-3').innerText = resumo.acao;
+
+                // 4. FALLBACK: TENTAR BUSCAR NO BANCO SÓ SE NÃO FOR "FREE"
+                if (txid && txid !== 'FREE') {
+                    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    const { data } = await supabase.from('leads').select('*').eq('txid', txid).single();
+                    if (data) {
+                        // Se o banco tiver dados mais atualizados, ele corrige, mas o usuário já viu o resultado
+                        document.getElementById('score-qi').innerText = data.qi_score;
+                        document.getElementById('score-qe').innerText = data.qe_score;
+                    }
                 }
-            } catch (err) {
-                console.error(err);
+
+                // MOSTRAR O RELATÓRIO
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('relatorio').style.display = 'block';
+                document.getElementById('btn-area').classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Erro no carregamento:", error);
+                alert("Erro ao carregar relatório. Tente novamente.");
             }
         }
+    // ... (Mantenha as chaves do Supabase e a função carregarDados iguais) ...
 
-        function preencherRelatorio(dados) {
+    function preencherRelatorio(dados) {
         document.getElementById('nome-cliente').innerText = dados.nome;
         document.getElementById('profissao-cliente').innerText = dados.fase_profissional;
         document.getElementById('val-qi').innerText = dados.qi_score;
