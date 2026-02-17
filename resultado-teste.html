@@ -116,68 +116,65 @@
         </a>
     </div>
 
-   <script>
-    const SUPABASE_URL = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
+  <script>
+    const _URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
+    const _KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
+    const supabaseClient = window.supabase.createClient(_URL_DB, _KEY_DB);
 
     window.onload = carregarDados;
 
     async function carregarDados() {
-        try {
-            const params = new URLSearchParams(window.location.search);
-            const txid = params.get('txid');
-            const nomeURL = params.get('nome') || "Líder";
-            
-            // Pega QI/QE direto da URL para garantir que nunca apareça zero (Mesmo no modo FREE)
-            const qiURL = parseInt(params.get('qi')) || 0;
-            const qeURL = parseInt(params.get('qe')) || 0;
-            const faseURL = params.get('fase') || "Executivo";
+        const params = new URLSearchParams(window.location.search);
+        const txid = params.get('txid');
+        const nomeURL = params.get('nome') || "Visitante";
+        
+        // Puxa pontos da URL para garantir que nunca apareça zero
+        const qiURL = parseInt(params.get('qi')) || 0;
+        const qeURL = parseInt(params.get('qe')) || 0;
+        const faseURL = params.get('fase') || "Profissional";
 
-            let dadosFinais = {
+        document.getElementById('data-hoje').innerText = "Data: " + new Date().toLocaleDateString('pt-BR');
+
+        // Se for modo FREE, usa os dados que já vieram no link e não chama o banco (evita erro 406)
+        if (txid === 'FREE' || !txid) {
+            preencherRelatorio({
                 nome: nomeURL,
+                fase_profissional: faseURL,
                 qi_score: qiURL,
-                qe_score: qeURL,
-                fase_profissional: faseURL
-            };
+                qe_score: qeURL
+            });
+            return;
+        }
 
-            // SE NÃO FOR "FREE", ELE TENTA ATUALIZAR COM OS DADOS OFICIAIS DO BANCO
-            if (txid && txid !== 'FREE') {
-                const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                const { data, error } = await supabase.from('leads').select('*').eq('txid', txid).maybeSingle();
-                
-                // IMPORTANTE: Mapeia os nomes das colunas do seu banco (qi_score e qe_score)
-                if (data) {
-                    dadosFinais.nome = data.nome || nomeURL;
-                    dadosFinais.qi_score = data.qi_score !== undefined ? data.qi_score : qiURL;
-                    dadosFinais.qe_score = data.qe_score !== undefined ? data.qe_score : qeURL;
-                    dadosFinais.fase_profissional = data.fase_profissional || faseURL;
-                }
+        // Se for pago, busca no banco usando os nomes de coluna do seu Supabase
+        try {
+            const { data, error } = await supabaseClient.from('leads').select('*').eq('txid', txid).single();
+            if (data) {
+                preencherRelatorio(data);
+            } else {
+                // Caso não encontre no banco, usa os dados de segurança da URL
+                preencherRelatorio({ nome: nomeURL, fase_profissional: faseURL, qi_score: qiURL, qe_score: qeURL });
             }
-
-            preencherInterface(dadosFinais, txid);
-        } catch (error) {
-            console.error("Erro no carregamento:", error);
+        } catch (err) {
+            console.error("Erro ao buscar no banco:", err);
+            preencherRelatorio({ nome: nomeURL, fase_profissional: faseURL, qi_score: qiURL, qe_score: qeURL });
         }
     }
 
-    function preencherInterface(dados, txid) {
-        // Preenche os números principais na tela
+    function preencherRelatorio(dados) {
         document.getElementById('nome-cliente').innerText = dados.nome;
-        document.getElementById('val-qi').innerText = dados.qi_score;
-        document.getElementById('val-qe').innerText = dados.qe_score;
+        document.getElementById('profissao-cliente').innerText = dados.fase_profissional || "Profissional";
         
-        // Garante preenchimento dos scores em outros IDs se existirem
-        if(document.getElementById('score-qi')) document.getElementById('score-qi').innerText = dados.qi_score;
-        if(document.getElementById('score-qe')) document.getElementById('score-qe').innerText = dados.qe_score;
+        // CORREÇÃO: Lê exatamente qi_score e qe_score do banco
+        const qi = dados.qi_score || 0;
+        const qe = dados.qe_score || 0;
 
-        if(document.getElementById('profissao-cliente')) document.getElementById('profissao-cliente').innerText = dados.fase_profissional;
-        if(document.getElementById('data-hoje')) document.getElementById('data-hoje').innerText = "Emissão: " + new Date().toLocaleDateString('pt-BR');
+        document.getElementById('val-qi').innerText = qi;
+        document.getElementById('val-qe').innerText = qe;
 
-        const qi = dados.qi_score;
-        const qe = dados.qe_score;
         let t, s, d, r, p;
 
-        // MATRIZ DE ARQUÉTIPOS DINÂMICA
+        // MATRIZ DE ARQUÉTIPOS
         if (qi >= 8 && qe >= 8) {
             t = "Mente Visionária (Alfa)"; s = "Equilíbrio raro de alta performance.";
             d = "Você processa dados complexos com precisão e lidera pessoas com empatia. É o perfil dos grandes fundadores.";
@@ -206,7 +203,7 @@
             t = "Diplomata Empático"; s = "Percepção social e vendas aguçadas.";
             d = "Você lê ambientes como ninguém. Sua sensibilidade capta oportunidades de negócio no ar.";
             r = "Estude análise financeira. Fortalecer seu raciocínio lógico trará o lucro que sua rede merece.";
-            p = "Risco de se perder em muitas conexões e esquecer de focar no lucro real.";
+            p = "Risco de se perder em muitas conexões e esquecer de fechar o caixa ou focar no lucro real.";
         }
         else {
             t = "Perfil em Transição"; s = "Fase de reestruturação mental.";
