@@ -117,29 +117,16 @@
             perguntas: [],
 
             prepararQuiz: function() {
-                // BALANCEAMENTO: 10 QI + 9 QE
-                const grupoQI = this.banco.filter(p => p.type === 'QI');
-                const grupoQE = this.banco.filter(p => p.type === 'QE');
-
-                grupoQI.sort(() => Math.random() - 0.5);
-                grupoQE.sort(() => Math.random() - 0.5);
-
-                const selecionadasQI = grupoQI.slice(0, 10);
-                const selecionadasQE = grupoQE.slice(0, 9);
-
-                let mix = [...selecionadasQI, ...selecionadasQE];
-                mix.sort(() => Math.random() - 0.5);
-
-                this.perguntas = [...mix, this.perguntaFixa];
+                let shuffle = this.banco.sort(() => Math.random() - 0.5);
+                this.perguntas = shuffle.slice(0, 19);
+                this.perguntas.push(this.perguntaFixa);
             },
 
             iniciar: () => {
-                const n = document.getElementById('nome-usuario').value;
-                const e = document.getElementById('email-usuario').value;
-                const w = document.getElementById('whatsapp-usuario').value;
-                if(!n || !e.includes('@') || !w) return alert("Preencha todos os campos!");
-                
-                _quizApp.dados.nome = n; _quizApp.dados.email = e; _quizApp.dados.whatsapp = w;
+                _quizApp.dados.nome = document.getElementById('nome-usuario').value;
+                _quizApp.dados.email = document.getElementById('email-usuario').value;
+                _quizApp.dados.whatsapp = document.getElementById('whatsapp-usuario').value;
+                if(!_quizApp.dados.nome || !_quizApp.dados.email.includes('@')) return alert("Preencha Nome e E-mail!");
                 
                 _quizApp.prepararQuiz();
                 _quizApp.mostrarTela('tela-perguntas');
@@ -155,7 +142,7 @@
                 const div = document.getElementById('area-opcoes');
                 div.innerHTML = '';
                 q.opts.forEach((opt, i) => {
-                    const btn = document.createElement('div');
+                    const btn = document.createElement('button');
                     btn.className = 'opcao-btn'; btn.innerText = opt;
                     btn.onclick = () => {
                         if(q.type === 'SEG') _quizApp.dados.fase = opt;
@@ -169,6 +156,8 @@
             finalizar: () => {
                 _quizApp.mostrarTela('tela-carregando');
                 const txid = 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                localStorage.setItem('neuro_txid', txid);
+                localStorage.setItem('neuro_nome', _quizApp.dados.nome);
                 
                 supabase.from('leads').insert([{
                     nome: _quizApp.dados.nome, email: _quizApp.dados.email, whatsapp: _quizApp.dados.whatsapp,
@@ -177,7 +166,7 @@
                     setTimeout(() => {
                         _quizApp.mostrarTela('tela-pagamento');
                         _quizApp.gerarPixVisual(txid);
-                    }, 1500);
+                    }, 2000);
                 });
             },
 
@@ -189,7 +178,7 @@
                 document.getElementById('area-qr').innerHTML = `
                     <img src="${qrUrl}" class="w-48 mb-4 mx-auto rounded-xl border">
                     <textarea class="w-full text-[9px] p-2 bg-slate-50 border rounded-lg mb-4 text-center font-mono" rows="2" readonly>${payload}</textarea>
-                    <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="navigator.clipboard.writeText('${payload}');alert('Copiado!')">Copiar Pix</button>
+                    <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="navigator.clipboard.writeText('${payload}');alert('Código Copiado!')">Copiar Pix</button>
                 `;
                 _quizApp.startRadar(txid);
             },
@@ -200,37 +189,32 @@
                     const { data } = await supabase.from('leads').select('status_pagamento').eq('txid', txid).maybeSingle();
                     if(data && data.status_pagamento === 'pago') {
                         clearInterval(window.loopV);
+                        localStorage.removeItem('neuro_txid');
                         window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
                     }
                 }, 3000);
             },
 
-            // --- LÓGICA HÍBRIDA (WEB + APP ADMOB) ---
             verAnuncio: () => {
-                if (window.AndroidInterface) {
-                    window.AndroidInterface.showInterstitial(); 
-                } else {
-                    _quizApp.liberarRelatorio();
-                }
-            },
-
-            onAdDismissed: () => {
-                _quizApp.liberarRelatorio();
-            },
-
-            liberarRelatorio: () => {
-                // REDIRECIONAMENTO COM DADOS COMPLETOS PARA O RESULTADO NÃO DAR ERRO
-                const link = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
-                window.location.href = link;
+                window.location.href = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
             },
 
             mostrarTela: (id) => {
-                document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('hidden')); 
                 document.getElementById('tela-inicio').classList.add('hidden');
                 document.getElementById('tela-perguntas').classList.add('hidden');
                 document.getElementById('tela-carregando').classList.add('hidden');
                 document.getElementById('tela-pagamento').classList.add('hidden');
                 document.getElementById(id).classList.remove('hidden');
+            }
+        };
+
+        window.onload = () => {
+            const p = localStorage.getItem('neuro_txid');
+            const n = localStorage.getItem('neuro_nome');
+            if(p && n) {
+                _quizApp.dados.nome = n;
+                _quizApp.mostrarTela('tela-pagamento');
+                _quizApp.gerarPixVisual(p);
             }
         };
     </script>
