@@ -140,41 +140,35 @@
 
         window.onload = carregarDados;
 
-        async function carregarDados() {
-            const params = new URLSearchParams(window.location.search);
-            const txid = params.get('txid');
-            const nomeURL = params.get('nome') || "Líder";
-            
-            // PRIORIDADE: PEGAR DA URL PARA NÃO VIR ZERADO
-            const qiURL = parseInt(params.get('qi')) || 0;
-            const qeURL = parseInt(params.get('qe')) || 0;
-            const faseURL = params.get('fase') || "Profissional";
+    async function carregarDados() {
+    const params = new URLSearchParams(window.location.search);
+    const txid = params.get('txid');
+    const nomeURL = params.get('nome') || "Visitante";
+    
+    // CORREÇÃO AQUI: Captura os pontos exatos enviados pelo Index
+    const qiURL = parseInt(params.get('qi')) || 0;
+    const qeURL = parseInt(params.get('qe')) || 0;
+    const faseURL = params.get('fase') || "Profissional";
 
-            document.getElementById('data-hoje').innerText = "Data: " + new Date().toLocaleDateString('pt-BR');
+    document.getElementById('data-hoje').innerText = "Data: " + new Date().toLocaleDateString('pt-BR');
 
-            // 1. Se tem dados na URL ou é modo FREE, usa direto (Mais rápido e seguro)
-            if (qiURL > 0 || qeURL > 0 || txid === 'FREE') {
-                preencherRelatorio({
-                    nome: nomeURL,
-                    fase_profissional: faseURL,
-                    qi_score: qiURL,
-                    qe_score: qeURL
-                });
-                return;
-            }
+    // Mostra imediatamente o que veio na URL para não ficar 0
+    let dadosTemporarios = { 
+        nome: nomeURL, 
+        fase_profissional: faseURL, 
+        qi_score: qiURL, 
+        qe_score: qeURL 
+    };
+    preencherRelatorio(dadosTemporarios);
 
-            // 2. Se não tem dados na URL, tenta buscar no banco
-            try {
-                const { data } = await supabaseClient.from('leads').select('*').eq('txid', txid).maybeSingle();
-                if (data) {
-                    // Garante que usa qi_score e qe_score (nomes do banco)
-                    preencherRelatorio(data);
-                } else {
-                    // Fallback final
-                    preencherRelatorio({ nome: nomeURL, fase_profissional: faseURL, qi_score: qiURL, qe_score: qeURL });
-                }
-            } catch (err) { console.error(err); }
-        }
+    // Tenta atualizar com o banco se houver txid pago
+    if (txid && txid !== 'FREE') {
+        try {
+            const { data } = await supabaseClient.from('leads').select('*').eq('txid', txid).single();
+            if (data) preencherRelatorio(data);
+        } catch (err) { console.error("Erro banco:", err); }
+    }
+}
 
         function preencherRelatorio(dados) {
             document.getElementById('nome-cliente').innerText = dados.nome;
