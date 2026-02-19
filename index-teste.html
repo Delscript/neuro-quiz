@@ -432,22 +432,27 @@
 
             },
 
-
-
-            verAnuncio: () => { window.location.href = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(_quizApp.dados.nome)}`; },
-
-            mostrarTela: (id) => {
-
-                document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
-
-                document.getElementById(id).classList.add('ativa');
-
+// LOGICA HIBRIDA ADMOB
+        verAnuncio: () => {
+            if (window.AndroidInterface) {
+                window.AndroidInterface.showInterstitial(); 
+            } else {
+                _quizApp.liberarRelatorio();
             }
+        },
 
-        };
+        onAdDismissed: () => { _quizApp.liberarRelatorio(); },
 
-    </script>
+        liberarRelatorio: () => {
+            window.location.href = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
+        },
 
+        mostrarTela: (id) => {
+            document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
+            document.getElementById(id).classList.add('ativa');
+        }
+    };
+</script>
 </body>
 
 </html>
