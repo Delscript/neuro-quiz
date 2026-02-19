@@ -62,7 +62,8 @@
             </div>
         </div>
     </div>
- <script>
+
+    <script>
         window.onload = () => {
             const txid = localStorage.getItem('neuro_txid_pendente');
             const nome = localStorage.getItem('neuro_nome_pendente');
@@ -73,7 +74,8 @@
                 _quizApp.gerarPix(); 
             }
         };
-        var _quizApp = {
+
+    var _quizApp = {
             dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: '' },
             
             banco: [
@@ -122,19 +124,24 @@
             perguntas: [],
 
             prepararQuiz: function() {
-                // BALANCEAMENTO: 10 QI + 9 QE
+                // 1. SEPARA O BANCO EM DOIS GRUPOS (QI e QE)
                 const grupoQI = this.banco.filter(p => p.type === 'QI');
                 const grupoQE = this.banco.filter(p => p.type === 'QE');
 
+                // 2. EMBARALHA CADA GRUPO SEPARADAMENTE
                 grupoQI.sort(() => Math.random() - 0.5);
                 grupoQE.sort(() => Math.random() - 0.5);
 
+                // 3. SELECIONA A QUANTIDADE EXATA PARA SOMAR 19 PERGUNTAS DE NOTA
+                // (Ex: 10 de QI + 9 de QE = 19 Perguntas) -> Assim o QI nunca passa de 10
                 const selecionadasQI = grupoQI.slice(0, 10);
                 const selecionadasQE = grupoQE.slice(0, 9);
 
+                // 4. JUNTA TUDO E EMBARALHA DE NOVO (Para não ficarem agrupadas)
                 let mix = [...selecionadasQI, ...selecionadasQE];
                 mix.sort(() => Math.random() - 0.5);
 
+                // 5. ADICIONA A PERGUNTA FIXA NO FINAL (Total = 20)
                 this.perguntas = [...mix, this.perguntaFixa];
             },
 
@@ -146,7 +153,7 @@
                 
                 _quizApp.dados.nome = n; _quizApp.dados.email = e; _quizApp.dados.whatsapp = w;
                 
-                _quizApp.prepararQuiz();
+                _quizApp.prepararQuiz(); // AGORA ELE CHAMA O SORTEIO BALANCEADO
                 _quizApp.mostrarTela('tela-perguntas');
                 _quizApp.renderizar();
             },
@@ -171,71 +178,57 @@
                 });
             },
 
-            finalizar: () => {
-                _quizApp.mostrarTela('tela-carregando');
-                const txid = 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-                
-                supabase.from('leads').insert([{
-                    nome: _quizApp.dados.nome, email: _quizApp.dados.email, whatsapp: _quizApp.dados.whatsapp,
-                    qi_score: _quizApp.dados.qi, qe_score: _quizApp.dados.qe, txid: txid, status_pagamento: 'pendente'
-                }]).then(() => {
-                    setTimeout(() => {
+            finalizar: () => { 
+                _quizApp.mostrarTela('tela-carregando'); 
+                setTimeout(() => _quizApp.gerarPix(), 2000); 
+            },
+
+            gerarPix: async () => {
+                try {
+                    const res = await fetch('/api/pix', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            nome: _quizApp.dados.nome, email: _quizApp.dados.email, 
+                            whatsapp: _quizApp.dados.whatsapp, qi: _quizApp.dados.qi, 
+                            qe: _quizApp.dados.qe, fase: _quizApp.dados.fase 
+                        })
+                    });
+                    const data = await res.json();
+                    if(data.txid) {
+                        localStorage.setItem('neuro_txid_pendente', data.txid);
+                        localStorage.setItem('neuro_nome_pendente', _quizApp.dados.nome);
+                        document.getElementById('area-qr').innerHTML = `
+                            <img src="${data.img}" class="w-48 mx-auto rounded-xl mb-4">
+                            <textarea class="w-full text-[9px] text-slate-500 p-2 bg-slate-50 border rounded-lg mb-4 text-center" rows="2" readonly>${data.code}</textarea>
+                            <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="navigator.clipboard.writeText('${data.code}');alert('Copiado!')">Copiar Pix</button>
+                        `;
                         _quizApp.mostrarTela('tela-pagamento');
-                        _quizApp.gerarPixVisual(txid);
-                    }, 1500);
-                });
-            },
-
-            gerarPixVisual: (txid) => {
-                const nPix = _quizApp.dados.nome.split(' ')[0].toUpperCase().substring(0,10);
-                const payload = `00020126580014BR.GOV.BCB.PIX0114${_CHAVE_PIX}5204000053039865802BR59${nPix.length.toString().padStart(2, '0')}${nPix}6009SAOPAULO62${(txid.length+4).toString().padStart(2, '0')}05${txid.length.toString().padStart(2, '0')}${txid}6304`;
-                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(payload)}`;
-                
-                document.getElementById('area-qr').innerHTML = `
-                    <img src="${qrUrl}" class="w-48 mb-4 mx-auto rounded-xl border">
-                    <textarea class="w-full text-[9px] p-2 bg-slate-50 border rounded-lg mb-4 text-center font-mono" rows="2" readonly>${payload}</textarea>
-                    <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="navigator.clipboard.writeText('${payload}');alert('Copiado!')">Copiar Pix</button>
-                `;
-                _quizApp.startRadar(txid);
-            },
-
-            startRadar: (txid) => {
-                if (window.loopV) clearInterval(window.loopV);
-                window.loopV = setInterval(async () => {
-                    const { data } = await supabase.from('leads').select('status_pagamento').eq('txid', txid).maybeSingle();
-                    if(data && data.status_pagamento === 'pago') {
-                        clearInterval(window.loopV);
-                        window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
+                        _quizApp.startStatusCheck(data.txid);
                     }
+                } catch(e) { console.error("Erro Pix:", e); }
+            },
+
+            startStatusCheck: (txid) => {
+                if (window.loopVerificacao) clearInterval(window.loopVerificacao);
+                window.loopVerificacao = setInterval(async () => {
+                    try {
+                        const res = await fetch('/api/status?txid=' + txid);
+                        const json = await res.json();
+                        if (json.status === 'pago') {
+                            clearInterval(window.loopVerificacao);
+                            localStorage.removeItem('neuro_txid_pendente');
+                            localStorage.removeItem('neuro_nome_pendente');
+                            window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(_quizApp.dados.nome)}`;
+                        }
+                    } catch (e) {}
                 }, 3000);
             },
 
-            // --- LÓGICA HÍBRIDA (WEB + APP ADMOB) ---
-            verAnuncio: () => {
-                if (window.AndroidInterface) {
-                    window.AndroidInterface.showInterstitial(); 
-                } else {
-                    _quizApp.liberarRelatorio();
-                }
-            },
-
-            onAdDismissed: () => {
-                _quizApp.liberarRelatorio();
-            },
-
-            liberarRelatorio: () => {
-                // REDIRECIONAMENTO COM DADOS COMPLETOS PARA O RESULTADO NÃO DAR ERRO
-                const link = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
-                window.location.href = link;
-            },
-
+            verAnuncio: () => { window.location.href = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(_quizApp.dados.nome)}`; },
             mostrarTela: (id) => {
-                document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('hidden')); 
-                document.getElementById('tela-inicio').classList.add('hidden');
-                document.getElementById('tela-perguntas').classList.add('hidden');
-                document.getElementById('tela-carregando').classList.add('hidden');
-                document.getElementById('tela-pagamento').classList.add('hidden');
-                document.getElementById(id).classList.remove('hidden');
+                document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
+                document.getElementById(id).classList.add('ativa');
             }
         };
     </script>
