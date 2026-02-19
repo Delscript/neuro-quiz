@@ -236,56 +236,94 @@ var _quizApp = {
             _quizApp.renderizar();
         },
 
-        renderizar: () => {
-            if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
-            const q = _quizApp.perguntas[_quizApp.dados.idx];
-            document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
-            document.getElementById('texto-pergunta').innerText = q.q;
-            
-            // Barra de progresso baseada em 21 questões agora
-            document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / 21) * 100) + '%';
-            
-            const div = document.getElementById('area-opcoes');
-            div.innerHTML = '';
-            q.opts.forEach((opt, i) => {
-                const btn = document.createElement('div');
-                btn.className = 'opcao-btn'; btn.innerText = opt;
-                btn.onclick = () => {
-                    if(q.type === 'SEG') _quizApp.dados.fase = opt;
-                    else if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
-                    _quizApp.dados.idx++; _quizApp.renderizar();
-                };
-                div.appendChild(btn);
-            });
-        },
+       renderizar: () => {
+                if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
+                const q = _quizApp.perguntas[_quizApp.dados.idx];
+                document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
+                document.getElementById('texto-pergunta').innerText = q.q;
+                document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / 20) * 100) + '%';
+                const div = document.getElementById('area-opcoes');
+                div.innerHTML = '';
+                q.opts.forEach((opt, i) => {
+                    const btn = document.createElement('div');
+                    btn.className = 'opcao-btn'; btn.innerText = opt;
+                    btn.onclick = () => {
+                        if(q.type === 'SEG') _quizApp.dados.fase = opt;
+                        else if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
+                        _quizApp.dados.idx++; _quizApp.renderizar();
+                    };
+                    div.appendChild(btn);
+                });
+            },
 
-        finalizar: async () => {
-            _quizApp.mostrarTela('tela-carregando');
-            const txid = 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-            
-            await supabase.from('leads').insert([{
-                nome: _quizApp.dados.nome, email: _quizApp.dados.email, whatsapp: _quizApp.dados.whatsapp,
-                qi_score: _quizApp.dados.qi, qe_score: _quizApp.dados.qe, txid: txid, status_pagamento: 'pendente'
-            }]);
+            finalizar: () => {
+                _quizApp.mostrarTela('tela-carregando');
+                const txid = 'TX-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                
+                supabase.from('leads').insert([{
+                    nome: _quizApp.dados.nome, email: _quizApp.dados.email, whatsapp: _quizApp.dados.whatsapp,
+                    qi_score: _quizApp.dados.qi, qe_score: _quizApp.dados.qe, txid: txid, status_pagamento: 'pendente'
+                }]).then(() => {
+                    setTimeout(() => {
+                        _quizApp.mostrarTela('tela-pagamento');
+                        _quizApp.gerarPixVisual(txid);
+                    }, 1500);
+                });
+            },
 
-            _quizApp.mostrarTela('tela-pagamento');
-            _quizApp.gerarPixManual(txid);
-        },
+            gerarPixVisual: (txid) => {
+                const nPix = _quizApp.dados.nome.split(' ')[0].toUpperCase().substring(0,10);
+                const payload = `00020126580014BR.GOV.BCB.PIX0114${_CHAVE_PIX}5204000053039865802BR59${nPix.length.toString().padStart(2, '0')}${nPix}6009SIMOESFILHO62${(txid.length+4).toString().padStart(2, '0')}05${txid.length.toString().padStart(2, '0')}${txid}6304`;
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(payload)}`;
+                
+                document.getElementById('area-qr').innerHTML = `
+                    <img src="${qrUrl}" class="w-48 mb-4 mx-auto rounded-xl border">
+                    <textarea class="w-full text-[9px] p-2 bg-slate-50 border rounded-lg mb-4 text-center font-mono" rows="2" readonly>${payload}</textarea>
+                    <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="navigator.clipboard.writeText('${payload}');alert('Copiado!')">Copiar Pix</button>
+                `;
+                _quizApp.startRadar(txid);
+            },
 
-        // Métodos de Pix, Radar e AdMob mantidos...
-        verAnuncio: () => {
-            if (window.AndroidInterface) {
-                window.AndroidInterface.showInterstitial(); 
-            } else {
+            startRadar: (txid) => {
+                if (window.loopV) clearInterval(window.loopV);
+                window.loopV = setInterval(async () => {
+                    const { data } = await supabase.from('leads').select('status_pagamento').eq('txid', txid).maybeSingle();
+                    if(data && data.status_pagamento === 'pago') {
+                        clearInterval(window.loopV);
+                        window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
+                    }
+                }, 3000);
+            },
+
+            // --- LÓGICA HÍBRIDA (WEB + APP ADMOB) ---
+            verAnuncio: () => {
+                if (window.AndroidInterface) {
+                    window.AndroidInterface.showInterstitial(); 
+                } else {
+                    _quizApp.liberarRelatorio();
+                }
+            },
+
+            onAdDismissed: () => {
                 _quizApp.liberarRelatorio();
+            },
+
+            liberarRelatorio: () => {
+                // REDIRECIONAMENTO COM DADOS COMPLETOS PARA O RESULTADO NÃO DAR ERRO
+                const link = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
+                window.location.href = link;
+            },
+
+            mostrarTela: (id) => {
+                document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('hidden')); 
+                document.getElementById('tela-inicio').classList.add('hidden');
+                document.getElementById('tela-perguntas').classList.add('hidden');
+                document.getElementById('tela-carregando').classList.add('hidden');
+                document.getElementById('tela-pagamento').classList.add('hidden');
+                document.getElementById(id).classList.remove('hidden');
             }
-        },
-        liberarRelatorio: () => {
-            window.location.href = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
-        }
-        // ... (resto do objeto _quizApp igual ao anterior)
-    };
-</script>
+        };
+    </script>
 </body>
 
 </html>
