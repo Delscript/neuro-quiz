@@ -163,12 +163,17 @@
 
             finalizar: () => { 
                 _quizApp.mostrarTela('tela-carregando'); 
-                setTimeout(() => _quizApp.gerarPix(), 2000); 
-            },
+               if (window.AndroidInterface && window.AndroidInterface.showInterstitial) {
+        window.AndroidInterface.showInterstitial();
+    } else {
+        // Se não encontrar a ponte (ex: testando no PC), vai direto pro Pix
+        setTimeout(() => _quizApp.gerarPix(), 2000); 
+    }
+},
 
             gerarPix: async () => {
                 try {
-                    const res = await fetch('/api/pix', {
+                   const res = await fetch('https://neuro-quiz-beta.vercel.app/api/pix', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
