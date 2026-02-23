@@ -132,16 +132,30 @@
                 this.perguntas = [...sel, this.perguntaFixa];
             },
 
-            iniciar: () => {
-                const n = document.getElementById('nome-usuario').value;
-                const e = document.getElementById('email-usuario').value;
-                const w = document.getElementById('whatsapp-usuario').value;
-                if(!n || !e.includes('@') || !w) return alert("Preencha os campos corretamente!");
-                _quizApp.dados.nome = n; _quizApp.dados.email = e; _quizApp.dados.whatsapp = w;
-                _quizApp.prepararQuiz();
-                _quizApp.mostrarTela('tela-perguntas');
-                _quizApp.renderizar();
-            },
+           iniciar: () => {
+    const n = document.getElementById('nome-usuario').value;
+    const e = document.getElementById('email-usuario').value;
+    const w = document.getElementById('whatsapp-usuario').value;
+    
+    // Removi o alert para não travar o Android
+    if(!n || !e.includes('@') || !w) {
+        console.log("Campos inválidos");
+        // Se quiser avisar o usuário, use um elemento de texto no HTML em vez de alert
+        return;
+    }
+    
+    _quizApp.dados.nome = n; 
+    _quizApp.dados.email = e; 
+    _quizApp.dados.whatsapp = w;
+    
+    try {
+        _quizApp.prepararQuiz();
+        _quizApp.mostrarTela('tela-perguntas');
+        _quizApp.renderizar();
+    } catch (err) {
+        console.error("Erro ao iniciar quiz:", err);
+    }
+},
 
             renderizar: () => {
                 if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
