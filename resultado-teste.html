@@ -15,21 +15,19 @@
         #relatorio {
             background-color: white;
             width: 100%; 
-            max-width: 210mm; /* Mantém o padrão A4 no Desktop */
+            max-width: 210mm; 
             min-height: 297mm;
             margin: 0 auto;
             position: relative;
-            padding: 10mm; /* Ajustado para não flutuar tanto */
+            padding: 10mm;
             box-sizing: border-box;
             display: none; 
             color: #1f2937;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
-        /* Ajuste específico para o Mobile não "flutuar" */
         @media (max-width: 640px) {
             #relatorio { padding: 15px; margin: 0; box-shadow: none; }
-            .watermark { font-size: 3rem !important; }
         }
 
         .watermark {
@@ -41,9 +39,8 @@
             white-space: nowrap;
         }
 
-        /* CORREÇÃO DA ASSINATURA: Reduzida para 0.9rem conforme pedido */
+        /* ASSINATURA AJUSTADA PARA 0.9rem */
         .assinatura { font-family: 'Allura', cursive; font-size: 0.9rem; color: #1e3a8a; }
-        
         .texto-justificado { text-align: justify; line-height: 1.4; }
 
         #loading { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -51,10 +48,9 @@
         /* BOTÕES REDONDOS NAS LATERAIS */
         .btn-float {
             width: 55px; height: 55px; border-radius: 50%;
-            display: flex; items-center; justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             position: fixed; bottom: 25px; z-index: 100;
-            transition: 0.3s;
         }
         .btn-pdf { left: 20px; background-color: #2563eb; }
         .btn-wpp { right: 20px; background-color: #22c55e; }
@@ -64,7 +60,7 @@
 
     <div id="loading">
         <div class="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-slate-600 font-bold uppercase tracking-widest text-xs text-center">Cruzando Métricas Neurais...</p>
+        <p class="text-slate-600 font-bold uppercase tracking-widest text-[10px]">Gerando Inteligência Neural...</p>
     </div>
 
     <div id="relatorio">
@@ -76,13 +72,13 @@
                 <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Intelligence Engine v2.0</p>
             </div>
             <div class="text-right">
-                <p class="text-[9px] text-slate-400 font-bold uppercase">Confidencial</p>
+                <p class="text-[9px] text-slate-400 font-bold uppercase">Relatório Confidencial</p>
                 <p class="text-[8px] text-slate-300" id="data-hoje"></p>
             </div>
         </div>
 
         <div class="text-center mb-6 relative z-10">
-            <span class="bg-blue-50 text-blue-800 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Relatório Final</span>
+            <span class="bg-blue-50 text-blue-800 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Neuro-Análise Final</span>
             <h2 id="titulo-perfil" class="text-2xl font-black text-slate-800 mt-2 uppercase leading-tight">...</h2>
             <p id="subtitulo-perfil" class="text-sm text-slate-500 italic">...</p>
         </div>
@@ -100,27 +96,27 @@
 
         <div class="space-y-4 px-1 mb-6 relative z-10">
             <div>
-                <h3 class="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Diagnóstico</h3>
+                <h3 class="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Diagnóstico Neural</h3>
                 <p id="texto-analise-1" class="text-xs text-slate-600 texto-justificado"></p>
             </div>
             <div>
-                <h3 class="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Estratégia</h3>
+                <h3 class="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Direção Estratégica</h3>
                 <p id="texto-analise-2" class="text-xs text-slate-600 texto-justificado"></p>
             </div>
             <div>
-                <h3 class="text-[9px] font-bold text-orange-500 uppercase mb-0.5">Alerta</h3>
+                <h3 class="text-[9px] font-bold text-orange-500 uppercase mb-0.5">Ponto Cego (Alerta)</h3>
                 <p id="texto-analise-3" class="text-xs text-slate-600 font-semibold italic"></p>
             </div>
         </div>
 
-        <div class="absolute bottom-10 left-10 right-10 flex justify-between items-end">
+        <div class="absolute bottom-10 left-10 right-10 flex justify-between items-end pb-4">
             <div>
                 <h4 id="nome-cliente" class="text-sm font-bold text-slate-900">...</h4>
                 <p id="profissao-cliente" class="text-[8px] text-orange-600 font-bold uppercase"></p>
             </div>
             <div class="text-right">
                 <div class="assinatura">Anderson Dias</div>
-                <p class="text-[6px] text-slate-400 font-bold uppercase leading-tight">Founder<br>Sier Growth</p>
+                <p class="text-[6px] text-slate-400 font-bold uppercase leading-tight">Founder<br>Sier Growth Intelligence</p>
             </div>
         </div>
     </div>
@@ -163,7 +159,12 @@
             document.getElementById('val-qi').innerText = dados.qi_score;
             document.getElementById('val-qe').innerText = dados.qe_score;
 
-           // --- LÓGICA DE ARQUÉTIPOS (16 Perfis) ---
+            const qi = dados.qi_score;
+            const qe = dados.qe_score;
+
+            let t, s, d, r, p;
+
+            // RESTAURAÇÃO COMPLETA DA LÓGICA DE ARQUÉTIPOS
             if (qi >= 8 && qe >= 8) {
                 t = "Mente Visionária (Alfa)"; s = "Equilíbrio raro de alta performance.";
                 d = "Você processa dados complexos com precisão e lidera pessoas com empatia. É o perfil dos grandes fundadores.";
@@ -206,7 +207,6 @@
                 r = "Escolha UMA habilidade lógica para dominar nos próximos 90 dias. Menos é mais agora.";
                 p = "Falta de foco claro. Você começa muitas coisas e termina poucas, drenando sua energia.";
             }
-
 
             document.getElementById('titulo-perfil').innerText = t;
             document.getElementById('subtitulo-perfil').innerText = s;
