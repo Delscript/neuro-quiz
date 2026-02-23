@@ -219,21 +219,6 @@
             document.getElementById('btn-area').classList.remove('hidden');
         }
 
-      function gerarPDF() {
-    const btnArea = document.getElementById('btn-area');
-    btnArea.classList.add('hidden');
-    
-    const elemento = document.getElementById("relatorio");
-    const nomeArquivo = `Relatorio_Sier_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`;
-
-    const opt = {
-        margin: 0,
-        filename: nomeArquivo,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
     // Gera o PDF
     html2pdf().set(opt).from(elemento).toPdf().output('bloburl').then(function(blobUrl) {
         if (window.AndroidInterface) {
