@@ -174,14 +174,25 @@
                 });
             },
 
-            finalizar: function() { 
-                this.mostrarTela('tela-carregando'); 
-                if (window.AndroidInterface && window.AndroidInterface.showInterstitial) {
-                    window.AndroidInterface.showInterstitial();
-                } else {
-                    setTimeout(() => this.gerarPix(), 2000); 
-                }
-            },
+           finalizar: function() { 
+    // 1. Mostra carregando
+    this.mostrarTela('tela-carregando'); 
+    
+    // 2. Gera o Pix IMEDIATAMENTE (independente de ser App ou Web)
+    // O anúncio NÃO vai abrir sozinho aqui
+    setTimeout(() => this.gerarPix(), 2000); 
+},
+
+verAnuncio: function() {
+    // Esse botão só é clicado se o usuário escolher ver o vídeo no lugar de pagar
+    if (window.AndroidInterface && window.AndroidInterface.showInterstitial) {
+        window.AndroidInterface.showInterstitial(); 
+    } else {
+        // Se estiver na Web (PC), como não tem AdMob Intersticial, 
+        // você decide se libera direto ou mostra um aviso.
+        this.liberarRelatorio();
+    }
+},
 
             gerarPix: async function() {
                 try {
