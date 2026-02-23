@@ -206,7 +206,6 @@
                            <button type="button" class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" 
 onclick="copyPix('${data.code}')">Copiar Pix</button>
  `;
-<script>
 function copyPix(code) {
     const el = document.createElement('textarea');
     el.value = code;
@@ -217,7 +216,6 @@ function copyPix(code) {
     // Em vez de alert, vamos usar um log ou mudar o texto do botão
     console.log("Pix Copiado");
 }
-</script>
                        
                         _quizApp.mostrarTela('tela-pagamento');
                         _quizApp.startStatusCheck(data.txid);
