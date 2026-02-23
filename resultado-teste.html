@@ -219,19 +219,27 @@
             document.getElementById('btn-area').classList.remove('hidden');
         }
 
-    // Gera o PDF
-    html2pdf().set(opt).from(elemento).toPdf().output('bloburl').then(function(blobUrl) {
-        if (window.AndroidInterface) {
-            // No App, abrimos o BlobUrl. Com o DownloadListener que você colocou no Java, 
-            // o celular vai entender que deve baixar o arquivo.
-            window.location.href = blobUrl;
-        } else {
-            // No Desktop, continua salvando direto
-            html2pdf().set(opt).from(elemento).save();
-        }
-        btnArea.classList.remove('hidden');
-    });
-}
+       function gerarPDF() {
+    const btnArea = document.getElementById('btn-area');
+    btnArea.classList.add('hidden'); // Esconde botões para não saírem no PDF
+    
+    const elemento = document.getElementById("relatorio");
+    const nomeArquivo = `Relatorio_Sier_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`;
+
+    const opt = {
+        margin: [0, 0, 0, 0], // Zera margens para evitar quebra de página
+        filename: nomeArquivo,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+            scale: 2, 
+            useCORS: true, 
+            letterRendering: true,
+            scrollY: 0 
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: 'avoid' } // Evita criar páginas extras desnecessárias
+    };
+
     // LÓGICA PARA SMARTPHONE (WEBVIEW) VS DESKTOP
     if (window.AndroidInterface) {
         // No App, geramos o PDF e abrimos em uma nova aba para o sistema baixar
