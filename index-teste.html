@@ -2,29 +2,16 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sier Growth - Neuro Quiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    
-    <script>
-    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    
-    fbq('init', 'SEU_ID_DO_PIXEL_AQUI'); // <--- COLOQUE SEU ID DO PIXEL AQUI
-    fbq('track', 'PageView');
-    </script>
-
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; margin: 0; padding: 0; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; margin: 0; padding: 0; }
         .card-quiz { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; padding: 2rem; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .opcao-btn { background: #1e293b; border: 1px solid #334155; padding: 16px; border-radius: 16px; width: 100%; text-align: left; margin-bottom: 12px; font-weight: 500; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+        .opcao-btn { background: #1e293b; border: 1px solid #334155; padding: 16px; border-radius: 16px; width: 100%; text-align: left; margin-bottom: 12px; font-weight: 500; cursor: pointer; transition: 0.2s; }
         .opcao-btn:active { background: #3b82f6; border-color: #60a5fa; transform: scale(0.98); }
+        .hidden { display: none !important; }
         .barra-progresso { height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
         .progresso-fill { height: 100%; background: linear-gradient(to right, #f97316, #ea580c); width: 0%; transition: width 0.3s; }
         .tela-app { display: none; }
@@ -76,23 +63,21 @@
     </div>
 
     <script>
-        function copyPix(code) {
-            const el = document.createElement('textarea');
-            el.value = code;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            const btn = document.getElementById('btn-copy');
-            if(btn) {
-                btn.innerText = 'CHAVE COPIADA!';
-                btn.classList.replace('bg-blue-600', 'bg-green-600');
+        window.onload = () => {
+            const txid = localStorage.getItem('neuro_txid_pendente');
+            const nome = localStorage.getItem('neuro_nome_pendente');
+            if (txid && nome) {
+                _quizApp.dados.nome = nome;
+                _quizApp.mostrarTela('tela-pagamento');
+                _quizApp.gerarPix(); 
             }
-        }
+        };
 
         var _quizApp = {
             dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: '' },
+            
             banco: [
+                // 20 QI
                 { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
                 { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
                 { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
@@ -113,6 +98,7 @@
                 { q: "Avião cai na fronteira. Onde enterram sobreviventes?", opts: ["Não se enterra vivos", "No Brasil", "Argentina"], type: "QI", c: 0 },
                 { q: "Invertendo o número 8102:", opts: ["2018", "2108", "8012"], type: "QI", c: 0 },
                 { q: "Pai de Maria tem 5 filhas: Lala, Lele, Lili, Lolo e...?", opts: ["Maria", "Lulu", "Leila"], type: "QI", c: 0 },
+                // 20 QE
                 { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
                 { q: "Cliente gritou. Sua reação imediata é:", opts: ["Resolve calmamente", "Grita de volta", "Ignora"], type: "QE", c: 0 },
                 { q: "Em grupo, você prefere:", opts: ["Liderar", "Seguir", "Fazer só"], type: "QE", c: 0 },
@@ -139,138 +125,106 @@
             perguntas: [],
 
             prepararQuiz: function() {
+                // MATEMÁTICA 10/10 - GARANTE NOTA MÁXIMA 10
                 const gQI = this.banco.filter(p => p.type === 'QI').sort(() => Math.random() - 0.5);
                 const gQE = this.banco.filter(p => p.type === 'QE').sort(() => Math.random() - 0.5);
                 const sel = [...gQI.slice(0, 10), ...gQE.slice(0, 10)].sort(() => Math.random() - 0.5);
                 this.perguntas = [...sel, this.perguntaFixa];
             },
 
-            iniciar: function() {
+            iniciar: () => {
                 const n = document.getElementById('nome-usuario').value;
                 const e = document.getElementById('email-usuario').value;
                 const w = document.getElementById('whatsapp-usuario').value;
-                
-                if(!n || !e.includes('@') || !w) return;
-                
-                // --- 2. EVENTO LEAD (Adicionado) ---
-                if(window.fbq) fbq('track', 'Lead', { content_name: 'Inicio NeuroQuiz' });
-
-                this.dados.nome = n; 
-                this.dados.email = e; 
-                this.dados.whatsapp = w;
-                this.prepararQuiz();
-                this.mostrarTela('tela-perguntas');
-                this.renderizar();
+                if(!n || !e.includes('@') || !w) return alert("Preencha os campos corretamente!");
+                _quizApp.dados.nome = n; _quizApp.dados.email = e; _quizApp.dados.whatsapp = w;
+                _quizApp.prepararQuiz();
+                _quizApp.mostrarTela('tela-perguntas');
+                _quizApp.renderizar();
             },
 
-            renderizar: function() {
-                if(this.dados.idx >= this.perguntas.length) return this.finalizar();
-                const q = this.perguntas[this.dados.idx];
-                document.getElementById('num-pergunta').innerText = this.dados.idx + 1;
+            renderizar: () => {
+                if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
+                const q = _quizApp.perguntas[_quizApp.dados.idx];
+                document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
                 document.getElementById('texto-pergunta').innerText = q.q;
-                document.getElementById('barra-progresso').style.width = ((this.dados.idx / 21) * 100) + '%';
-                const div = document.getElementById('area-opcoes'); 
-                div.innerHTML = '';
-                
+                document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / 21) * 100) + '%';
+                const div = document.getElementById('area-opcoes'); div.innerHTML = '';
                 q.opts.forEach((opt, i) => {
-                    const btn = document.createElement('div'); 
-                    btn.className = 'opcao-btn'; 
-                    btn.innerText = opt;
+                    const btn = document.createElement('div'); btn.className = 'opcao-btn'; btn.innerText = opt;
                     btn.onclick = () => {
-                        if(q.type === 'SEG') this.dados.fase = opt;
-                        else if(i === q.c) q.type === 'QI' ? this.dados.qi++ : this.dados.qe++;
-                        this.dados.idx++; 
-                        this.renderizar();
+                        if(q.type === 'SEG') _quizApp.dados.fase = opt;
+                        else if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
+                        _quizApp.dados.idx++; _quizApp.renderizar();
                     };
                     div.appendChild(btn);
                 });
             },
 
-            finalizar: function() { 
-                this.mostrarTela('tela-carregando'); 
-                setTimeout(() => this.gerarPix(), 2000); 
+            finalizar: () => { 
+                _quizApp.mostrarTela('tela-carregando'); 
+                setTimeout(() => _quizApp.gerarPix(), 2000); 
             },
 
-            gerarPix: async function() {
+            gerarPix: async () => {
                 try {
-                    const res = await fetch('https://neuro-quiz-beta.vercel.app/api/pix', {
+                    const res = await fetch('/api/pix', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            nome: this.dados.nome, email: this.dados.email, 
-                            whatsapp: this.dados.whatsapp, qi: this.dados.qi, 
-                            qe: this.dados.qe, fase: this.dados.fase 
+                            nome: _quizApp.dados.nome, email: _quizApp.dados.email, 
+                            whatsapp: _quizApp.dados.whatsapp, qi: _quizApp.dados.qi, 
+                            qe: _quizApp.dados.qe, fase: _quizApp.dados.fase 
                         })
                     });
                     const data = await res.json();
                     if(data.txid) {
-                        // --- 3. EVENTO INITIATECHECKOUT (Adicionado) ---
-                        if(window.fbq) fbq('track', 'InitiateCheckout', { value: 1.00, currency: 'BRL' });
-
                         localStorage.setItem('neuro_txid_pendente', data.txid);
-                        localStorage.setItem('neuro_nome_pendente', this.dados.nome);
-                        
+                        localStorage.setItem('neuro_nome_pendente', _quizApp.dados.nome);
                         document.getElementById('area-qr').innerHTML = `
                             <img src="${data.img}" class="w-48 mx-auto rounded-xl mb-4">
-                            <textarea id="pix-code" class="w-full text-[9px] text-slate-500 p-2 bg-slate-50 border rounded-lg mb-4 text-center" rows="2" readonly>${data.code}</textarea>
-                            <button id="btn-copy" type="button" class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="copyPix('${data.code}')">Copiar Pix</button>
+                            <textarea class="w-full text-[9px] text-slate-500 p-2 bg-slate-50 border rounded-lg mb-4 text-center" rows="2" readonly>${data.code}</textarea>
+                            <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="navigator.clipboard.writeText('${data.code}');alert('Copiado!')">Copiar Pix</button>
                         `;
-                        
-                        this.mostrarTela('tela-pagamento');
-                        this.startStatusCheck(data.txid);
+                        _quizApp.mostrarTela('tela-pagamento');
+                        _quizApp.startStatusCheck(data.txid);
                     }
                 } catch(e) { console.error("Erro Pix:", e); }
             },
 
-            startStatusCheck: function(txid) {
+            startStatusCheck: (txid) => {
                 if (window.loopVerificacao) clearInterval(window.loopVerificacao);
                 window.loopVerificacao = setInterval(async () => {
                     try {
-                        const res = await fetch('https://neuro-quiz-beta.vercel.app/api/status?txid=' + txid);
+                        const res = await fetch('/api/status?txid=' + txid);
                         const json = await res.json();
                         if (json.status === 'pago') {
                             clearInterval(window.loopVerificacao);
                             localStorage.removeItem('neuro_txid_pendente');
                             localStorage.removeItem('neuro_nome_pendente');
-                            // Redireciona para o arquivo de resultado que já contém o evento Purchase
-                            window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(this.dados.nome)}&qi=${this.dados.qi}&qe=${this.dados.qe}&fase=${encodeURIComponent(this.dados.fase)}`;
+                            window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
                         }
                     } catch (e) {}
                 }, 3000);
             },
 
-            verAnuncio: function() {
-                if (window.AndroidInterface && window.AndroidInterface.showInterstitial) {
-                    window.AndroidInterface.showInterstitial(); 
-                } else {
-                    this.liberarRelatorio();
-                }
+            verAnuncio: () => {
+                if (window.AndroidInterface) window.AndroidInterface.showInterstitial(); 
+                else _quizApp.liberarRelatorio();
             },
 
-            onAdDismissed: function() { this.liberarRelatorio(); },
+            onAdDismissed: () => { _quizApp.liberarRelatorio(); },
 
-            liberarRelatorio: function() {
-                // Ao liberar via anúncio, você também pode rastrear como Purchase grátis se quiser
-                const link = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(this.dados.nome)}&qi=${this.dados.qi}&qe=${this.dados.qe}&fase=${encodeURIComponent(this.dados.fase)}`;
+            liberarRelatorio: () => {
+                const link = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
                 window.location.href = link;
             },
 
-            mostrarTela: function(id) {
+            mostrarTela: (id) => {
                 document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
                 document.getElementById(id).classList.add('ativa');
             }
         };
-
-        window.onload = () => {
-            const txid = localStorage.getItem('neuro_txid_pendente');
-            const nome = localStorage.getItem('neuro_nome_pendente');
-            if (txid && nome) {
-                _quizApp.dados.nome = nome;
-                _quizApp.mostrarTela('tela-pagamento');
-                _quizApp.gerarPix(); 
-            }
-        };
     </script>
 </body>
-</html>
 </html>
