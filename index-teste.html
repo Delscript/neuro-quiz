@@ -6,6 +6,19 @@
     <title>Sier Growth - Neuro Quiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    
+    fbq('init', 'SEU_ID_DO_PIXEL_AQUI'); // <--- COLOQUE SEU ID DO PIXEL AQUI
+    fbq('track', 'PageView');
+    </script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; margin: 0; padding: 0; }
         .card-quiz { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; padding: 2rem; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
@@ -63,21 +76,20 @@
     </div>
 
     <script>
-        // Assim que a página carregar, verifica se ele já tinha um TxID pendente
-window.onload = () => {
-    const txidSalvo = localStorage.getItem('neuro_txid_pendente');
-    if (txidSalvo) {
-        console.log("CAGUETE: Usuário deu F5. Recuperando sessão do TxID:", txidSalvo);
-        _quizApp.mostrarTela('tela-pagamento');
-        _quizApp.startStatusCheck(txidSalvo); // Volta a verificar o pagamento de onde parou
-    }
-};
+        // Recuperação de Sessão (F5)
+        window.onload = () => {
+            const txidSalvo = localStorage.getItem('neuro_txid_pendente');
+            if (txidSalvo) {
+                console.log("Recuperando sessão do TxID:", txidSalvo);
+                _quizApp.mostrarTela('tela-pagamento');
+                _quizApp.startStatusCheck(txidSalvo); 
+            }
+        };
 
         var _quizApp = {
             dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: '' },
             
             banco: [
-                // 20 QI
                 { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
                 { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
                 { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
@@ -98,7 +110,6 @@ window.onload = () => {
                 { q: "Avião cai na fronteira. Onde enterram sobreviventes?", opts: ["Não se enterra vivos", "No Brasil", "Argentina"], type: "QI", c: 0 },
                 { q: "Invertendo o número 8102:", opts: ["2018", "2108", "8012"], type: "QI", c: 0 },
                 { q: "Pai de Maria tem 5 filhas: Lala, Lele, Lili, Lolo e...?", opts: ["Maria", "Lulu", "Leila"], type: "QI", c: 0 },
-                // 20 QE
                 { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
                 { q: "Cliente gritou. Sua reação imediata é:", opts: ["Resolve calmamente", "Grita de volta", "Ignora"], type: "QE", c: 0 },
                 { q: "Em grupo, você prefere:", opts: ["Liderar", "Seguir", "Fazer só"], type: "QE", c: 0 },
@@ -125,7 +136,6 @@ window.onload = () => {
             perguntas: [],
 
             prepararQuiz: function() {
-                // MATEMÁTICA 10/10 - GARANTE NOTA MÁXIMA 10
                 const gQI = this.banco.filter(p => p.type === 'QI').sort(() => Math.random() - 0.5);
                 const gQE = this.banco.filter(p => p.type === 'QE').sort(() => Math.random() - 0.5);
                 const sel = [...gQI.slice(0, 10), ...gQE.slice(0, 10)].sort(() => Math.random() - 0.5);
@@ -137,6 +147,10 @@ window.onload = () => {
                 const e = document.getElementById('email-usuario').value;
                 const w = document.getElementById('whatsapp-usuario').value;
                 if(!n || !e.includes('@') || !w) return alert("Preencha os campos corretamente!");
+                
+                // EVENTO DE LEAD PARA O FACEBOOK
+                if(window.fbq) fbq('track', 'Lead', { content_name: 'Inicio NeuroQuiz' });
+
                 _quizApp.dados.nome = n; _quizApp.dados.email = e; _quizApp.dados.whatsapp = w;
                 _quizApp.prepararQuiz();
                 _quizApp.mostrarTela('tela-perguntas');
@@ -179,6 +193,9 @@ window.onload = () => {
                     });
                     const data = await res.json();
                     if(data.txid) {
+                        // EVENTO DE CHECKOUT PARA O FACEBOOK
+                        if(window.fbq) fbq('track', 'InitiateCheckout', { value: 1.00, currency: 'BRL' });
+
                         localStorage.setItem('neuro_txid_pendente', data.txid);
                         localStorage.setItem('neuro_nome_pendente', _quizApp.dados.nome);
                         document.getElementById('area-qr').innerHTML = `
@@ -200,6 +217,7 @@ window.onload = () => {
                         const json = await res.json();
                         if (json.status === 'pago') {
                             clearInterval(window.loopVerificacao);
+                            // LIMPEZA ANTES DE REDIRECIONAR O PAGAMENTO
                             localStorage.removeItem('neuro_txid_pendente');
                             localStorage.removeItem('neuro_nome_pendente');
                             window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
@@ -216,6 +234,10 @@ window.onload = () => {
             onAdDismissed: () => { _quizApp.liberarRelatorio(); },
 
             liberarRelatorio: () => {
+                // AQUI ESTÁ A CORREÇÃO DE OURO: LIMPAR A MEMÓRIA APÓS O ANÚNCIO!
+                localStorage.removeItem('neuro_txid_pendente');
+                localStorage.removeItem('neuro_nome_pendente');
+                
                 const link = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
                 window.location.href = link;
             },
