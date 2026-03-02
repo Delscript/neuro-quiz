@@ -73,13 +73,13 @@
                 <button id="btn-hibrido" onclick="_quizApp.acaoHibrida()" class="w-full bg-slate-800 p-4 rounded-2xl font-bold text-blue-400 text-xs border border-slate-700">
                     ...
                 </button>
-                <button onclick="localStorage.clear(); location.reload();" class="text-[9px] text-slate-600 uppercase font-bold hover:text-slate-400">Reiniciar Teste</button>
+                <button onclick="_quizApp.reiniciarTeste()" class="text-[9px] text-slate-600 uppercase font-bold hover:text-slate-400">Reiniciar Teste</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Função de Cópia Segura (Funciona em IOS e Android)
+        // Função de Cópia Segura
         function copyPix(code) {
             const el = document.createElement('textarea');
             el.value = code;
@@ -90,12 +90,27 @@
             alert('Chave Copiada!');
         }
 
-        // Recuperação de Sessão (F5)
+        // AQUI ESTÁ A MÁGICA DA RECUPERAÇÃO DE SESSÃO COM O QR CODE
         window.onload = () => {
             const txidSalvo = localStorage.getItem('neuro_txid_pendente');
+            const imgSalva = localStorage.getItem('neuro_pix_img');
+            const codeSalvo = localStorage.getItem('neuro_pix_code');
+
             if (txidSalvo) {
                 _quizApp.mostrarTela('tela-pagamento');
-                _quizApp.configurarBotaoHibrido(); 
+                _quizApp.configurarBotaoHibrido();
+                
+                // Se a imagem e o código estiverem salvos, redesenha o QR Code
+                if (imgSalva && codeSalvo) {
+                    document.getElementById('area-qr').innerHTML = `
+                        <img src="${imgSalva}" class="w-48 mx-auto rounded-xl mb-4">
+                        <textarea class="w-full text-[9px] text-slate-500 p-2 bg-slate-50 border rounded-lg mb-4 text-center" rows="2" readonly>${codeSalvo}</textarea>
+                        <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="copyPix('${codeSalvo}')">Copiar Pix</button>
+                    `;
+                } else {
+                    document.getElementById('area-qr').innerHTML = `<p class="text-slate-400 text-sm font-bold mt-4">Sessão recuperada. Aguardando confirmação do banco...</p>`;
+                }
+
                 _quizApp.startStatusCheck(txidSalvo); 
             }
         };
@@ -162,7 +177,6 @@
                 const w = document.getElementById('whatsapp-usuario').value;
                 if(!n || !e.includes('@') || !w) return alert("Preencha os campos corretamente!");
                 
-                // Vacina Anti-Travamento (Se o navegador bloquear o Pixel, o código continua)
                 try { if(window.fbq) fbq('track', 'Lead', { content_name: 'Inicio SierQuiz' }); } catch(err) {}
 
                 _quizApp.dados.nome = n; _quizApp.dados.email = e; _quizApp.dados.whatsapp = w;
@@ -208,14 +222,12 @@
                     if (window.AndroidInterface.showInterstitial) window.AndroidInterface.showInterstitial();
                     else _quizApp.liberarRelatorio();
                 } else {
-                    // Link provisório da loja (Atualize quando publicar)
                     window.open('https://play.google.com/store/apps/details?id=com.siergrowth.neuroquiz', '_blank');
                 }
             },
 
             gerarPix: async () => {
                 try {
-                    // URL absoluta garante que funciona perfeitamente independente de onde esteja rodando
                     const res = await fetch('https://neuro-quiz-beta.vercel.app/api/pix', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -231,8 +243,11 @@
                     if(data.txid) {
                         try { if(window.fbq) fbq('track', 'InitiateCheckout', { value: 1.00, currency: 'BRL' }); } catch(err) {}
 
+                        // SALVA OS DADOS DO QR CODE PARA NÃO PERDER NO F5
                         localStorage.setItem('neuro_txid_pendente', data.txid);
                         localStorage.setItem('neuro_nome_pendente', _quizApp.dados.nome);
+                        localStorage.setItem('neuro_pix_img', data.img);
+                        localStorage.setItem('neuro_pix_code', data.code);
                         
                         document.getElementById('area-qr').innerHTML = `
                             <img src="${data.img}" class="w-48 mx-auto rounded-xl mb-4">
@@ -244,7 +259,6 @@
                         _quizApp.mostrarTela('tela-pagamento');
                         _quizApp.startStatusCheck(data.txid);
                     } else {
-                        // Vacina Anti-Travamento: Se API falhar (Ex: 504 Timeout), avisa o cliente.
                         document.getElementById('area-qr').innerHTML = `
                             <p class="text-red-500 text-sm font-bold mt-4">Erro de Conexão. O sistema não pôde gerar o QR Code.</p>
                             <button onclick="_quizApp.gerarPix()" class="mt-4 bg-slate-800 text-white px-4 py-2 rounded">Tentar Novamente</button>
@@ -252,47 +266,7 @@
                         _quizApp.mostrarTela('tela-pagamento');
                     }
                 } catch(e) { 
-                    // Se a internet cair ou o navegador bloquear o fetch
                     console.error("Erro Pix:", e);
                     document.getElementById('area-qr').innerHTML = `
-                        <p class="text-red-500 text-sm font-bold mt-4">Falha de rede ou bloqueador de anúncios detectado.</p>
-                        <button onclick="_quizApp.gerarPix()" class="mt-4 bg-slate-800 text-white px-4 py-2 rounded">Tentar Novamente</button>
-                    `;
-                    _quizApp.mostrarTela('tela-pagamento');
-                }
-            },
-
-            startStatusCheck: (txid) => {
-                if (window.loopVerificacao) clearInterval(window.loopVerificacao);
-                window.loopVerificacao = setInterval(async () => {
-                    try {
-                        const res = await fetch('https://neuro-quiz-beta.vercel.app/api/status?txid=' + txid);
-                        const json = await res.json();
-                        if (json.status === 'pago') {
-                            clearInterval(window.loopVerificacao);
-                            localStorage.removeItem('neuro_txid_pendente');
-                            localStorage.removeItem('neuro_nome_pendente');
-                            window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
-                        }
-                    } catch (e) {}
-                }, 3000);
-            },
-
-            onAdDismissed: () => { _quizApp.liberarRelatorio(); },
-
-            liberarRelatorio: () => {
-                localStorage.removeItem('neuro_txid_pendente');
-                localStorage.removeItem('neuro_nome_pendente');
-                
-                const link = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
-                window.location.href = link;
-            },
-
-            mostrarTela: (id) => {
-                document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
-                document.getElementById(id).classList.add('ativa');
-            }
-        };
-    </script>
-</body>
-</html>
+                        <p class="text
+        
