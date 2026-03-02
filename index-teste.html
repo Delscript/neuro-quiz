@@ -16,7 +16,7 @@
     s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
     
-    fbq('init', 'SEU_ID_DO_PIXEL_AQUI'); // <--- COLOQUE SEU ID DO PIXEL AQUI
+    fbq('init', 'SEU_ID_DO_PIXEL_AQUI'); // <--- SEU PIXEL AQUI
     fbq('track', 'PageView');
     </script>
     <style>
@@ -65,11 +65,10 @@
         <div id="tela-pagamento" class="card-quiz text-center tela-app">
             <h2 class="text-2xl font-black text-green-500 mb-2 italic uppercase text-center">Análise Pronta!</h2>
             <div id="area-qr" class="bg-white p-6 rounded-[32px] text-black flex flex-col items-center">
-                Gerando Pix Seguro...
+                <p class="text-slate-500 font-bold">Conectando ao sistema...</p>
             </div>
             <div class="mt-6 space-y-3">
                 <p id="status-pagamento" class="text-[10px] text-blue-500 font-bold uppercase animate-pulse text-center">⏳ Aguardando pagamento da taxa de emissão...</p>
-                
                 <button id="btn-hibrido" onclick="_quizApp.acaoHibrida()" class="w-full bg-slate-800 p-4 rounded-2xl font-bold text-blue-400 text-xs border border-slate-700">
                     ...
                 </button>
@@ -79,40 +78,42 @@
     </div>
 
     <script>
-        // Função de Cópia Segura
         function copyPix(code) {
-            const el = document.createElement('textarea');
-            el.value = code;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            alert('Chave Copiada!');
+            try {
+                const el = document.createElement('textarea');
+                el.value = code;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                alert('Chave Pix Copiada com sucesso!');
+            } catch(e) {
+                alert('Erro ao copiar. Selecione o texto manualmente.');
+            }
         }
 
-        // AQUI ESTÁ A MÁGICA DA RECUPERAÇÃO DE SESSÃO COM O QR CODE
-        window.onload = () => {
-            const txidSalvo = localStorage.getItem('neuro_txid_pendente');
-            const imgSalva = localStorage.getItem('neuro_pix_img');
-            const codeSalvo = localStorage.getItem('neuro_pix_code');
+        window.onload = function() {
+            try {
+                const txidSalvo = localStorage.getItem('neuro_txid_pendente');
+                const imgSalva = localStorage.getItem('neuro_pix_img');
+                const codeSalvo = localStorage.getItem('neuro_pix_code');
 
-            if (txidSalvo) {
-                _quizApp.mostrarTela('tela-pagamento');
-                _quizApp.configurarBotaoHibrido();
-                
-                // Se a imagem e o código estiverem salvos, redesenha o QR Code
-                if (imgSalva && codeSalvo) {
-                    document.getElementById('area-qr').innerHTML = `
-                        <img src="${imgSalva}" class="w-48 mx-auto rounded-xl mb-4">
-                        <textarea class="w-full text-[9px] text-slate-500 p-2 bg-slate-50 border rounded-lg mb-4 text-center" rows="2" readonly>${codeSalvo}</textarea>
-                        <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="copyPix('${codeSalvo}')">Copiar Pix</button>
-                    `;
-                } else {
-                    document.getElementById('area-qr').innerHTML = `<p class="text-slate-400 text-sm font-bold mt-4">Sessão recuperada. Aguardando confirmação do banco...</p>`;
+                if (txidSalvo) {
+                    _quizApp.mostrarTela('tela-pagamento');
+                    _quizApp.configurarBotaoHibrido();
+                    
+                    if (imgSalva && codeSalvo) {
+                        document.getElementById('area-qr').innerHTML = `
+                            <img src="${imgSalva}" class="w-48 mx-auto rounded-xl mb-4">
+                            <textarea class="w-full text-[9px] text-slate-500 p-2 bg-slate-50 border rounded-lg mb-4 text-center" rows="2" readonly>${codeSalvo}</textarea>
+                            <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="copyPix('${codeSalvo}')">Copiar Pix</button>
+                        `;
+                    } else {
+                        document.getElementById('area-qr').innerHTML = `<p class="text-slate-400 text-sm font-bold mt-4">Aguardando confirmação do banco...</p>`;
+                    }
+                    _quizApp.startStatusCheck(txidSalvo); 
                 }
-
-                _quizApp.startStatusCheck(txidSalvo); 
-            }
+            } catch(e) { console.error("Erro no Cache", e); }
         };
 
         var _quizApp = {
@@ -171,44 +172,49 @@
                 this.perguntas = [...sel, this.perguntaFixa];
             },
 
-            iniciar: () => {
-                const n = document.getElementById('nome-usuario').value;
-                const e = document.getElementById('email-usuario').value;
-                const w = document.getElementById('whatsapp-usuario').value;
-                if(!n || !e.includes('@') || !w) return alert("Preencha os campos corretamente!");
-                
-                try { if(window.fbq) fbq('track', 'Lead', { content_name: 'Inicio SierQuiz' }); } catch(err) {}
+            iniciar: function() {
+                try {
+                    const n = document.getElementById('nome-usuario').value;
+                    const e = document.getElementById('email-usuario').value;
+                    const w = document.getElementById('whatsapp-usuario').value;
+                    if(!n || !e.includes('@') || !w) return alert("Preencha todos os campos corretamente para iniciar!");
+                    
+                    try { if(window.fbq) fbq('track', 'Lead', { content_name: 'Inicio SierQuiz' }); } catch(err) {}
 
-                _quizApp.dados.nome = n; _quizApp.dados.email = e; _quizApp.dados.whatsapp = w;
-                _quizApp.prepararQuiz();
-                _quizApp.mostrarTela('tela-perguntas');
-                _quizApp.renderizar();
+                    this.dados.nome = n; this.dados.email = e; this.dados.whatsapp = w;
+                    this.prepararQuiz();
+                    this.mostrarTela('tela-perguntas');
+                    this.renderizar();
+                } catch (error) {
+                    console.error("Erro ao iniciar:", error);
+                    alert("Ocorreu um erro no navegador. Recarregue a página.");
+                }
             },
 
-            renderizar: () => {
-                if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
-                const q = _quizApp.perguntas[_quizApp.dados.idx];
-                document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
+            renderizar: function() {
+                if(this.dados.idx >= this.perguntas.length) return this.finalizar();
+                const q = this.perguntas[this.dados.idx];
+                document.getElementById('num-pergunta').innerText = this.dados.idx + 1;
                 document.getElementById('texto-pergunta').innerText = q.q;
-                document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / 21) * 100) + '%';
+                document.getElementById('barra-progresso').style.width = ((this.dados.idx / 21) * 100) + '%';
                 const div = document.getElementById('area-opcoes'); div.innerHTML = '';
                 q.opts.forEach((opt, i) => {
                     const btn = document.createElement('div'); btn.className = 'opcao-btn'; btn.innerText = opt;
                     btn.onclick = () => {
-                        if(q.type === 'SEG') _quizApp.dados.fase = opt;
-                        else if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
-                        _quizApp.dados.idx++; _quizApp.renderizar();
+                        if(q.type === 'SEG') this.dados.fase = opt;
+                        else if(i === q.c) q.type === 'QI' ? this.dados.qi++ : this.dados.qe++;
+                        this.dados.idx++; this.renderizar();
                     };
                     div.appendChild(btn);
                 });
             },
 
-            finalizar: () => { 
-                _quizApp.mostrarTela('tela-carregando'); 
-                setTimeout(() => _quizApp.gerarPix(), 2000); 
+            finalizar: function() { 
+                this.mostrarTela('tela-carregando'); 
+                setTimeout(() => this.gerarPix(), 2000); 
             },
 
-            configurarBotaoHibrido: () => {
+            configurarBotaoHibrido: function() {
                 const btn = document.getElementById('btn-hibrido');
                 if (window.AndroidInterface) {
                     btn.innerHTML = 'ASSISTIR VÍDEO (GRÁTIS)';
@@ -217,35 +223,40 @@
                 }
             },
 
-            acaoHibrida: () => {
+            acaoHibrida: function() {
                 if (window.AndroidInterface) {
                     if (window.AndroidInterface.showInterstitial) window.AndroidInterface.showInterstitial();
-                    else _quizApp.liberarRelatorio();
+                    else this.liberarRelatorio();
                 } else {
                     window.open('https://play.google.com/store/apps/details?id=com.siergrowth.neuroquiz', '_blank');
                 }
             },
 
-            gerarPix: async () => {
+            gerarPix: async function() {
                 try {
-                    const res = await fetch('https://neuro-quiz-beta.vercel.app/api/pix', {
+                    document.getElementById('area-qr').innerHTML = `<p class="text-slate-500 font-bold">Conectando ao banco...</p>`;
+                    this.configurarBotaoHibrido();
+                    this.mostrarTela('tela-pagamento');
+
+                    // VOLTAMOS AO CAMINHO RELATIVO PARA EVITAR BLOQUEIO DE CORS DO VERCEL
+                    const res = await fetch('/api/pix', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            nome: _quizApp.dados.nome, email: _quizApp.dados.email, 
-                            whatsapp: _quizApp.dados.whatsapp, qi: _quizApp.dados.qi, 
-                            qe: _quizApp.dados.qe, fase: _quizApp.dados.fase 
+                            nome: this.dados.nome, email: this.dados.email, 
+                            whatsapp: this.dados.whatsapp, qi: this.dados.qi, 
+                            qe: this.dados.qe, fase: this.dados.fase 
                         })
                     });
                     
+                    if (!res.ok) throw new Error("Falha na API");
                     const data = await res.json();
                     
                     if(data.txid) {
                         try { if(window.fbq) fbq('track', 'InitiateCheckout', { value: 1.00, currency: 'BRL' }); } catch(err) {}
 
-                        // SALVA OS DADOS DO QR CODE PARA NÃO PERDER NO F5
                         localStorage.setItem('neuro_txid_pendente', data.txid);
-                        localStorage.setItem('neuro_nome_pendente', _quizApp.dados.nome);
+                        localStorage.setItem('neuro_nome_pendente', this.dados.nome);
                         localStorage.setItem('neuro_pix_img', data.img);
                         localStorage.setItem('neuro_pix_code', data.code);
                         
@@ -255,18 +266,41 @@
                             <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="copyPix('${data.code}')">Copiar Pix</button>
                         `;
                         
-                        _quizApp.configurarBotaoHibrido();
-                        _quizApp.mostrarTela('tela-pagamento');
-                        _quizApp.startStatusCheck(data.txid);
+                        this.startStatusCheck(data.txid);
                     } else {
-                        document.getElementById('area-qr').innerHTML = `
-                            <p class="text-red-500 text-sm font-bold mt-4">Erro de Conexão. O sistema não pôde gerar o QR Code.</p>
-                            <button onclick="_quizApp.gerarPix()" class="mt-4 bg-slate-800 text-white px-4 py-2 rounded">Tentar Novamente</button>
-                        `;
-                        _quizApp.mostrarTela('tela-pagamento');
+                        throw new Error("Sem TXID");
                     }
                 } catch(e) { 
                     console.error("Erro Pix:", e);
                     document.getElementById('area-qr').innerHTML = `
-                        <p class="text
-        
+                        <p class="text-red-500 text-sm font-bold mt-4">Falha de conexão com o Banco.</p>
+                        <button onclick="_quizApp.gerarPix()" class="mt-4 bg-slate-800 text-white px-4 py-2 rounded font-bold border border-slate-600">🔄 Tentar Novamente</button>
+                    `;
+                }
+            },
+
+            startStatusCheck: function(txid) {
+                if (window.loopVerificacao) clearInterval(window.loopVerificacao);
+                window.loopVerificacao = setInterval(async () => {
+                    try {
+                        const res = await fetch('/api/status?txid=' + txid);
+                        const json = await res.json();
+                        if (json.status === 'pago') {
+                            clearInterval(window.loopVerificacao);
+                            this.limparCachePagamento();
+                            window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(this.dados.nome)}&qi=${this.dados.qi}&qe=${this.dados.qe}&fase=${encodeURIComponent(this.dados.fase)}`;
+                        }
+                    } catch (e) {}
+                }, 3000);
+            },
+
+            onAdDismissed: function() { this.liberarRelatorio(); },
+
+            liberarRelatorio: function() {
+                this.limparCachePagamento();
+                const link = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(this.dados.nome)}&qi=${this.dados.qi}&qe=${this.dados.qe}&fase=${encodeURIComponent(this.dados.fase)}`;
+                window.location.href = link;
+            },
+
+            limparCachePagamento: function() {
+                l
