@@ -6,6 +6,20 @@
     <title>Sier Growth - Neuro Quiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    
+    fbq('init', 'SEU_ID_DO_PIXEL_AQUI'); // <--- COLOQUE SEU ID DO PIXEL AQUI
+    fbq('track', 'PageView');
+    </script>
+
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; margin: 0; padding: 0; overflow-x: hidden; }
         .card-quiz { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; padding: 2rem; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
@@ -62,7 +76,6 @@
     </div>
 
     <script>
-        // FUNÇÃO DE COPIAR GLOBAL (FORA DO OBJETO PARA O ANDROID NÃO SE PERDER)
         function copyPix(code) {
             const el = document.createElement('textarea');
             el.value = code;
@@ -137,15 +150,14 @@
                 const e = document.getElementById('email-usuario').value;
                 const w = document.getElementById('whatsapp-usuario').value;
                 
-                if(!n || !e.includes('@') || !w) {
-                    console.log("Campos inválidos");
-                    return;
-                }
+                if(!n || !e.includes('@') || !w) return;
                 
+                // --- 2. EVENTO LEAD (Adicionado) ---
+                if(window.fbq) fbq('track', 'Lead', { content_name: 'Inicio NeuroQuiz' });
+
                 this.dados.nome = n; 
                 this.dados.email = e; 
                 this.dados.whatsapp = w;
-                
                 this.prepararQuiz();
                 this.mostrarTela('tela-perguntas');
                 this.renderizar();
@@ -174,25 +186,10 @@
                 });
             },
 
-           finalizar: function() { 
-    // 1. Mostra carregando
-    this.mostrarTela('tela-carregando'); 
-    
-    // 2. Gera o Pix IMEDIATAMENTE (independente de ser App ou Web)
-    // O anúncio NÃO vai abrir sozinho aqui
-    setTimeout(() => this.gerarPix(), 2000); 
-},
-
-verAnuncio: function() {
-    // Esse botão só é clicado se o usuário escolher ver o vídeo no lugar de pagar
-    if (window.AndroidInterface && window.AndroidInterface.showInterstitial) {
-        window.AndroidInterface.showInterstitial(); 
-    } else {
-        // Se estiver na Web (PC), como não tem AdMob Intersticial, 
-        // você decide se libera direto ou mostra um aviso.
-        this.liberarRelatorio();
-    }
-},
+            finalizar: function() { 
+                this.mostrarTela('tela-carregando'); 
+                setTimeout(() => this.gerarPix(), 2000); 
+            },
 
             gerarPix: async function() {
                 try {
@@ -207,6 +204,9 @@ verAnuncio: function() {
                     });
                     const data = await res.json();
                     if(data.txid) {
+                        // --- 3. EVENTO INITIATECHECKOUT (Adicionado) ---
+                        if(window.fbq) fbq('track', 'InitiateCheckout', { value: 1.00, currency: 'BRL' });
+
                         localStorage.setItem('neuro_txid_pendente', data.txid);
                         localStorage.setItem('neuro_nome_pendente', this.dados.nome);
                         
@@ -232,6 +232,7 @@ verAnuncio: function() {
                             clearInterval(window.loopVerificacao);
                             localStorage.removeItem('neuro_txid_pendente');
                             localStorage.removeItem('neuro_nome_pendente');
+                            // Redireciona para o arquivo de resultado que já contém o evento Purchase
                             window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(this.dados.nome)}&qi=${this.dados.qi}&qe=${this.dados.qe}&fase=${encodeURIComponent(this.dados.fase)}`;
                         }
                     } catch (e) {}
@@ -239,13 +240,17 @@ verAnuncio: function() {
             },
 
             verAnuncio: function() {
-                if (window.AndroidInterface) window.AndroidInterface.showInterstitial(); 
-                else this.liberarRelatorio();
+                if (window.AndroidInterface && window.AndroidInterface.showInterstitial) {
+                    window.AndroidInterface.showInterstitial(); 
+                } else {
+                    this.liberarRelatorio();
+                }
             },
 
             onAdDismissed: function() { this.liberarRelatorio(); },
 
             liberarRelatorio: function() {
+                // Ao liberar via anúncio, você também pode rastrear como Purchase grátis se quiser
                 const link = `resultado-teste.html?txid=FREE&nome=${encodeURIComponent(this.dados.nome)}&qi=${this.dados.qi}&qe=${this.dados.qe}&fase=${encodeURIComponent(this.dados.fase)}`;
                 window.location.href = link;
             },
@@ -267,4 +272,5 @@ verAnuncio: function() {
         };
     </script>
 </body>
+</html>
 </html>
