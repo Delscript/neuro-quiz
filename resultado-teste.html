@@ -6,9 +6,21 @@
     <title>Relatório Sier Growth</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
     
+    <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    
+    fbq('init', 'SEU_ID_DO_PIXEL_AQUI'); // <--- COLOQUE SEU ID DO PIXEL AQUI
+    fbq('track', 'PageView');
+    fbq('track', 'Purchase', { value: 1.00, currency: 'BRL' }); // <--- AVISA AO META QUE HOUVE COMPRA/CONVERSÃO
+    </script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; overflow-x: hidden; }
         
@@ -27,7 +39,7 @@
         }
 
         @media (max-width: 640px) {
-            #relatorio { padding: 15px; margin: 0; box-shadow: none; }
+            #relatorio { padding: 15px; margin: 0; box-shadow: none; min-height: auto; padding-bottom: 40px;}
         }
 
         .watermark {
@@ -39,21 +51,10 @@
             white-space: nowrap;
         }
 
-        /* ASSINATURA AJUSTADA PARA 0.9rem */
         .assinatura { font-family: 'Allura', cursive; font-size: 0.9rem; color: #1e3a8a; }
         .texto-justificado { text-align: justify; line-height: 1.4; }
 
         #loading { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-
-        /* BOTÕES REDONDOS NAS LATERAIS */
-        .btn-float {
-            width: 55px; height: 55px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            position: fixed; bottom: 25px; z-index: 100;
-        }
-        .btn-pdf { left: 20px; background-color: #2563eb; }
-        .btn-wpp { right: 20px; background-color: #22c55e; }
     </style>
 </head>
 <body>
@@ -109,7 +110,7 @@
             </div>
         </div>
 
-        <div class="absolute bottom-10 left-10 right-10 flex justify-between items-end pb-4">
+        <div class="mt-12 flex justify-between items-end pb-4 relative z-10 border-t border-slate-100 pt-6">
             <div>
                 <h4 id="nome-cliente" class="text-sm font-bold text-slate-900">...</h4>
                 <p id="profissao-cliente" class="text-[8px] text-orange-600 font-bold uppercase"></p>
@@ -121,27 +122,21 @@
         </div>
     </div>
 
-    <div id="btn-area" class="hidden">
-        <button onclick="gerarPDF()" class="btn-float btn-pdf text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-        </button>
-        <a href="https://wa.me/5571999466243" target="_blank" class="btn-float btn-wpp text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884 0 2.225.569 3.946 1.694 5.46l-.994 3.635 3.789-.994z"/>
-            </svg>
-        </a>
+    <div id="btn-area" class="w-full max-w-[210mm] mx-auto mt-4 mb-10 px-4 hidden">
+        <div class="space-y-3">
+            <a id="btn-certificado" target="_blank" class="w-full flex items-center justify-center bg-green-600 hover:bg-green-500 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer">
+                <span class="text-xl mr-2">📄</span> RECEBER CERTIFICADO NO ZAP
+            </a>
+            <a id="btn-especialista" target="_blank" class="w-full flex items-center justify-center bg-slate-800 hover:bg-slate-700 border border-slate-600 text-blue-400 font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer text-sm">
+                <span class="text-lg mr-2">👨‍💼</span> FALAR COM ESPECIALISTA
+            </a>
+        </div>
     </div>
 
     <script>
-        const _URL_DB = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
-        const _KEY_DB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
-        const supabaseClient = window.supabase.createClient(_URL_DB, _KEY_DB);
-
         window.onload = carregarDados;
 
-        async function carregarDados() {
+        function carregarDados() {
             const params = new URLSearchParams(window.location.search);
             const txid = params.get('txid');
             const nome = params.get('nome') || "Líder";
@@ -164,7 +159,6 @@
 
             let t, s, d, r, p;
 
-            // RESTAURAÇÃO COMPLETA DA LÓGICA DE ARQUÉTIPOS
             if (qi >= 8 && qe >= 8) {
                 t = "Mente Visionária (Alfa)"; s = "Equilíbrio raro de alta performance.";
                 d = "Você processa dados complexos com precisão e lidera pessoas com empatia. É o perfil dos grandes fundadores.";
@@ -214,51 +208,21 @@
             document.getElementById('texto-analise-2').innerText = r;
             document.getElementById('texto-analise-3').innerText = p;
 
+            // CONFIGURAÇÃO DOS LINKS DE WHATSAPP
+            const numeroZap = "5571999466243";
+            
+            const msgCertificado = `Olá! Acabei de concluir o Neuro Quiz da Sier Growth.\nMeu nome é *${dados.nome}*.\n🧠 Pontuei *${dados.qi_score} em Lógica (QI)* e *${dados.qe_score} em Emoção (QE)*.\n📍 Minha fase atual é: *${dados.fase_profissional}*.\n\nGostaria de receber meu Certificado Oficial em PDF, por favor!`;
+            
+            const msgEspecialista = `Olá Anderson! Acabei de ver meu resultado no Neuro Quiz (QI: ${dados.qi_score} / QE: ${dados.qe_score}).\n\nGostaria de bater um papo para entender como posso acelerar meus resultados na minha fase atual de ${dados.fase_profissional}.`;
+
+            document.getElementById('btn-certificado').href = `https://wa.me/${numeroZap}?text=${encodeURIComponent(msgCertificado)}`;
+            document.getElementById('btn-especialista').href = `https://wa.me/${numeroZap}?text=${encodeURIComponent(msgEspecialista)}`;
+
+            // EXIBE AS TELAS
             document.getElementById('loading').style.display = 'none';
             document.getElementById('relatorio').style.display = 'block';
             document.getElementById('btn-area').classList.remove('hidden');
         }
-
-       function gerarPDF() {
-    const btnArea = document.getElementById('btn-area');
-    btnArea.classList.add('hidden'); // Esconde botões para não saírem no PDF
-    
-    const elemento = document.getElementById("relatorio");
-    const nomeArquivo = `Relatorio_Sier_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`;
-
-    const opt = {
-        margin: [0, 0, 0, 0], // Zera margens para evitar quebra de página
-        filename: nomeArquivo,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-            scale: 2, 
-            useCORS: true, 
-            letterRendering: true,
-            scrollY: 0 
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: 'avoid' } // Evita criar páginas extras desnecessárias
-    };
-
-    // LÓGICA PARA SMARTPHONE (WEBVIEW) VS DESKTOP
-    if (window.AndroidInterface) {
-        // No App, geramos o PDF e abrimos em uma nova aba para o sistema baixar
-        html2pdf().set(opt).from(elemento).outputPdf('bloburl').then(function(blobUrl) {
-            window.open(blobUrl, '_blank');
-            btnArea.classList.remove('hidden');
-        });
-    } else {
-        // No Desktop, segue o download direto corrigindo a página extra
-        html2pdf().set(opt).from(elemento).toPdf().get('pdf').then(function(pdf) {
-            const totalPages = pdf.internal.getNumberOfPages();
-            if (totalPages > 1) {
-                pdf.deletePage(totalPages); // Remove a página em branco no final
-            }
-        }).save().then(() => {
-            btnArea.classList.remove('hidden');
-        });
-    }
-}
     </script>
 </body>
 </html>
