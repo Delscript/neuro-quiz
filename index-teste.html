@@ -73,20 +73,29 @@
                 <button id="btn-hibrido" onclick="_quizApp.acaoHibrida()" class="w-full bg-slate-800 p-4 rounded-2xl font-bold text-blue-400 text-xs border border-slate-700">
                     ...
                 </button>
-                
                 <button onclick="localStorage.clear(); location.reload();" class="text-[9px] text-slate-600 uppercase font-bold hover:text-slate-400">Reiniciar Teste</button>
             </div>
         </div>
     </div>
 
     <script>
+        // Função de Cópia Segura (Funciona em IOS e Android)
+        function copyPix(code) {
+            const el = document.createElement('textarea');
+            el.value = code;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            alert('Chave Copiada!');
+        }
+
         // Recuperação de Sessão (F5)
         window.onload = () => {
             const txidSalvo = localStorage.getItem('neuro_txid_pendente');
             if (txidSalvo) {
-                console.log("Recuperando sessão do TxID:", txidSalvo);
                 _quizApp.mostrarTela('tela-pagamento');
-                _quizApp.configurarBotaoHibrido(); // Configura o botão certo!
+                _quizApp.configurarBotaoHibrido(); 
                 _quizApp.startStatusCheck(txidSalvo); 
             }
         };
@@ -94,7 +103,6 @@
         var _quizApp = {
             dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: '' },
             
-            // O SEU BANCO ORIGINAL DE PERGUNTAS INTOCADO
             banco: [
                 { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
                 { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
@@ -154,8 +162,8 @@
                 const w = document.getElementById('whatsapp-usuario').value;
                 if(!n || !e.includes('@') || !w) return alert("Preencha os campos corretamente!");
                 
-                // EVENTO DE LEAD PARA O FACEBOOK
-                if(window.fbq) fbq('track', 'Lead', { content_name: 'Inicio SierQuiz' });
+                // Vacina Anti-Travamento (Se o navegador bloquear o Pixel, o código continua)
+                try { if(window.fbq) fbq('track', 'Lead', { content_name: 'Inicio SierQuiz' }); } catch(err) {}
 
                 _quizApp.dados.nome = n; _quizApp.dados.email = e; _quizApp.dados.whatsapp = w;
                 _quizApp.prepararQuiz();
@@ -186,7 +194,6 @@
                 setTimeout(() => _quizApp.gerarPix(), 2000); 
             },
 
-            // --- INTELIGÊNCIA DO BOTÃO HÍBRIDO ---
             configurarBotaoHibrido: () => {
                 const btn = document.getElementById('btn-hibrido');
                 if (window.AndroidInterface) {
@@ -201,15 +208,15 @@
                     if (window.AndroidInterface.showInterstitial) window.AndroidInterface.showInterstitial();
                     else _quizApp.liberarRelatorio();
                 } else {
-                    // SUBSTITUA PELO LINK DA GOOGLE PLAY QUANDO ESTIVER PRONTO!
+                    // Link provisório da loja (Atualize quando publicar)
                     window.open('https://play.google.com/store/apps/details?id=com.siergrowth.neuroquiz', '_blank');
                 }
             },
-            // -------------------------------------
 
             gerarPix: async () => {
                 try {
-                    const res = await fetch('/api/pix', {
+                    // URL absoluta garante que funciona perfeitamente independente de onde esteja rodando
+                    const res = await fetch('https://neuro-quiz-beta.vercel.app/api/pix', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
@@ -218,35 +225,51 @@
                             qe: _quizApp.dados.qe, fase: _quizApp.dados.fase 
                         })
                     });
+                    
                     const data = await res.json();
+                    
                     if(data.txid) {
-                        // EVENTO DE CHECKOUT PARA O FACEBOOK
-                        if(window.fbq) fbq('track', 'InitiateCheckout', { value: 1.00, currency: 'BRL' });
+                        try { if(window.fbq) fbq('track', 'InitiateCheckout', { value: 1.00, currency: 'BRL' }); } catch(err) {}
 
                         localStorage.setItem('neuro_txid_pendente', data.txid);
                         localStorage.setItem('neuro_nome_pendente', _quizApp.dados.nome);
+                        
                         document.getElementById('area-qr').innerHTML = `
                             <img src="${data.img}" class="w-48 mx-auto rounded-xl mb-4">
                             <textarea class="w-full text-[9px] text-slate-500 p-2 bg-slate-50 border rounded-lg mb-4 text-center" rows="2" readonly>${data.code}</textarea>
-                            <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="navigator.clipboard.writeText('${data.code}');alert('Copiado!')">Copiar Pix</button>
+                            <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="copyPix('${data.code}')">Copiar Pix</button>
                         `;
                         
-                        _quizApp.configurarBotaoHibrido(); // Aplica a lógica Híbrida
+                        _quizApp.configurarBotaoHibrido();
                         _quizApp.mostrarTela('tela-pagamento');
                         _quizApp.startStatusCheck(data.txid);
+                    } else {
+                        // Vacina Anti-Travamento: Se API falhar (Ex: 504 Timeout), avisa o cliente.
+                        document.getElementById('area-qr').innerHTML = `
+                            <p class="text-red-500 text-sm font-bold mt-4">Erro de Conexão. O sistema não pôde gerar o QR Code.</p>
+                            <button onclick="_quizApp.gerarPix()" class="mt-4 bg-slate-800 text-white px-4 py-2 rounded">Tentar Novamente</button>
+                        `;
+                        _quizApp.mostrarTela('tela-pagamento');
                     }
-                } catch(e) { console.error("Erro Pix:", e); }
+                } catch(e) { 
+                    // Se a internet cair ou o navegador bloquear o fetch
+                    console.error("Erro Pix:", e);
+                    document.getElementById('area-qr').innerHTML = `
+                        <p class="text-red-500 text-sm font-bold mt-4">Falha de rede ou bloqueador de anúncios detectado.</p>
+                        <button onclick="_quizApp.gerarPix()" class="mt-4 bg-slate-800 text-white px-4 py-2 rounded">Tentar Novamente</button>
+                    `;
+                    _quizApp.mostrarTela('tela-pagamento');
+                }
             },
 
             startStatusCheck: (txid) => {
                 if (window.loopVerificacao) clearInterval(window.loopVerificacao);
                 window.loopVerificacao = setInterval(async () => {
                     try {
-                        const res = await fetch('/api/status?txid=' + txid);
+                        const res = await fetch('https://neuro-quiz-beta.vercel.app/api/status?txid=' + txid);
                         const json = await res.json();
                         if (json.status === 'pago') {
                             clearInterval(window.loopVerificacao);
-                            // LIMPEZA ANTES DE REDIRECIONAR O PAGAMENTO
                             localStorage.removeItem('neuro_txid_pendente');
                             localStorage.removeItem('neuro_nome_pendente');
                             window.location.href = `resultado-teste.html?txid=${txid}&nome=${encodeURIComponent(_quizApp.dados.nome)}&qi=${_quizApp.dados.qi}&qe=${_quizApp.dados.qe}&fase=${encodeURIComponent(_quizApp.dados.fase)}`;
@@ -258,7 +281,6 @@
             onAdDismissed: () => { _quizApp.liberarRelatorio(); },
 
             liberarRelatorio: () => {
-                // LIMPAR A MEMÓRIA APÓS O ANÚNCIO (Evita o loop do F5)
                 localStorage.removeItem('neuro_txid_pendente');
                 localStorage.removeItem('neuro_nome_pendente');
                 
