@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sier Growth - Neuro Quiz</title>
+    <title>SierQuiz - Inteligência Neural</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     
@@ -36,7 +36,7 @@
 
     <div class="w-full max-w-md">
         <div id="tela-inicio" class="card-quiz text-center tela-app ativa">
-            <h1 class="text-2xl font-black text-orange-500 mb-1 uppercase tracking-tighter">Sier Growth</h1>
+            <h1 class="text-3xl font-black text-orange-500 mb-1 tracking-tighter">Sier<span class="text-blue-500">Quiz</span></h1>
             <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 italic font-semibold text-center">Intelligence Engine v2.0</p>
             <div class="space-y-4">
                 <input type="text" id="nome-usuario" placeholder="Nome Completo" class="w-full p-4 rounded-xl bg-slate-900 border border-slate-800 focus:border-orange-500 outline-none text-sm text-white">
@@ -50,7 +50,7 @@
             <div class="barra-progresso"><div id="barra-progresso" class="progresso-fill"></div></div>
             <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-6 uppercase tracking-widest text-center">
                 <span>PERGUNTA <span id="num-pergunta">1</span>/21</span>
-                <span class="text-orange-500 italic">Neuro-Análise</span>
+                <span class="text-orange-500 italic">SierQuiz</span>
             </div>
             <h2 id="texto-pergunta" class="text-lg font-bold mb-8 leading-tight text-slate-100 text-center">...</h2>
             <div id="area-opcoes"></div>
@@ -68,8 +68,12 @@
                 Gerando Pix Seguro...
             </div>
             <div class="mt-6 space-y-3">
-                <p id="status-pagamento" class="text-[10px] text-blue-500 font-bold uppercase animate-pulse text-center">⏳ Aguardando pagamento...</p>
-                <button onclick="_quizApp.verAnuncio()" class="w-full bg-slate-800 p-4 rounded-2xl font-bold text-blue-400 text-xs border border-slate-700">ASSISTIR VÍDEO (GRÁTIS)</button>
+                <p id="status-pagamento" class="text-[10px] text-blue-500 font-bold uppercase animate-pulse text-center">⏳ Aguardando pagamento da taxa de emissão...</p>
+                
+                <button id="btn-hibrido" onclick="_quizApp.acaoHibrida()" class="w-full bg-slate-800 p-4 rounded-2xl font-bold text-blue-400 text-xs border border-slate-700">
+                    ...
+                </button>
+                
                 <button onclick="localStorage.clear(); location.reload();" class="text-[9px] text-slate-600 uppercase font-bold hover:text-slate-400">Reiniciar Teste</button>
             </div>
         </div>
@@ -82,6 +86,7 @@
             if (txidSalvo) {
                 console.log("Recuperando sessão do TxID:", txidSalvo);
                 _quizApp.mostrarTela('tela-pagamento');
+                _quizApp.configurarBotaoHibrido(); // Configura o botão certo!
                 _quizApp.startStatusCheck(txidSalvo); 
             }
         };
@@ -89,6 +94,7 @@
         var _quizApp = {
             dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: '' },
             
+            // O SEU BANCO ORIGINAL DE PERGUNTAS INTOCADO
             banco: [
                 { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
                 { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
@@ -149,7 +155,7 @@
                 if(!n || !e.includes('@') || !w) return alert("Preencha os campos corretamente!");
                 
                 // EVENTO DE LEAD PARA O FACEBOOK
-                if(window.fbq) fbq('track', 'Lead', { content_name: 'Inicio NeuroQuiz' });
+                if(window.fbq) fbq('track', 'Lead', { content_name: 'Inicio SierQuiz' });
 
                 _quizApp.dados.nome = n; _quizApp.dados.email = e; _quizApp.dados.whatsapp = w;
                 _quizApp.prepararQuiz();
@@ -180,6 +186,27 @@
                 setTimeout(() => _quizApp.gerarPix(), 2000); 
             },
 
+            // --- INTELIGÊNCIA DO BOTÃO HÍBRIDO ---
+            configurarBotaoHibrido: () => {
+                const btn = document.getElementById('btn-hibrido');
+                if (window.AndroidInterface) {
+                    btn.innerHTML = 'ASSISTIR VÍDEO (GRÁTIS)';
+                } else {
+                    btn.innerHTML = '📲 BAIXAR O APP (RESULTADO GRÁTIS)';
+                }
+            },
+
+            acaoHibrida: () => {
+                if (window.AndroidInterface) {
+                    if (window.AndroidInterface.showInterstitial) window.AndroidInterface.showInterstitial();
+                    else _quizApp.liberarRelatorio();
+                } else {
+                    // SUBSTITUA PELO LINK DA GOOGLE PLAY QUANDO ESTIVER PRONTO!
+                    window.open('https://play.google.com/store/apps/details?id=com.siergrowth.neuroquiz', '_blank');
+                }
+            },
+            // -------------------------------------
+
             gerarPix: async () => {
                 try {
                     const res = await fetch('/api/pix', {
@@ -203,6 +230,8 @@
                             <textarea class="w-full text-[9px] text-slate-500 p-2 bg-slate-50 border rounded-lg mb-4 text-center" rows="2" readonly>${data.code}</textarea>
                             <button class="w-full bg-blue-600 text-white py-3 rounded-xl text-xs font-black uppercase" onclick="navigator.clipboard.writeText('${data.code}');alert('Copiado!')">Copiar Pix</button>
                         `;
+                        
+                        _quizApp.configurarBotaoHibrido(); // Aplica a lógica Híbrida
                         _quizApp.mostrarTela('tela-pagamento');
                         _quizApp.startStatusCheck(data.txid);
                     }
@@ -226,15 +255,10 @@
                 }, 3000);
             },
 
-            verAnuncio: () => {
-                if (window.AndroidInterface) window.AndroidInterface.showInterstitial(); 
-                else _quizApp.liberarRelatorio();
-            },
-
             onAdDismissed: () => { _quizApp.liberarRelatorio(); },
 
             liberarRelatorio: () => {
-                // AQUI ESTÁ A CORREÇÃO DE OURO: LIMPAR A MEMÓRIA APÓS O ANÚNCIO!
+                // LIMPAR A MEMÓRIA APÓS O ANÚNCIO (Evita o loop do F5)
                 localStorage.removeItem('neuro_txid_pendente');
                 localStorage.removeItem('neuro_nome_pendente');
                 
