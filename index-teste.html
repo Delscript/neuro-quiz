@@ -303,4 +303,22 @@
             },
 
             limparCachePagamento: function() {
-                l
+                localStorage.removeItem('neuro_txid_pendente');
+                localStorage.removeItem('neuro_nome_pendente');
+                localStorage.removeItem('neuro_pix_img');
+                localStorage.removeItem('neuro_pix_code');
+            },
+
+            reiniciarTeste: function() {
+                this.limparCachePagamento();
+                location.reload();
+            },
+
+            mostrarTela: function(id) {
+                document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
+                document.getElementById(id).classList.add('ativa');
+            }
+        };
+    </script>
+</body>
+</html>
