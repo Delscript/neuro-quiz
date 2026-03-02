@@ -63,15 +63,15 @@
     </div>
 
     <script>
-        window.onload = () => {
-            const txid = localStorage.getItem('neuro_txid_pendente');
-            const nome = localStorage.getItem('neuro_nome_pendente');
-            if (txid && nome) {
-                _quizApp.dados.nome = nome;
-                _quizApp.mostrarTela('tela-pagamento');
-                _quizApp.gerarPix(); 
-            }
-        };
+        // Assim que a página carregar, verifica se ele já tinha um TxID pendente
+window.onload = () => {
+    const txidSalvo = localStorage.getItem('neuro_txid_pendente');
+    if (txidSalvo) {
+        console.log("CAGUETE: Usuário deu F5. Recuperando sessão do TxID:", txidSalvo);
+        _quizApp.mostrarTela('tela-pagamento');
+        _quizApp.startStatusCheck(txidSalvo); // Volta a verificar o pagamento de onde parou
+    }
+};
 
         var _quizApp = {
             dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: '' },
