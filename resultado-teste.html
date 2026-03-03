@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Relatório Sier Growth</title>
+    <title>Relatório SierQuiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
@@ -16,25 +16,19 @@
     t.src=v;s=b.getElementsByTagName(e)[0];
     s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
-    
     fbq('init', 'SEU_ID_DO_PIXEL_AQUI'); // <--- COLOQUE SEU ID DO PIXEL AQUI
     fbq('track', 'PageView');
-    fbq('track', 'Purchase', { value: 1.00, currency: 'BRL' }); // <--- AVISA AO META QUE HOUVE COMPRA/CONVERSÃO
+    fbq('track', 'Purchase', { value: 1.00, currency: 'BRL' }); 
     </script>
+
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; overflow-x: hidden; }
         
         #relatorio {
             background-color: white;
-            width: 100%; 
-            max-width: 210mm; 
-            min-height: 297mm;
-            margin: 0 auto;
-            position: relative;
-            padding: 10mm;
-            box-sizing: border-box;
-            display: none; 
-            color: #1f2937;
+            width: 100%; max-width: 210mm; min-height: 297mm;
+            margin: 0 auto; position: relative; padding: 10mm;
+            box-sizing: border-box; display: none; color: #1f2937;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
@@ -47,13 +41,11 @@
             transform: translate(-50%, -50%) rotate(-45deg);
             font-size: 5rem; font-weight: 900;
             color: rgba(249, 115, 22, 0.04);
-            pointer-events: none; z-index: 0;
-            white-space: nowrap;
+            pointer-events: none; z-index: 0; white-space: nowrap;
         }
 
         .assinatura { font-family: 'Allura', cursive; font-size: 0.9rem; color: #1e3a8a; }
         .texto-justificado { text-align: justify; line-height: 1.4; }
-
         #loading { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
     </style>
 </head>
@@ -65,11 +57,11 @@
     </div>
 
     <div id="relatorio">
-        <div class="watermark">SIER GROWTH</div>
+        <div class="watermark">SIERQUIZ</div>
         
         <div class="flex justify-between border-b border-slate-200 pb-4 mb-6 relative z-10">
             <div>
-                <h1 class="text-xl font-black tracking-widest text-orange-600">SIER GROWTH</h1>
+                <h1 class="text-xl font-black tracking-widest text-orange-600">SIER<span class="text-blue-500">QUIZ</span></h1>
                 <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Intelligence Engine v2.0</p>
             </div>
             <div class="text-right">
@@ -117,7 +109,7 @@
             </div>
             <div class="text-right">
                 <div class="assinatura">Anderson Dias</div>
-                <p class="text-[6px] text-slate-400 font-bold uppercase leading-tight">Founder<br>Sier Growth Intelligence</p>
+                <p class="text-[6px] text-slate-400 font-bold uppercase leading-tight">Founder<br>Sier Growth Agência</p>
             </div>
         </div>
     </div>
@@ -130,6 +122,12 @@
             <a id="btn-especialista" target="_blank" class="w-full flex items-center justify-center bg-slate-800 hover:bg-slate-700 border border-slate-600 text-blue-400 font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer text-sm">
                 <span class="text-lg mr-2">👨‍💼</span> FALAR COM ESPECIALISTA
             </a>
+            
+            <div class="pt-4 pb-8">
+                <button onclick="reiniciarNovoTeste()" class="w-full text-center text-[10px] text-slate-500 font-bold uppercase tracking-widest hover:text-orange-500 transition-colors">
+                    🔄 Fazer um Novo Teste
+                </button>
+            </div>
         </div>
     </div>
 
@@ -208,20 +206,22 @@
             document.getElementById('texto-analise-2').innerText = r;
             document.getElementById('texto-analise-3').innerText = p;
 
-            // CONFIGURAÇÃO DOS LINKS DE WHATSAPP
             const numeroZap = "5571999466243";
-            
-            const msgCertificado = `Olá! Acabei de concluir o Neuro Quiz da Sier Growth.\nMeu nome é *${dados.nome}*.\n🧠 Pontuei *${dados.qi_score} em Lógica (QI)* e *${dados.qe_score} em Emoção (QE)*.\n📍 Minha fase atual é: *${dados.fase_profissional}*.\n\nGostaria de receber meu Certificado Oficial em PDF, por favor!`;
-            
-            const msgEspecialista = `Olá Anderson! Acabei de ver meu resultado no Neuro Quiz (QI: ${dados.qi_score} / QE: ${dados.qe_score}).\n\nGostaria de bater um papo para entender como posso acelerar meus resultados na minha fase atual de ${dados.fase_profissional}.`;
+            const msgCertificado = `Olá! Acabei de concluir o SierQuiz.\nMeu nome é *${dados.nome}*.\n🧠 Pontuei *${dados.qi_score} em Lógica (QI)* e *${dados.qe_score} em Emoção (QE)*.\n📍 Minha fase atual é: *${dados.fase_profissional}*.\n\nGostaria de receber meu Certificado Oficial em PDF, por favor!`;
+            const msgEspecialista = `Olá Anderson! Acabei de ver meu resultado no SierQuiz (QI: ${dados.qi_score} / QE: ${dados.qe_score}).\n\nGostaria de bater um papo para entender como posso acelerar meus resultados na minha fase atual de ${dados.fase_profissional}.`;
 
             document.getElementById('btn-certificado').href = `https://wa.me/${numeroZap}?text=${encodeURIComponent(msgCertificado)}`;
             document.getElementById('btn-especialista').href = `https://wa.me/${numeroZap}?text=${encodeURIComponent(msgEspecialista)}`;
 
-            // EXIBE AS TELAS
             document.getElementById('loading').style.display = 'none';
             document.getElementById('relatorio').style.display = 'block';
             document.getElementById('btn-area').classList.remove('hidden');
+        }
+
+        // Função do Novo Botão de Reiniciar
+        function reiniciarNovoTeste() {
+            // Se você usar "index-teste.html", mude o nome aqui embaixo. Senão, mantenha "index.html".
+            window.location.href = 'index.html'; 
         }
     </script>
 </body>
