@@ -27,6 +27,14 @@
         .hidden { display: none !important; }
         .barra-progresso { height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
         .progresso-fill { height: 100%; background: linear-gradient(to right, #f97316, #ea580c); width: 0%; transition: width 0.3s; }
+        
+        /* ESTILOS NOVOS DO CRONÔMETRO NEUROMARKETING */
+        .barra-tempo-container { height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; margin-bottom: 10px; width: 100%; }
+        .tempo-fill { height: 100%; width: 100%; background: #10b981; transition: width 0.1s linear, background-color 0.3s; }
+        .tempo-urgente { background: #ef4444; animation: piscarUrgencia 0.5s infinite; }
+        @keyframes piscarUrgencia { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        #msg-esgotado { color: #ef4444; font-weight: 900; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; display: none; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); text-shadow: 0px 0px 20px rgba(239,68,68,0.8); z-index: 100;}
+
         .tela-app { display: none; }
         .tela-app.ativa { display: block; animation: aparecer 0.4s; }
         @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -34,7 +42,7 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-md">
+    <div class="w-full max-w-md relative">
         <div id="tela-inicio" class="card-quiz text-center tela-app ativa">
             <h1 class="text-3xl font-black text-orange-500 mb-1 tracking-tighter">Sier<span class="text-blue-500">Quiz</span></h1>
             <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 italic font-semibold text-center">Intelligence Engine v2.0</p>
@@ -46,14 +54,22 @@
             </div>
         </div>
 
-        <div id="tela-perguntas" class="card-quiz tela-app text-center">
+        <div id="tela-perguntas" class="card-quiz tela-app text-center relative">
             <div class="barra-progresso"><div id="barra-progresso" class="progresso-fill"></div></div>
-            <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-6 uppercase tracking-widest text-center">
+            
+            <div class="barra-tempo-container" id="container-tempo">
+                <div id="barra-tempo" class="tempo-fill"></div>
+            </div>
+
+            <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-6 uppercase tracking-widest text-center mt-2">
                 <span>PERGUNTA <span id="num-pergunta">1</span>/21</span>
                 <span class="text-orange-500 italic">SierQuiz</span>
             </div>
-            <h2 id="texto-pergunta" class="text-lg font-bold mb-8 leading-tight text-slate-100 text-center">...</h2>
-            <div id="area-opcoes"></div>
+            
+            <div id="msg-esgotado">TEMPO ESGOTADO!</div>
+            
+            <h2 id="texto-pergunta" class="text-lg font-bold mb-8 leading-tight text-slate-100 text-center transition-opacity duration-200">...</h2>
+            <div id="area-opcoes" class="transition-opacity duration-200"></div>
         </div>
 
         <div id="tela-carregando" class="card-quiz text-center tela-app">
@@ -118,6 +134,9 @@
 
         var _quizApp = {
             dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, fase: '' },
+            tempoTotal: 15, // TEMPO POR PERGUNTA (EM SEGUNDOS)
+            tempoRestante: 15,
+            intervaloTempo: null,
             
             banco: [
                 { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
@@ -191,8 +210,57 @@
                 }
             },
 
+            iniciarCronometro: function() {
+                clearInterval(this.intervaloTempo);
+                this.tempoRestante = this.tempoTotal;
+                const barraTempo = document.getElementById('barra-tempo');
+                barraTempo.style.width = '100%';
+                barraTempo.classList.remove('tempo-urgente');
+                
+                // Exceção: A última pergunta (Perfil) não precisa de tanta pressão
+                if(this.perguntas[this.dados.idx].type === 'SEG') {
+                    document.getElementById('container-tempo').style.display = 'none';
+                    return;
+                } else {
+                    document.getElementById('container-tempo').style.display = 'block';
+                }
+
+                this.intervaloTempo = setInterval(() => {
+                    this.tempoRestante -= 0.1; // Atualiza a cada 100ms para a barra descer suave
+                    let porcentagem = (this.tempoRestante / this.tempoTotal) * 100;
+                    barraTempo.style.width = `${porcentagem}%`;
+
+                    if (this.tempoRestante <= 5) {
+                        barraTempo.classList.add('tempo-urgente');
+                    }
+
+                    if (this.tempoRestante <= 0) {
+                        clearInterval(this.intervaloTempo);
+                        this.punirEsgotamento();
+                    }
+                }, 100);
+            },
+
+            punirEsgotamento: function() {
+                // A pessoa travou e não respondeu. Leva 0 pontos.
+                document.getElementById('texto-pergunta').style.opacity = '0';
+                document.getElementById('area-opcoes').style.opacity = '0';
+                document.getElementById('msg-esgotado').style.display = 'block';
+                
+                setTimeout(() => {
+                    document.getElementById('msg-esgotado').style.display = 'none';
+                    document.getElementById('texto-pergunta').style.opacity = '1';
+                    document.getElementById('area-opcoes').style.opacity = '1';
+                    this.dados.idx++; 
+                    this.renderizar();
+                }, 1500); // Mostra a mensagem por 1.5s e pula a questão
+            },
+
             renderizar: function() {
                 if(this.dados.idx >= this.perguntas.length) return this.finalizar();
+                
+                this.iniciarCronometro(); // Dispara o relógio
+                
                 const q = this.perguntas[this.dados.idx];
                 document.getElementById('num-pergunta').innerText = this.dados.idx + 1;
                 document.getElementById('texto-pergunta').innerText = q.q;
@@ -201,6 +269,7 @@
                 q.opts.forEach((opt, i) => {
                     const btn = document.createElement('div'); btn.className = 'opcao-btn'; btn.innerText = opt;
                     btn.onclick = () => {
+                        clearInterval(this.intervaloTempo); // Parou o tempo ao clicar!
                         if(q.type === 'SEG') this.dados.fase = opt;
                         else if(i === q.c) q.type === 'QI' ? this.dados.qi++ : this.dados.qe++;
                         this.dados.idx++; this.renderizar();
@@ -210,6 +279,7 @@
             },
 
             finalizar: function() { 
+                clearInterval(this.intervaloTempo);
                 this.mostrarTela('tela-carregando'); 
                 setTimeout(() => this.gerarPix(), 2000); 
             },
@@ -238,7 +308,6 @@
                     this.configurarBotaoHibrido();
                     this.mostrarTela('tela-pagamento');
 
-                    // VOLTAMOS AO CAMINHO RELATIVO PARA EVITAR BLOQUEIO DE CORS DO VERCEL
                     const res = await fetch('/api/pix', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
