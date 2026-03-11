@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     
     <script>
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -47,6 +48,12 @@
         .assinatura { font-family: 'Allura', cursive; font-size: 0.9rem; color: #1e3a8a; }
         .texto-justificado { text-align: justify; line-height: 1.4; }
         #loading { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+
+        /* INJEÇÃO DE ESTILOS NOVOS DAS BARRAS */
+        .barra-fundo { background: #f1f5f9; height: 8px; border-radius: 4px; overflow: hidden; width: 100%; margin-top: 4px; }
+        .barra-qi { background: linear-gradient(90deg, #3b82f6, #2563eb); height: 100%; width: 0%; transition: width 1.5s ease-out; }
+        .barra-qe { background: linear-gradient(90deg, #f97316, #f59e0b); height: 100%; width: 0%; transition: width 1.5s ease-out; }
+        .selo-cientifico { border: 1px solid #22c55e; color: #15803d; background: rgba(34, 197, 94, 0.1); display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 99px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
     </style>
 </head>
 <body>
@@ -62,7 +69,10 @@
         <div class="flex justify-between border-b border-slate-200 pb-4 mb-6 relative z-10">
             <div>
                 <h1 class="text-xl font-black tracking-widest text-orange-600">SIER<span class="text-blue-500">QUIZ</span></h1>
-                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Intelligence Engine v2.0</p>
+                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2">Intelligence Engine v2.0</p>
+                <div class="selo-cientifico">
+                    <i data-lucide="check-circle" class="w-3 h-3"></i> Validado sob Pressão Cognitiva
+                </div>
             </div>
             <div class="text-right">
                 <p class="text-[9px] text-slate-400 font-bold uppercase">Relatório Confidencial</p>
@@ -76,14 +86,23 @@
             <p id="subtitulo-perfil" class="text-sm text-slate-500 italic">...</p>
         </div>
 
-        <div class="flex justify-center gap-4 mb-6 relative z-10">
-            <div class="text-center w-24 bg-slate-50 p-2 rounded-xl border border-slate-100">
-                <p class="text-[8px] font-bold text-slate-400 uppercase">Razão (QI)</p>
-                <p class="text-2xl font-black text-blue-600" id="val-qi">0</p>
+        <div class="flex flex-col md:flex-row justify-center gap-6 mb-8 relative z-10">
+            <div class="w-full md:w-1/2 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div class="flex justify-between items-end">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase">Razão (QI)</p>
+                    <p class="text-3xl font-black text-blue-600" id="val-qi">0</p>
+                </div>
+                <div class="barra-fundo"><div id="barra-qi" class="barra-qi"></div></div>
+                <p class="text-[8px] text-slate-400 mt-2 leading-tight">*Velocidade de processamento lógico cronometrado.</p>
             </div>
-            <div class="text-center w-24 bg-slate-50 p-2 rounded-xl border border-slate-100">
-                <p class="text-[8px] font-bold text-slate-400 uppercase">Emoção (QE)</p>
-                <p class="text-2xl font-black text-orange-500" id="val-qe">0</p>
+            
+            <div class="w-full md:w-1/2 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div class="flex justify-between items-end">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase">Emoção (QE)</p>
+                    <p class="text-3xl font-black text-orange-500" id="val-qe">0</p>
+                </div>
+                <div class="barra-fundo"><div id="barra-qe" class="barra-qe"></div></div>
+                <p class="text-[8px] text-slate-400 mt-2 leading-tight">*Gestão de impulsos (Sistema 1) sob pressão de tempo.</p>
             </div>
         </div>
 
@@ -132,6 +151,7 @@
     </div>
 
     <script>
+        lucide.createIcons();
         window.onload = carregarDados;
 
         function carregarDados() {
@@ -151,6 +171,15 @@
             document.getElementById('profissao-cliente').innerText = dados.fase_profissional;
             document.getElementById('val-qi').innerText = dados.qi_score;
             document.getElementById('val-qe').innerText = dados.qe_score;
+
+            // Animação das Barras Injetadas!
+            const pctQI = Math.round((dados.qi_score / 10) * 100);
+            const pctQE = Math.round((dados.qe_score / 10) * 100);
+            
+            setTimeout(() => {
+                document.getElementById('barra-qi').style.width = `${pctQI}%`;
+                document.getElementById('barra-qe').style.width = `${pctQE}%`;
+            }, 500);
 
             const qi = dados.qi_score;
             const qe = dados.qe_score;
@@ -206,7 +235,7 @@
             document.getElementById('texto-analise-2').innerText = r;
             document.getElementById('texto-analise-3').innerText = p;
 
-            const numeroZap = "5571999466243";
+            const numeroZap = "5571982766359";
             const msgCertificado = `Olá! Acabei de concluir o SierQuiz.\nMeu nome é *${dados.nome}*.\n🧠 Pontuei *${dados.qi_score} em Lógica (QI)* e *${dados.qe_score} em Emoção (QE)*.\n📍 Minha fase atual é: *${dados.fase_profissional}*.\n\nGostaria de receber meu Certificado Oficial em PDF, por favor!`;
             const msgEspecialista = `Olá Anderson! Acabei de ver meu resultado no SierQuiz (QI: ${dados.qi_score} / QE: ${dados.qe_score}).\n\nGostaria de bater um papo para entender como posso acelerar meus resultados na minha fase atual de ${dados.fase_profissional}.`;
 
@@ -218,10 +247,8 @@
             document.getElementById('btn-area').classList.remove('hidden');
         }
 
-        // Função do Novo Botão de Reiniciar
         function reiniciarNovoTeste() {
-            // Se você usar "index-teste.html", mude o nome aqui embaixo. Senão, mantenha "index.html".
-            window.location.href = 'index-teste.html'; 
+            window.location.href = 'index.html'; 
         }
     </script>
 </body>
