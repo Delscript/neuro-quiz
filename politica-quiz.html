@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidade - SierQuiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        .texto-justificado { text-align: justify; line-height: 1.6; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-3xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-10 shadow-2xl">
+        
+        <div class="text-center mb-10 border-b border-slate-800 pb-6">
+            <h1 class="text-3xl font-black text-orange-500 mb-2 tracking-tighter">Sier<span class="text-blue-500">Quiz</span></h1>
+            <h2 class="text-xl font-bold text-white">Política de Privacidade e Proteção de Dados</h2>
+            <p class="text-sm text-slate-500 mt-2">Última atualização: <span id="data-hoje"></span></p>
+        </div>
+
+        <div class="space-y-6 texto-justificado text-sm text-slate-300">
+            
+            <section>
+                <h3 class="text-lg font-bold text-white mb-2">1. Introdução</h3>
+                <p>A <strong>Sier Growth</strong> ("nós", "nosso") respeita a sua privacidade e tem o compromisso de proteger os dados pessoais dos usuários ("você") do aplicativo <strong>SierQuiz</strong>. Esta política explica de forma clara como coletamos, usamos, compartilhamos e protegemos as suas informações, em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018) e as diretrizes do Google Play.</p>
+            </section>
+
+            <section>
+                <h3 class="text-lg font-bold text-white mb-2">2. Dados Coletados</h3>
+                <p>Para o funcionamento da nossa tecnologia de análise de perfil, coletamos as seguintes informações fornecidas voluntariamente por você no momento do cadastro:</p>
+                <ul class="list-disc pl-5 mt-2 space-y-1">
+                    <li><strong>Dados de Identificação:</strong> Nome completo.</li>
+                    <li><strong>Dados de Contato:</strong> Endereço de e-mail e número de telefone (WhatsApp).</li>
+                    <li><strong>Dados Comportamentais:</strong> Respostas submetidas durante as etapas de avaliação de Quociente de Inteligência (QI) e Quociente Emocional (QE).</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3 class="text-lg font-bold text-white mb-2">3. Uso das Informações</h3>
+                <p>Os dados coletados têm finalidades estritas e funcionais:</p>
+                <ul class="list-disc pl-5 mt-2 space-y-1">
+                    <li>Gerar o seu relatório neural e perfil profissional customizado.</li>
+                    <li>Fornecer suporte, enviar o certificado em PDF via WhatsApp e estabelecer comunicação sobre os resultados.</li>
+                    <li>Análise estatística anônima para aprimoramento do algoritmo da Sier Growth.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3 class="text-lg font-bold text-white mb-2">4. Serviços de Terceiros e Publicidade (Google AdMob)</h3>
+                <p>O SierQuiz é um aplicativo gratuito suportado por publicidade. Nós utilizamos o <strong>Google AdMob</strong> para exibir anúncios. O Google pode utilizar identificadores de publicidade do seu dispositivo (como o Advertising ID do Android) e cookies para veicular anúncios personalizados com base em seus interesses e navegação.</p>
+                <p class="mt-2">Também utilizamos o banco de dados <strong>Supabase</strong> para armazenamento seguro em nuvem e tecnologias de analytics (como o Facebook Pixel) para mensuração de conversões da nossa plataforma.</p>
+            </section>
+
+            <section>
+                <h3 class="text-lg font-bold text-white mb-2">5. Retenção e Exclusão de Dados</h3>
+                <p>Armazenamos seus dados apenas pelo tempo necessário para cumprir as finalidades descritas nesta política. A qualquer momento, você tem o direito de solicitar a exclusão definitiva dos seus dados pessoais dos nossos servidores. Para exercer este direito, entre em contato conosco.</p>
+            </section>
+
+            <section>
+                <h3 class="text-lg font-bold text-white mb-2">6. Segurança</h3>
+                <p>Empregamos protocolos de segurança robustos e criptografia padrão do setor para proteger seus dados contra acesso não autorizado, alteração, divulgação ou destruição.</p>
+            </section>
+
+            <section>
+                <h3 class="text-lg font-bold text-white mb-2">7. Contato do Desenvolvedor</h3>
+                <p>Em caso de dúvidas sobre esta Política de Privacidade ou para solicitações relacionadas aos seus dados, entre em contato com o responsável legal e desenvolvedor do aplicativo:</p>
+                <div class="bg-slate-800 p-4 rounded-lg mt-3 border border-slate-700">
+                    <p><strong>Desenvolvedor:</strong> Anderson Dias (Sier Growth)</p>
+                    <p><strong>E-mail de Suporte:</strong> atendimento@siergrowth.com.br</p>
+                </div>
+            </section>
+
+        </div>
+
+        <div class="text-center mt-10 pt-6 border-t border-slate-800">
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">&copy; 2026 Sier Growth - Inteligência de Mercado</p>
+        </div>
+
+    </div>
+
+    <script>
+        document.getElementById('data-hoje').innerText = new Date().toLocaleDateString('pt-BR');
+    </script>
+</body>
+</html>
