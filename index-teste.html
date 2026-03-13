@@ -379,9 +379,16 @@
             },
 
             reiniciarTeste: function() {
-                this.limparCachePagamento();
-                location.reload();
-            },
+    // Limpa o rastro do pagamento anterior
+    this.limparCachePagamento();
+    
+    // Limpa TUDO que está salvo no navegador do celular (importante!)
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Força o redirecionamento para o início do arquivo sem recarregar o erro
+    window.location.href = window.location.pathname;
+},
 
             mostrarTela: function(id) {
                 document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
