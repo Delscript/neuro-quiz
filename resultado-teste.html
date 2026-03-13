@@ -17,7 +17,7 @@
     t.src=v;s=b.getElementsByTagName(e)[0];
     s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', 'SEU_ID_DO_PIXEL_AQUI'); // <--- COLOQUE SEU ID DO PIXEL AQUI
+    fbq('init', 'SEU_ID_DO_PIXEL_AQUI'); 
     fbq('track', 'PageView');
     fbq('track', 'Purchase', { value: 1.00, currency: 'BRL' }); 
     </script>
@@ -49,18 +49,30 @@
         .texto-justificado { text-align: justify; line-height: 1.4; }
         #loading { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 
-        /* INJEÇÃO DE ESTILOS NOVOS DAS BARRAS */
         .barra-fundo { background: #f1f5f9; height: 8px; border-radius: 4px; overflow: hidden; width: 100%; margin-top: 4px; }
         .barra-qi { background: linear-gradient(90deg, #3b82f6, #2563eb); height: 100%; width: 0%; transition: width 1.5s ease-out; }
         .barra-qe { background: linear-gradient(90deg, #f97316, #f59e0b); height: 100%; width: 0%; transition: width 1.5s ease-out; }
         .selo-cientifico { border: 1px solid #22c55e; color: #15803d; background: rgba(34, 197, 94, 0.1); display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 99px; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+
+        /* ESTILO DO CARD DE MENSAGEM DE INCENTIVO */
+        .card-mensagem {
+            background-color: #f97316; /* Laranja Sier */
+            border-radius: 12px;
+            padding: 18px;
+            margin: 20px 0;
+            border: 2px solid #ffffff;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+            text-align: center;
+        }
+        .card-mensagem h3 { color: white; font-size: 11px; font-weight: 900; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; }
+        .card-mensagem p { color: white; font-size: 13px; line-height: 1.4; font-weight: 500; font-style: italic; }
     </style>
 </head>
 <body>
 
     <div id="loading">
         <div class="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-slate-600 font-bold uppercase tracking-widest text-[10px]">Gerando Inteligência Neural...</p>
+        <p class="text-slate-600 font-bold uppercase tracking-widest text-[10px]">Gerando Inteligência Estratégica...</p>
     </div>
 
     <div id="relatorio">
@@ -81,7 +93,7 @@
         </div>
 
         <div class="text-center mb-6 relative z-10">
-            <span class="bg-blue-50 text-blue-800 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Neuro-Análise Final</span>
+            <span class="bg-blue-50 text-blue-800 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Análise de Perfil e Estratégia</span>
             <h2 id="titulo-perfil" class="text-2xl font-black text-slate-800 mt-2 uppercase leading-tight">...</h2>
             <p id="subtitulo-perfil" class="text-sm text-slate-500 italic">...</p>
         </div>
@@ -93,7 +105,6 @@
                     <p class="text-3xl font-black text-blue-600" id="val-qi">0</p>
                 </div>
                 <div class="barra-fundo"><div id="barra-qi" class="barra-qi"></div></div>
-                <p class="text-[8px] text-slate-400 mt-2 leading-tight">*Velocidade de processamento lógico cronometrado.</p>
             </div>
             
             <div class="w-full md:w-1/2 bg-slate-50 p-4 rounded-xl border border-slate-100">
@@ -102,13 +113,12 @@
                     <p class="text-3xl font-black text-orange-500" id="val-qe">0</p>
                 </div>
                 <div class="barra-fundo"><div id="barra-qe" class="barra-qe"></div></div>
-                <p class="text-[8px] text-slate-400 mt-2 leading-tight">*Gestão de impulsos (Sistema 1) sob pressão de tempo.</p>
             </div>
         </div>
 
-        <div class="space-y-4 px-1 mb-6 relative z-10">
+        <div class="space-y-4 px-1 mb-2 relative z-10">
             <div>
-                <h3 class="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Diagnóstico Neural</h3>
+                <h3 class="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Diagnóstico Perfil</h3>
                 <p id="texto-analise-1" class="text-xs text-slate-600 texto-justificado"></p>
             </div>
             <div>
@@ -121,7 +131,12 @@
             </div>
         </div>
 
-        <div class="mt-12 flex justify-between items-end pb-4 relative z-10 border-t border-slate-100 pt-6">
+        <div class="card-mensagem relative z-10">
+            <h3>💡 Insight de Superação</h3>
+            <p id="perfil-mensagem">...</p>
+        </div>
+
+        <div class="mt-8 flex justify-between items-end pb-4 relative z-10 border-t border-slate-100 pt-6">
             <div>
                 <h4 id="nome-cliente" class="text-sm font-bold text-slate-900">...</h4>
                 <p id="profissao-cliente" class="text-[8px] text-orange-600 font-bold uppercase"></p>
@@ -133,14 +148,14 @@
         </div>
     </div>
 
-    <div id="btn-area" class="w-full max-w-[210mm] mx-auto mt-4 mb-10 px-4 hidden">
+    <div id="btn-area" class="w-full max-w-[210mm] mx-auto mt-4 mb-10 px-4">
         <div class="space-y-3">
-            <a id="btn-certificado" target="_blank" class="w-full flex items-center justify-center bg-green-600 hover:bg-green-500 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer">
+            <button id="btn-certificado" class="w-full flex items-center justify-center bg-green-600 hover:bg-green-500 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer">
                 <span class="text-xl mr-2">📄</span> RECEBER CERTIFICADO NO ZAP
-            </a>
-            <a id="btn-especialista" target="_blank" class="w-full flex items-center justify-center bg-slate-800 hover:bg-slate-700 border border-slate-600 text-blue-400 font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer text-sm">
+            </button>
+            <button id="btn-especialista" class="w-full flex items-center justify-center bg-slate-800 hover:bg-slate-700 border border-slate-600 text-blue-400 font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer text-sm">
                 <span class="text-lg mr-2">👨‍💼</span> FALAR COM ESPECIALISTA
-            </a>
+            </button>
             
             <div class="pt-4 pb-8">
                 <button onclick="reiniciarNovoTeste()" class="w-full text-center text-[10px] text-slate-500 font-bold uppercase tracking-widest hover:text-orange-500 transition-colors">
@@ -156,13 +171,17 @@
 
         function carregarDados() {
             const params = new URLSearchParams(window.location.search);
-            const txid = params.get('txid');
             const nome = params.get('nome') || "Líder";
             const qi = parseInt(params.get('qi')) || 0;
             const qe = parseInt(params.get('qe')) || 0;
             const fase = params.get('fase') || "Profissional";
 
             document.getElementById('data-hoje').innerText = new Date().toLocaleDateString('pt-BR');
+            
+            // Exibe o relatório e esconde o loading
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('relatorio').style.display = 'block';
+            
             preencherRelatorio({ nome, fase_profissional: fase, qi_score: qi, qe_score: qe });
         }
 
@@ -172,7 +191,6 @@
             document.getElementById('val-qi').innerText = dados.qi_score;
             document.getElementById('val-qe').innerText = dados.qe_score;
 
-            // Animação das Barras Injetadas!
             const pctQI = Math.round((dados.qi_score / 10) * 100);
             const pctQE = Math.round((dados.qe_score / 10) * 100);
             
@@ -184,49 +202,56 @@
             const qi = dados.qi_score;
             const qe = dados.qe_score;
 
-            let t, s, d, r, p;
+            let t, s, d, r, p, m;
 
             if (qi >= 8 && qe >= 8) {
                 t = "Mente Visionária (Alfa)"; s = "Equilíbrio raro de alta performance.";
                 d = "Você processa dados complexos com precisão e lidera pessoas com empatia. É o perfil dos grandes fundadores.";
                 r = "Foque em escala. Você não deve mais executar, mas sim projetar o futuro da sua operação.";
                 p = "Sua visão acelerada pode isolar você. Aprenda a ouvir quem está no operacional.";
+                m = "Sua mente é um acelerador de futuros. O mundo precisa da sua visão clara. Lidere com o coração, mas decida com os dados.";
             } 
             else if (qi >= 8 && qe >= 5) {
                 t = "Estrategista de Precisão"; s = "Lógica dominante e pragmatismo.";
                 d = "Sua mente detecta falhas em processos antes de qualquer um. Você é movido por eficiência.";
                 r = "Delegue a gestão de pessoas e foque no produto ou estratégia central.";
                 p = "Sua impaciência com ritmos lentos pode desgastar a cultura da sua equipe.";
+                m = "Sua clareza é uma arma competitiva. Não deixe a busca pela perfeição paralisar sua execução. O feito é melhor que o perfeito.";
             }
             else if (qi >= 8) {
                 t = "Analista de Elite"; s = "Mestre técnico de alta profundidade.";
                 d = "Você resolve o que ninguém mais consegue. Sua clareza lógica é sua maior arma competitiva.";
                 r = "Associe-se a pessoas que dominam a venda. Você cria a máquina, eles trazem o cliente.";
                 p = "Dificuldade em expressar emoções pode ser lida como frieza extrema.";
+                m = "A profundidade do seu conhecimento move montanhas silenciosamente. O desafio agora é traduzir sua lógica em influência.";
             }
             else if (qe >= 8 && qi >= 5) {
                 t = "Líder Inspirador"; s = "Foco total no capital humano.";
                 d = "Você extrai o melhor de cada pessoa. Sua força está em mover montanhas através da influência.";
                 r = "Ancore suas decisões em números. Sua intuição é brilhante, mas os dados não mentem.";
                 p = "Tendência a evitar conflitos necessários para não ferir sentimentos alheios.";
+                m = "Sua luz guia a equipe. O verdadeiro líder não é o que faz tudo, mas o que faz todos crescerem. Confie na sua intuição.";
             }
             else if (qe >= 8) {
                 t = "Diplomata Empático"; s = "Percepção social e vendas aguçadas.";
                 d = "Você lê ambientes como ninguém. Sua sensibilidade capta oportunidades de negócio no ar.";
                 r = "Estude análise financeira. Fortalecer seu raciocínio lógico trará o lucro que sua rede merece.";
                 p = "Risco de se perder em muitas conexões e esquecer de focar no lucro real.";
+                m = "Seu talento social abre portas que o dinheiro não compra. Use essa conexão para construir pontes sólidas para o seu negócio.";
             }
             else if (qi >= 5 && qe >= 5) {
                 t = "Profissional Polivalente"; s = "Estabilidade e versatilidade.";
                 d = "Confiável e adaptável. Você transita bem entre a técnica e o cliente sem causar atritos.";
                 r = "Escolha um pilar para ser mestre. O generalista é bom, mas o especialista é quem fica rico.";
                 p = "Risco de estagnação por estar na zona de conforto 'fazendo tudo um pouco'.";
+                m = "Sua versatilidade é sua força, mas o foco é seu poder. Escolha uma única batalha para vencer.";
             }
             else {
                 t = "Perfil em Transição"; s = "Fase de reestruturação mental.";
                 d = "Suas métricas indicam saturação ou busca por um novo método. Seu potencial ainda está guardado.";
                 r = "Escolha UMA habilidade lógica para dominar nos próximos 90 dias. Menos é mais agora.";
                 p = "Falta de foco claro. Você começa muitas coisas e termina poucas, drenando sua energia.";
+                m = "A transição é o berço da evolução. Não tenha medo de recomeçar. Cada escolha agora é um tijolo no seu novo castelo.";
             }
 
             document.getElementById('titulo-perfil').innerText = t;
@@ -234,22 +259,32 @@
             document.getElementById('texto-analise-1').innerText = d;
             document.getElementById('texto-analise-2').innerText = r;
             document.getElementById('texto-analise-3').innerText = p;
+            document.getElementById('perfil-mensagem').innerText = m;
 
-            const numeroZap = "5571999466243";
-            const msgCertificado = `Olá! Acabei de concluir o SierQuiz.\nMeu nome é *${dados.nome}*.\n🧠 Pontuei *${dados.qi_score} em Lógica (QI)* e *${dados.qe_score} em Emoção (QE)*.\n📍 Minha fase atual é: *${dados.fase_profissional}*.\n\nGostaria de receber meu Certificado Oficial em PDF, por favor!`;
-            const msgEspecialista = `Olá Anderson! Acabei de ver meu resultado no SierQuiz (QI: ${dados.qi_score} / QE: ${dados.qe_score}).\n\nGostaria de bater um papo para entender como posso acelerar meus resultados na minha fase atual de ${dados.fase_profissional}.`;
+            // CONFIGURAÇÃO DOS CONTATOS
+            const zapCertificado = "5571984420194"; 
+            const zapEspecialista = "5571999466243"; 
 
-            document.getElementById('btn-certificado').href = `https://wa.me/${numeroZap}?text=${encodeURIComponent(msgCertificado)}`;
-            document.getElementById('btn-especialista').href = `https://wa.me/${numeroZap}?text=${encodeURIComponent(msgEspecialista)}`;
+            const msgCertificado = `Olá! Acabei de concluir meu SierQuiz e gostaria do meu certificado. Nome: ${dados.nome}`;
+            const msgEspecialista = `Olá Anderson! Gostaria de falar com um especialista sobre meu resultado no SierQuiz (${t}).`;
 
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('relatorio').style.display = 'block';
-            document.getElementById('btn-area').classList.remove('hidden');
+            document.getElementById('btn-certificado').onclick = function() {
+                window.open(`https://wa.me/${zapCertificado}?text=${encodeURIComponent(msgCertificado)}`, '_blank');
+            };
+
+            document.getElementById('btn-especialista').onclick = function() {
+                window.open(`https://wa.me/${zapEspecialista}?text=${encodeURIComponent(msgEspecialista)}`, '_blank');
+            };
         }
 
+        // RESET DEFINITIVO
         function reiniciarNovoTeste() {
-            window.location.href = 'index.html'; 
+            localStorage.clear();
+            sessionStorage.clear();
+            // Volta para a página inicial do quiz
+            window.location.href = 'index-teste.html'; 
         }
     </script>
 </body>
-</html>
+            </html>
+            
