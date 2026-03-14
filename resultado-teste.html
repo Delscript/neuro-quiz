@@ -113,7 +113,6 @@
     </div>
 
     <div id="btn-area" class="px-4 py-6 space-y-3 max-w-md mx-auto hidden"
-
         <button onclick="irParaZap()" class="w-full flex flex-col items-center justify-center bg-green-600 hover:bg-green-500 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer">
     <span class="text-[10px] uppercase opacity-90 mb-1">📸 TIRE UM PRINT DA TELA AGORA</span>
     <span class="text-sm">🏅 ENVIAR PRINT PARA VALIDAR CERTIFICADO</span>
@@ -235,7 +234,6 @@
                 link.download = `SierQuiz-${nomeGlobal}.png`;
                 link.href = image;
                 link.click();
-                setTimeout(() => {
          function irParaZap() {
     const msg = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado e contar minha experiência!`;
     window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msg)}`, '_blank');
