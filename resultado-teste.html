@@ -137,18 +137,63 @@
             document.getElementById('val-qi').innerText = qi;
             document.getElementById('val-qe').innerText = qe;
 
-            let t, s, d, r, c;
-            if(qi >= 8 && qe >= 8) { t="Visionário Alfa"; s="Alta Performance Híbrida"; d="Equilíbrio raro entre lógica e empatia."; r="Foque em escala e visão de futuro."; c="Cuidado para não centralizar demais a operação."; }
-            else if(qi >= 7) { t="Estrategista Técnico"; s="Lógica e Processos"; d="Sua mente é movida por eficiência e dados."; r="Delegue o operacional e foque no produto."; c="A impaciência com ritmos lentos pode desgastar o time."; }
-            else if(qe >= 7) { t="Líder Influenciador"; s="Conexão e Engajamento"; d="Sua força está em mover pessoas e criar redes de confiança."; r="Ancore suas decisões em números reais."; c="Cuidado com a gestão financeira e métricas de lucro real."; }
-            else { t="Perfil em Transição"; s="Reestruturação Mental"; d="Fase de busca por novos métodos e clareza."; r="Escolha uma habilidade para dominar agora."; c="Falta de foco claro. Termine o que começou."; }
-
+            let s, d, r, p, m;
+            if (qi >= 8 && qe >= 8) {
+                t = "Mente Visionária (Alfa)"; s = "Equilíbrio raro de alta performance.";
+                d = "Você processa dados complexos com precisão e lidera pessoas com empatia. É o perfil dos grandes fundadores.";
+                r = "Foque em escala. Você não deve mais executar, mas sim projetar o futuro da sua operação.";
+                p = "Sua visão acelerada pode isolar você. Aprenda a ouvir quem está no operacional.";
+                m = "Sua mente é um acelerador de futuros. O mundo precisa da sua visão clara. Lidere com o coração, mas decida com os dados.";
+            } 
+            else if (qi >= 8 && qe >= 5) {
+                t = "Estrategista de Precisão"; s = "Lógica dominante e pragmatismo.";
+                d = "Sua mente detecta falhas em processos antes de qualquer um. Você é movido por eficiência.";
+                r = "Delegue a gestão de pessoas e foque no produto ou estratégia central.";
+                p = "Sua impaciência com ritmos lentos pode desgastar a cultura da sua equipe.";
+                m = "Sua clareza é uma arma competitiva. Não deixe a busca pela perfeição paralisar sua execução. O feito é melhor que o perfeito.";
+            }
+            else if (qi >= 8) {
+                t = "Analista de Elite"; s = "Mestre técnico de alta profundidade.";
+                d = "Você resolve o que ninguém mais consegue. Sua clareza lógica é sua maior arma competitiva.";
+                r = "Associe-se a pessoas que dominam a venda. Você cria a máquina, eles trazem o cliente.";
+                p = "Dificuldade em expressar emoções pode ser lida como frieza extrema.";
+                m = "A profundidade do seu conhecimento move montanhas silenciosamente. O desafio agora é traduzir sua lógica em influência.";
+            }
+            else if (qe >= 8 && qi >= 5) {
+                t = "Líder Inspirador"; s = "Foco total no capital humano.";
+                d = "Você extrai o melhor de cada pessoa. Sua força está em mover montanhas através da influência.";
+                r = "Ancore suas decisões em números. Sua intuição é brilhante, mas os dados não mentem.";
+                p = "Tendência a evitar conflitos necessários para não ferir sentimentos alheios.";
+                m = "Sua luz guia a equipe. O verdadeiro líder não é o que faz tudo, mas o que faz todos crescerem. Confie na sua intuição.";
+            }
+            else if (qe >= 8) {
+                t = "Diplomata Empático"; s = "Percepção social e vendas aguçadas.";
+                d = "Você lê ambientes como ninguém. Sua sensibilidade capta oportunidades de negócio no ar.";
+                r = "Estude análise financeira. Fortalecer seu raciocínio lógico trará o lucro que sua rede merece.";
+                p = "Risco de se perder em muitas conexões e esquecer de focar no lucro real.";
+                m = "Seu talento social abre portas que o dinheiro não compra. Use essa conexão para construir pontes sólidas para o seu negócio.";
+            }
+            else if (qi >= 5 && qe >= 5) {
+                t = "Profissional Polivalente"; s = "Estabilidade e versatilidade.";
+                d = "Confiável e adaptável. Você transita bem entre a técnica e o cliente sem causar atritos.";
+                r = "Escolha um pilar para ser mestre. O generalista é bom, mas o especialista é quem fica rico.";
+                p = "Risco de estagnação por estar na zona de conforto 'fazendo tudo um pouco'.";
+                m = "Sua versatilidade é sua força, mas o foco é seu poder. Escolha uma única batalha para vencer.";
+            }
+            else {
+                t = "Perfil em Transição"; s = "Fase de reestruturação mental.";
+                d = "Suas métricas indicam saturação ou busca por um novo método. Seu potencial ainda está guardado.";
+                r = "Escolha UMA habilidade lógica para dominar nos próximos 90 dias. Menos é mais agora.";
+                p = "Falta de foco claro. Você começa muitas coisas e termina poucas, drenando sua energia.";
+                m = "A transição é o berço da evolução. Não tenha medo de recomeçar. Cada escolha agora é um tijolo no seu novo castelo.";
+            }
             document.getElementById('titulo-perfil').innerText = t;
             document.getElementById('subtitulo-perfil').innerText = s;
-            document.getElementById('txt-diag').innerText = d;
-            document.getElementById('txt-estr').innerText = r;
-            document.getElementById('txt-cego').innerText = c;
-
+            document.getElementById('texto-analise-1').innerText = d;
+            document.getElementById('texto-analise-2').innerText = r;
+            document.getElementById('texto-analise-3').innerText = p;
+            document.getElementById('perfil-mensagem').innerText = m;
+        }
             setTimeout(() => {
                 document.getElementById('barra-qi').style.width = (qi*10)+'%';
                 document.getElementById('barra-qe').style.width = (qe*10)+'%';
