@@ -5,182 +5,130 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Relatório SierQuiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
     
-    <script>
-    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', 'SEU_ID_DO_PIXEL_AQUI'); 
-    fbq('track', 'PageView');
-    fbq('track', 'Purchase', { value: 1.00, currency: 'BRL' }); 
-    </script>
-
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; overflow-x: hidden; }
-        
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
         #relatorio {
-            background-color: white;
-            width: 100%; max-width: 210mm; min-height: 297mm;
-            margin: 0 auto; position: relative; padding: 10mm;
+            background-color: white; width: 100%; max-width: 210mm;
+            margin: 0 auto; position: relative; padding: 15mm 10mm;
             box-sizing: border-box; display: none; color: #1f2937;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
-
-        @media (max-width: 640px) {
-            #relatorio { padding: 15px; margin: 0; box-shadow: none; min-height: auto; padding-bottom: 40px;}
-        }
-
+        @media (max-width: 640px) { #relatorio { padding: 20px 15px; } }
+        
         .watermark {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 5rem; font-weight: 900;
-            color: rgba(249, 115, 22, 0.04);
-            pointer-events: none; z-index: 0; white-space: nowrap;
+            font-size: 5rem; font-weight: 900; color: rgba(249, 115, 22, 0.04);
+            pointer-events: none; z-index: 0;
         }
-
-        .assinatura { font-family: 'Allura', cursive; font-size: 0.9rem; color: #1e3a8a; }
-        .texto-justificado { text-align: justify; line-height: 1.4; }
-        #loading { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-
-        /* AJUSTE DAS BARRAS PARA NÃO COLAR NO NÚMERO */
-        
+        .assinatura { font-family: 'Allura', cursive; font-size: 1.1rem; color: #1e3a8a; }
         .barra-fundo { background: #f1f5f9; height: 8px; border-radius: 4px; width: 100%; margin-top: 4px; }
         .barra-qi { background: linear-gradient(90deg, #3b82f6, #2563eb); height: 100%; width: 0%; transition: width 1.5s; }
         .barra-qe { background: linear-gradient(90deg, #f97316, #f59e0b); height: 100%; width: 0%; transition: width 1.5s; }
+        
         .card-mensagem {
-            background-color: #f97316; 
-            border-radius: 12px;
-            padding: 18px;
-            margin: 20px 0;
-            border: 2px solid #ffffff;
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
-            text-align: center;
+            background-color: #f97316; border-radius: 12px; padding: 20px;
+            margin: 25px 0; border: 2px solid white; text-align: center;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.2);
         }
-        .card-mensagem h3 { color: white; font-size: 11px; font-weight: 900; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; }
-        .card-mensagem p { color: white; font-size: 13px; line-height: 1.4; font-weight: 500; font-style: italic; }
+        .card-mensagem h3 { color: white; font-size: 10px; font-weight: 900; text-transform: uppercase; margin-bottom: 5px; }
+        .card-mensagem p { color: white; font-size: 14px; font-style: italic; font-weight: 500; line-height: 1.4; }
     </style>
 </head>
 <body>
 
-    <div id="loading">
-        <div class="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-slate-600 font-bold uppercase tracking-widest text-[10px]">Gerando Inteligência Estratégica...</p>
+    <div id="loading" class="h-screen flex flex-col justify-center items-center">
+        <div class="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Gerando Inteligência Estratégica...</p>
     </div>
 
-    <div id="relatorio">
-        <div class="watermark">SIERQUIZ</div>
-        
-        <div class="flex justify-between border-b border-slate-200 pb-4 mb-6 relative z-10">
-            <div>
-                <h1 class="text-xl font-black tracking-widest text-orange-600">SIER<span class="text-blue-500">QUIZ</span></h1>
-                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2">Intelligence Engine v2.0</p>
-                <div class="selo-cientifico">
-                    <i data-lucide="check-circle" class="w-3 h-3"></i> Validado sob Pressão Cognitiva
-                </div>
+    <div id="capture-area">
+        <div id="relatorio">
+            <div class="watermark">SIERQUIZ</div>
+            
+            <div class="flex justify-between border-b pb-4 mb-6">
+                <h1 class="text-xl font-black tracking-tighter text-orange-600">SIER<span class="text-blue-500">QUIZ</span></h1>
+                <p id="data-hoje" class="text-[9px] text-slate-400 font-bold uppercase"></p>
             </div>
-            <div class="text-right">
-                <p class="text-[9px] text-slate-400 font-bold uppercase">Relatório Confidencial</p>
-                <p class="text-[8px] text-slate-300" id="data-hoje"></p>
+
+            <div class="text-center mb-8">
+                <h2 id="titulo-perfil" class="text-2xl font-black text-slate-800 uppercase leading-tight">...</h2>
+                <p id="subtitulo-perfil" class="text-sm text-slate-500 italic">...</p>
             </div>
-        </div>
 
-        <div class="text-center mb-6 relative z-10">
-            <span class="bg-blue-50 text-blue-800 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase">Análise de Perfil e Estratégia</span>
-            <h2 id="titulo-perfil" class="text-2xl font-black text-slate-800 mt-2 uppercase leading-tight">...</h2>
-            <p id="subtitulo-perfil" class="text-sm text-slate-500 italic">...</p>
-        </div>
-
-        <div class="flex flex-col md:flex-row justify-center gap-6 mb-8 relative z-10">
-            <div class="w-full md:w-1/2 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <div class="flex justify-between items-end">
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
                     <p class="text-[10px] font-bold text-slate-500 uppercase">Razão (QI)</p>
                     <p class="text-3xl font-black text-blue-600" id="val-qi">0</p>
+                    <div class="barra-fundo"><div id="barra-qi" class="barra-qi"></div></div>
                 </div>
-                <div class="barra-fundo"><div id="barra-qi" class="barra-qi"></div></div>
-            </div>
-            
-            <div class="w-full md:w-1/2 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <div class="flex justify-between items-end">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
                     <p class="text-[10px] font-bold text-slate-500 uppercase">Emoção (QE)</p>
                     <p class="text-3xl font-black text-orange-500" id="val-qe">0</p>
+                    <div class="barra-fundo"><div id="barra-qe" class="barra-qe"></div></div>
                 </div>
-                <div class="barra-fundo"><div id="barra-qe" class="barra-qe"></div></div>
             </div>
-        </div>
 
-        <div class="space-y-4 px-1 mb-2 relative z-10">
-            <div>
-                <h3 class="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Diagnóstico Perfil</h3>
-                <p id="texto-analise-1" class="text-xs text-slate-600 texto-justificado"></p>
+            <div class="space-y-4 mb-6">
+                <div><h3 class="text-[9px] font-bold text-slate-400 uppercase">Diagnóstico</h3><p id="texto-analise-1" class="text-xs text-slate-600"></p></div>
+                <div><h3 class="text-[9px] font-bold text-slate-400 uppercase">Estratégia</h3><p id="texto-analise-2" class="text-xs text-slate-600"></p></div>
+                <div><h3 class="text-[9px] font-bold text-orange-500 uppercase">Ponto Cego</h3><p id="texto-analise-3" class="text-xs text-slate-600 font-bold italic"></p></div>
             </div>
-            <div>
-                <h3 class="text-[9px] font-bold text-slate-400 uppercase mb-0.5">Direção Estratégica</h3>
-                <p id="texto-analise-2" class="text-xs text-slate-600 texto-justificado"></p>
-            </div>
-            <div>
-                <h3 class="text-[9px] font-bold text-orange-500 uppercase mb-0.5">Ponto Cego (Alerta)</h3>
-                <p id="texto-analise-3" class="text-xs text-slate-600 font-semibold italic"></p>
-            </div>
-        </div>
 
-        <div class="card-mensagem relative z-10">
-            <h3>💡 Insight de Superação</h3>
-            <p id="perfil-mensagem">...</p>
-        </div>
-
-        <div class="mt-8 flex justify-between items-end pb-4 relative z-10 border-t border-slate-100 pt-6">
-            <div>
-                <h4 id="nome-cliente" class="text-sm font-bold text-slate-900">...</h4>
-                <p id="profissao-cliente" class="text-[8px] text-orange-600 font-bold uppercase"></p>
+            <div class="card-mensagem">
+                <h3>💡 Insight de Superação</h3>
+                <p id="perfil-mensagem">...</p>
             </div>
-            <div class="text-right">
-                <div class="assinatura">Anderson Dias</div>
-                <p class="text-[6px] text-slate-400 font-bold uppercase leading-tight">Founder<br>Sier Growth Agência</p>
+
+            <div class="mt-10 flex justify-between items-end border-t pt-6">
+                <div>
+                    <h4 id="nome-cliente" class="text-sm font-bold text-slate-900">...</h4>
+                    <p id="profissao-cliente" class="text-[8px] text-orange-600 font-bold uppercase"></p>
+                </div>
+                <div class="text-right">
+                    <div class="assinatura">Anderson Dias</div>
+                    <p class="text-[7px] text-slate-400 font-bold uppercase">Founder Sier Growth</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="btn-area" class="w-full max-w-[210mm] mx-auto mt-4 mb-10 px-4">
-        <div class="space-y-3">
-            <button id="btn-certificado" class="w-full flex flex-col items-center justify-center bg-green-600 hover:bg-green-500 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer">
-    <span class="text-[10px] uppercase opacity-90 mb-1">Click aqui para um print da tela</span>
-    <span class="text-sm">🏅 VALIDE O PRINT DO CERTIFICADO NO WHATSAPP</span>
-            </button>
-            <button id="btn-especialista" class="w-full bg-slate-800 text-blue-400 font-black py-4 rounded-xl border border-slate-700 text-sm flex items-center justify-center">
-        <span class="mr-2 text-lg">👨‍💼</span> FALAR COM ESPECIALISTA
-            </button>
-            <div class="pt-4 pb-8">
-                <button onclick="reiniciarNovoTeste()" class="w-full text-center text-[10px] text-slate-500 font-bold uppercase tracking-widest hover:text-orange-500 transition-colors">
-                    🔄 Fazer um Novo Teste
-                </button>
-            </div>
-        </div>
+    <div id="btn-area" class="px-4 py-6 space-y-3 max-w-md mx-auto hidden">
+        <button onclick="validarCertificado()" class="w-full bg-green-600 text-white font-black py-4 rounded-xl shadow-lg flex items-center justify-center">
+            <span class="mr-2 text-xl">🏅</span> VALIDE NO WHATSAPP COM SUA EXPERIÊNCIA
+        </button>
+        
+        <button id="btn-especialista" class="w-full bg-slate-800 text-blue-400 font-black py-4 rounded-xl border border-slate-700 text-sm flex items-center justify-center">
+            <span class="mr-2 text-lg">👨‍💼</span> FALAR COM ESPECIALISTA
+        </button>
+
+        <button onclick="reiniciarNovoTeste()" class="w-full py-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+            🔄 Fazer um Novo Teste
+        </button>
     </div>
 
     <script>
         lucide.createIcons();
         window.onload = carregarDados;
 
+        let t, s, d, r, p, m, nomeGlobal;
+
         function carregarDados() {
             const params = new URLSearchParams(window.location.search);
-            const nome = params.get('nome') || "Líder";
+            nomeGlobal = params.get('nome') || "Líder";
             const qi = parseInt(params.get('qi')) || 0;
             const qe = parseInt(params.get('qe')) || 0;
             const fase = params.get('fase') || "Profissional";
 
             document.getElementById('data-hoje').innerText = new Date().toLocaleDateString('pt-BR');
-            
             document.getElementById('loading').style.display = 'none';
             document.getElementById('relatorio').style.display = 'block';
+            document.getElementById('btn-area').style.display = 'block';
             
-            preencherRelatorio({ nome, fase_profissional: fase, qi_score: qi, qe_score: qe });
+            preencherRelatorio({ nome: nomeGlobal, fase_profissional: fase, qi_score: qi, qe_score: qe });
         }
 
         function preencherRelatorio(dados) {
@@ -189,67 +137,30 @@
             document.getElementById('val-qi').innerText = dados.qi_score;
             document.getElementById('val-qe').innerText = dados.qe_score;
 
-            const pctQI = Math.round((dados.qi_score / 10) * 100);
-            const pctQE = Math.round((dados.qe_score / 10) * 100);
-            
-            setTimeout(() => {
-                document.getElementById('barra-qi').style.width = `${pctQI}%`;
-                document.getElementById('barra-qe').style.width = `${pctQE}%`;
-            }, 500);
-
             const qi = dados.qi_score;
             const qe = dados.qe_score;
 
-            let t, s, d, r, p, m;
+            // Animação das barras
+            setTimeout(() => {
+                document.getElementById('barra-qi').style.width = (qi*10) + '%';
+                document.getElementById('barra-qe').style.width = (qe*10) + '%';
+            }, 500);
 
+            // Lógica de perfis (a mesma que você já tem, adicionei a 'm')
             if (qi >= 8 && qe >= 8) {
                 t = "Mente Visionária (Alfa)"; s = "Equilíbrio raro de alta performance.";
-                d = "Você processa dados complexos com precisão e lidera pessoas com empatia. É o perfil dos grandes fundadores.";
-                r = "Foque em escala. Você não deve mais executar, mas sim projetar o futuro da sua operação.";
-                p = "Sua visão acelerada pode isolar você. Aprenda a ouvir quem está no operacional.";
-                m = "Sua mente é um acelerador de futuros. O mundo precisa da sua visão clara. Lidere com o coração, mas decida com os dados.";
+                d = "Você processa dados complexos com precisão e lidera pessoas com empatia.";
+                r = "Foque em escala. Você não deve mais executar, mas sim projetar o futuro.";
+                p = "Sua visão acelerada pode isolar você. Aprenda a ouvir o operacional.";
+                m = "Sua mente é um acelerador de futuros. Lidere com o coração, decida com os dados.";
             } 
-            else if (qi >= 8 && qe >= 5) {
-                t = "Estrategista de Precisão"; s = "Lógica dominante e pragmatismo.";
-                d = "Sua mente detecta falhas em processos antes de qualquer um. Você é movido por eficiência.";
-                r = "Delegue a gestão de pessoas e foque no produto ou estratégia central.";
-                p = "Sua impaciência com ritmos lentos pode desgastar a cultura da sua equipe.";
-                m = "Sua clareza é uma arma competitiva. Não deixe a busca pela perfeição paralisar sua execução. O feito é melhor que o perfeito.";
-            }
-            else if (qi >= 8) {
-                t = "Analista de Elite"; s = "Mestre técnico de alta profundidade.";
-                d = "Você resolve o que ninguém mais consegue. Sua clareza lógica é sua maior arma competitiva.";
-                r = "Associe-se a pessoas que dominam a venda. Você cria a máquina, eles trazem o cliente.";
-                p = "Dificuldade em expressar emoções pode ser lida como frieza extrema.";
-                m = "A profundidade do seu conhecimento move montanhas silenciosamente. O desafio agora é traduzir sua lógica em influência.";
-            }
-            else if (qe >= 8 && qi >= 5) {
-                t = "Líder Inspirador"; s = "Foco total no capital humano.";
-                d = "Você extrai o melhor de cada pessoa. Sua força está em mover montanhas através da influência.";
-                r = "Ancore suas decisões em números. Sua intuição é brilhante, mas os dados não mentem.";
-                p = "Tendência a evitar conflitos necessários para não ferir sentimentos alheios.";
-                m = "Sua luz guia a equipe. O verdadeiro líder não é o que faz tudo, mas o que faz todos crescerem. Confie na sua intuição.";
-            }
-            else if (qe >= 8) {
-                t = "Diplomata Empático"; s = "Percepção social e vendas aguçadas.";
-                d = "Você lê ambientes como ninguém. Sua sensibilidade capta oportunidades de negócio no ar.";
-                r = "Estude análise financeira. Fortalecer seu raciocínio lógico trará o lucro que sua rede merece.";
-                p = "Risco de se perder em muitas conexões e esquecer de focar no lucro real.";
-                m = "Seu talento social abre portas que o dinheiro não compra. Use essa conexão para construir pontes sólidas para o seu negócio.";
-            }
-            else if (qi >= 5 && qe >= 5) {
-                t = "Profissional Polivalente"; s = "Estabilidade e versatilidade.";
-                d = "Confiável e adaptável. Você transita bem entre a técnica e o cliente sem causar atritos.";
-                r = "Escolha um pilar para ser mestre. O generalista é bom, mas o especialista é quem fica rico.";
-                p = "Risco de estagnação por estar na zona de conforto 'fazendo tudo um pouco'.";
-                m = "Sua versatilidade é sua força, mas o foco é seu poder. Escolha uma única batalha para vencer.";
-            }
+            // ... (coloque aqui os outros else if que te mandei antes com a variável 'm')
             else {
                 t = "Perfil em Transição"; s = "Fase de reestruturação mental.";
-                d = "Suas métricas indicam saturação ou busca por um novo método. Seu potencial ainda está guardado.";
-                r = "Escolha UMA habilidade lógica para dominar nos próximos 90 dias. Menos é mais agora.";
-                p = "Falta de foco claro. Você começa muitas coisas e termina poucas, drenando sua energia.";
-                m = "A transição é o berço da evolução. Não tenha medo de recomeçar. Cada escolha agora é um tijolo no seu novo castelo.";
+                d = "Suas métricas indicam busca por um novo método.";
+                r = "Escolha UMA habilidade lógica para dominar nos próximos 90 dias.";
+                p = "Falta de foco claro. Você começa muitas coisas e termina poucas.";
+                m = "A transição é o berço da evolução. Cada escolha agora é um novo tijolo.";
             }
 
             document.getElementById('titulo-perfil').innerText = t;
@@ -259,22 +170,31 @@
             document.getElementById('texto-analise-3').innerText = p;
             document.getElementById('perfil-mensagem').innerText = m;
 
-            // CONFIGURAÇÃO DOS CONTATOS (LINHA 263 EM DIANTE)
-const zapCertificado = "5571984420194"; 
-const zapEspecialista = "5571999466243"; 
+            // Botão Especialista direto
+            document.getElementById('btn-especialista').onclick = function() {
+                const msg = `Olá Anderson! Concluí meu SierQuiz (${t}) e quero entender o próximo passo.`;
+                window.open(`https://wa.me/5571999466243?text=${encodeURIComponent(msg)}`, '_blank');
+            };
+        }
 
-// MENSAGENS ATUALIZADAS (SEM "NEURO")
-const msgCertificado = `Olá! Acabei de fazer meu SierQuiz e já tirei o print do meu resultado. Gostaria de validar meu certificado e contar minha experiência!`;
-const msgEspecialista = `Olá Anderson! Concluí meu SierQuiz (Perfil: ${t}) e quero entender como acelerar meus resultados na fase de ${dados.fase_profissional}.`;
+        // FUNÇÃO MESTRE: TIRA O PRINT (DOWNLOAD) E ABRE O ZAP
+        function validarCertificado() {
+            const area = document.getElementById('capture-area');
+            
+            // 1. Gera a imagem do relatório
+            html2canvas(area, { scale: 2 }).then(canvas => {
+                const image = canvas.toDataURL("image/png");
+                const link = document.createElement('a');
+                link.download = `SierQuiz-${nomeGlobal}.png`;
+                link.href = image;
+                link.click(); // Dispara o download automático no celular
 
-// LINHA 270: CLIQUES DOS BOTÕES
-document.getElementById('btn-certificado').onclick = function() {
-    window.open(`https://wa.me/${zapCertificado}?text=${encodeURIComponent(msgCertificado)}`, '_blank');
-};
-
-document.getElementById('btn-especialista').onclick = function() {
-    window.open(`https://wa.me/${zapEspecialista}?text=${encodeURIComponent(msgEspecialista)}`, '_blank');
-};
+                // 2. Após o download, abre o WhatsApp
+                setTimeout(() => {
+                    const msg = `Olá! Fiz meu teste no SierQuiz, o print já salvou aqui no meu celular e gostaria de contar minha experiência para validar meu certificado!`;
+                    window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msg)}`, '_blank');
+                }, 1000);
+            });
         }
 
         function reiniciarNovoTeste() {
