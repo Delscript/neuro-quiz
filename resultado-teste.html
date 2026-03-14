@@ -234,7 +234,8 @@
                 link.download = `SierQuiz-${nomeGlobal}.png`;
                 link.href = image;
                 link.click();
-         function irParaZap() {
+                setTimeout(() => {
+        
     const msg = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado e contar minha experiência!`;
     window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msg)}`, '_blank');
 }
