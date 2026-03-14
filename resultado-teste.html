@@ -112,11 +112,12 @@
         </div>
     </div>
 
-    <div id="btn-area" class="px-4 py-6 space-y-3 max-w-md mx-auto hidden">
-        <button onclick="validarCertificado()" class="w-full flex flex-col items-center justify-center bg-green-600 hover:bg-green-500 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer">
-            <span class="text-xs opacity-80 uppercase mb-1">Clique aqui para um print do resultado</span>
-            <span class="text-sm font-black">🏅 VALIDE O PRINT DO CERTIFICADO NO WHATSAPP</span>
-        </button>
+    <div id="btn-area" class="px-4 py-6 space-y-3 max-w-md mx-auto hidden"
+
+        <button onclick="irParaZap()" class="w-full flex flex-col items-center justify-center bg-green-600 hover:bg-green-500 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer">
+    <span class="text-[10px] uppercase opacity-90 mb-1">📸 TIRE UM PRINT DA TELA AGORA</span>
+    <span class="text-sm">🏅 ENVIAR PRINT PARA VALIDAR CERTIFICADO</span>
+</button>
         <button id="btn-especialista" class="w-full bg-slate-800 text-blue-400 font-black py-4 rounded-xl border border-slate-700 text-sm flex items-center justify-center">
             <span class="mr-2 text-lg">👨‍💼</span> FALAR COM ESPECIALISTA
         </button>
@@ -235,8 +236,10 @@
                 link.href = image;
                 link.click();
                 setTimeout(() => {
-                    const msg = `Olá! Acabei de fazer meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado e contar minha experiência!`;
-                    window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msg)}`, '_blank');
+         function irParaZap() {
+    const msg = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado e contar minha experiência!`;
+    window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msg)}`, '_blank');
+}
                 }, 1000);
             });
         }
