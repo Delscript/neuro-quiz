@@ -221,15 +221,15 @@
             document.getElementById('perfil-mensagem').innerText = m;
             
             document.getElementById('btn-especialista').onclick = function() {
-                const msg = `Olá Anderson! Concluí meu SierQuiz (Perfil: ${t}) e quero entender como acelerar meus resultados na fase de ${dados.fase_professional}.`;
-                window.open(`https://wa.me/5571999466243?text=${encodeURIComponent(msg)}`, '_blank');
-            };
-        }
+                const msgFinal = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado e contar minha experiência!`;
+    
+    window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msgFinal)}`, '_blank');
+}
 
-       function irParaZap() {
-            const msgCert = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado e contar minha experiência!`;
-            window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msgCert)}`, '_blank');
-        }
+function abrirZapEspecialista() {
+    const msgEsp = `Olá Anderson! Concluí meu SierQuiz (Perfil: ${t}) e quero entender os próximos passos.`;
+    window.open(`https://wa.me/5571999466243?text=${encodeURIComponent(msgEsp)}`, '_blank');
+}
 
         function reiniciarNovoTeste() {
             localStorage.clear();
