@@ -3,104 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SierQuiz - Resultado</title>
+    <title>SierQuiz - Resultado Oficial</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #1a1a1a; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: #121212; margin: 0; padding: 0; }
         
-        /* Container com 2cm de margem lateral no desktop */
         .page-container {
-            padding: 20px;
-            max-width: 800px;
+            padding: 10px;
+            max-width: 600px;
             margin: 0 auto;
-            padding-bottom: 120px; /* Espaço para o botão flutuante não cobrir nada */
+            padding-bottom: 110px;
         }
 
         #relatorio {
             background-color: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 20px;
             position: relative;
-            overflow: hidden;
+            overflow: hidden; /* Para a marca d'água não sair do card */
         }
 
-        .assinatura { font-family: 'Allura', cursive; font-size: 1.4rem; color: #1e3a8a; }
+        /* Marca d'água de volta */
+        .watermark {
+            position: absolute; top: 55%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 4.5rem; font-weight: 900;
+            color: rgba(0, 0, 0, 0.03);
+            pointer-events: none; z-index: 0; white-space: nowrap;
+            text-transform: uppercase;
+        }
+
+        .assinatura { font-family: 'Allura', cursive; font-size: 1.2rem; color: #1e3a8a; }
         
-        /* Botão Flutuante Fixado no Rodapé do Aparelho */
+        /* Barras Slim */
+        .barra-fundo { background: #f1f5f9; height: 6px; border-radius: 3px; width: 100%; margin-top: 4px; }
+        .barra-fill { height: 100%; border-radius: 3px; transition: width 1.5s ease-in-out; }
+
         .btn-flutuante {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 400px;
-            z-index: 999;
+            position: fixed; bottom: 15px; left: 50%;
+            transform: translateX(-50%); width: 92%;
+            max-width: 400px; z-index: 999;
         }
 
-        .barra-fundo { background: #e2e8f0; height: 12px; border-radius: 6px; width: 100%; margin-top: 8px; }
-        .barra-fill { height: 100%; border-radius: 6px; transition: width 1.5s ease-in-out; }
+        .content-z { position: relative; z-index: 10; }
     </style>
 </head>
 <body>
 
     <div class="page-container">
         <div id="relatorio">
-            <div class="flex justify-between items-start mb-6 border-b pb-4">
-                <div>
-                    <h1 class="text-xl font-black text-orange-600 tracking-tighter text-left">SIER<span class="text-blue-600">QUIZ</span></h1>
-                    <div class="text-[8px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase inline-block">ID Autêntico: <span id="res-id"></span></div>
-                </div>
-                <div class="text-right text-[10px] text-slate-400 font-bold" id="data-hoje"></div>
-            </div>
+            <div class="watermark">SIERQUIZ</div>
 
-            <div class="text-center mb-6">
-                <h2 id="titulo-perfil" class="text-2xl font-black text-slate-800 uppercase leading-none"></h2>
-                <p id="subtitulo-perfil" class="text-xs text-blue-600 font-bold italic mt-1"></p>
-            </div>
+            <div class="content-z">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <h1 class="text-lg font-black text-orange-600 tracking-tighter leading-none">SIER<span class="text-blue-600">QUIZ</span></h1>
+                        <p class="text-[7px] font-bold text-green-600 uppercase tracking-widest mt-0.5">Validado sob Pressão Cognitiva</p>
+                    </div>
+                    <div class="text-right text-[9px] text-slate-400 font-bold" id="data-hoje"></div>
+                </div>
 
-            <div class="space-y-4 mb-6">
-                <div>
-                    <div class="flex justify-between text-[10px] font-bold uppercase text-slate-500"><span>Razão (QI)</span><span id="val-qi">0</span></div>
-                    <div class="barra-fundo"><div id="barra-qi" class="barra-fill bg-blue-600" style="width: 0%"></div></div>
+                <div class="text-center mb-4 mt-2">
+                    <p class="text-[7px] text-blue-500 font-black uppercase tracking-widest mb-1">Análise de Perfil e Estratégia</p>
+                    <h2 id="titulo-perfil" class="text-xl font-black text-slate-800 uppercase leading-none"></h2>
+                    <p id="subtitulo-perfil" class="text-[10px] text-slate-500 font-bold italic mt-0.5"></p>
                 </div>
-                <div>
-                    <div class="flex justify-between text-[10px] font-bold uppercase text-slate-500"><span>Emoção (QE)</span><span id="val-qe">0</span></div>
-                    <div class="barra-fundo"><div id="barra-qe" class="barra-fill bg-orange-500" style="width: 0%"></div></div>
-                </div>
-            </div>
 
-            <div class="space-y-4 text-slate-700">
-                <div>
-                    <h3 class="text-[9px] font-black text-slate-400 uppercase">Diagnóstico</h3>
-                    <p id="txt1" class="text-xs leading-relaxed text-justify"></p>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="bg-slate-50/50 p-2 rounded-lg border border-slate-100">
+                        <div class="flex justify-between text-[8px] font-black uppercase text-slate-400"><span>Razão (QI)</span><span id="val-qi" class="text-blue-600">0</span></div>
+                        <div class="barra-fundo"><div id="barra-qi" class="barra-fill bg-blue-600"></div></div>
+                    </div>
+                    <div class="bg-slate-50/50 p-2 rounded-lg border border-slate-100">
+                        <div class="flex justify-between text-[8px] font-black uppercase text-slate-400"><span>Emoção (QE)</span><span id="val-qe" class="text-orange-500">0</span></div>
+                        <div class="barra-fundo"><div id="barra-qe" class="barra-fill bg-orange-500"></div></div>
+                    </div>
                 </div>
-                <div class="bg-orange-50 p-3 rounded-lg border-l-4 border-orange-500">
-                    <h3 class="text-[9px] font-black text-orange-600 uppercase">Ponto Cego</h3>
-                    <p id="txt2" class="text-xs italic font-medium"></p>
-                </div>
-            </div>
 
-            <div class="mt-8 pt-6 border-t flex justify-between items-end">
-                <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Análise para:</p>
-                    <p id="nome-cliente" class="text-sm font-black text-slate-900 uppercase"></p>
+                <div class="space-y-3">
+                    <div>
+                        <h3 class="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Diagnóstico</h3>
+                        <p id="txt-diag" class="text-[10px] leading-snug text-slate-600 text-justify"></p>
+                    </div>
+                    <div class="bg-blue-50/50 p-2 rounded-lg border-l-2 border-blue-400">
+                        <h3 class="text-[8px] font-black text-blue-600 uppercase tracking-tighter">Direção Estratégica</h3>
+                        <p id="txt-estr" class="text-[10px] leading-snug text-slate-600"></p>
+                    </div>
+                    <div class="bg-orange-50/50 p-2 rounded-lg border-l-2 border-orange-400">
+                        <h3 class="text-[8px] font-black text-orange-600 uppercase tracking-tighter">Ponto Cego</h3>
+                        <p id="txt-cego" class="text-[10px] font-medium italic text-slate-700"></p>
+                    </div>
                 </div>
-                <div class="text-right">
-                    <div class="assinatura">Anderson Dias</div>
-                    <p class="text-[7px] font-bold text-slate-400 uppercase">Especialista Sier Growth</p>
+
+                <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-end">
+                    <div class="flex flex-col">
+                        <p class="text-[8px] font-black text-slate-300 uppercase mb-2">ID: <span id="res-id" class="text-slate-400"></span></p>
+                        <p class="text-[8px] font-bold text-slate-400 uppercase">Análise para:</p>
+                        <p id="nome-cliente" class="text-xs font-black text-slate-900 uppercase tracking-tighter"></p>
+                    </div>
+                    <div class="text-right">
+                        <div class="assinatura leading-none">Anderson Dias</div>
+                        <p class="text-[6px] font-black text-slate-400 uppercase">Especialista Sier Growth</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="btn-flutuante">
-        <button onclick="irParaZap()" class="w-full bg-green-600 text-white p-4 rounded-2xl shadow-2xl flex flex-col items-center justify-center hover:bg-green-500 transition-all active:scale-95">
-            <span class="text-[10px] font-bold opacity-80 uppercase tracking-widest">1. Tire o Print da Tela</span>
-            <span class="text-sm font-black uppercase tracking-tighter">2. Enviar para o Especialista</span>
+        <button onclick="irParaZap()" class="w-full bg-green-600 text-white p-3 rounded-xl shadow-2xl flex flex-col items-center justify-center active:scale-95 transition-transform">
+            <span class="text-[9px] font-bold opacity-80 uppercase">1. Tire o Print agora</span>
+            <span class="text-xs font-black uppercase">2. Enviar para o Especialista</span>
         </button>
-        <p class="text-center text-[9px] text-slate-400 mt-2 font-bold uppercase tracking-widest">SierQuiz v2.0 - Tecnologia Sier Growth</p>
+        <p class="text-center text-[8px] text-slate-500 mt-2 font-bold uppercase tracking-widest opacity-40">SierQuiz Engine v2.0</p>
     </div>
 
     <script>
@@ -109,7 +125,7 @@
             const nome = p.get('nome') || "Líder";
             const qi = parseInt(p.get('qi')) || 0;
             const qe = parseInt(p.get('qe')) || 0;
-            const txid = p.get('txid') || Math.random().toString(36).substr(2, 7).toUpperCase();
+            const txid = p.get('txid') || "6AEFAF"+Math.random().toString(36).substr(2, 9).toUpperCase();
 
             document.getElementById('res-id').innerText = txid;
             document.getElementById('data-hoje').innerText = new Date().toLocaleDateString();
@@ -117,16 +133,18 @@
             document.getElementById('val-qi').innerText = qi;
             document.getElementById('val-qe').innerText = qe;
 
-            // Perfis rápidos
-            let t, s, d, c;
-            if(qi >= 7 && qe >= 7) { t="Alfa Visionário"; s="Alta Performance Híbrida"; d="Você equilibra lógica de mercado com inteligência emocional."; c="Cuidado para não centralizar demais por acreditar que ninguém faz como você."; }
-            else if(qi >= 7) { t="Estrategista Técnico"; s="Lógica e Pragmatismo"; d="Sua tomada de decisão é baseada em dados frios e processos."; c="Atenção ao clima da equipe: nem tudo se resolve com planilhas."; }
-            else { t="Líder Influenciador"; s="Conexão e Engajamento"; d="Sua força está em mover pessoas e criar redes de confiança."; c="Cuidado com a gestão financeira e métricas de lucro real."; }
+            // Lógica de Resultados Original Refinada
+            let t, s, d, r, c;
+            if(qi >= 8 && qe >= 8) { t="Visionário Alfa"; s="Alta Performance Híbrida"; d="Equilíbrio raro entre lógica e empatia."; r="Foque em escala e visão de futuro."; c="Cuidado para não centralizar demais a operação."; }
+            else if(qi >= 7) { t="Estrategista Técnico"; s="Lógica e Processos"; d="Sua mente é movida por eficiência e dados."; r="Delegue o operacional e foque no produto."; c="A impaciência com ritmos lentos pode desgastar o time."; }
+            else if(qe >= 7) { t="Líder Influenciador"; s="Conexão e Engajamento"; d="Você extrai o melhor de cada pessoa."; r="Ancore suas decisões em números reais."; c="Evite conflitos necessários para não ferir sentimentos."; }
+            else { t="Perfil em Transição"; s="Reestruturação Mental"; d="Fase de busca por novos métodos e clareza."; r="Escolha uma habilidade para dominar agora."; c="Falta de foco claro. Termine o que começou."; }
 
             document.getElementById('titulo-perfil').innerText = t;
             document.getElementById('subtitulo-perfil').innerText = s;
-            document.getElementById('txt1').innerText = d;
-            document.getElementById('txt2').innerText = c;
+            document.getElementById('txt-diag').innerText = d;
+            document.getElementById('txt-estr').innerText = r;
+            document.getElementById('txt-cego').innerText = c;
 
             setTimeout(() => {
                 document.getElementById('barra-qi').style.width = (qi*10)+'%';
