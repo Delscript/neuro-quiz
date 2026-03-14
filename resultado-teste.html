@@ -24,7 +24,7 @@
             .page-container { 
                 padding-left: 15px; 
                 padding-right: 15px; 
-                padding-bottom: 20px; /* Reduz o buraco no App */
+                padding-bottom: 20px; 
             }
         }
 
@@ -49,7 +49,6 @@
         .barra-fundo { background: #f1f5f9; height: 5px; border-radius: 3px; width: 100%; margin-top: 3px; }
         .barra-fill { height: 100%; border-radius: 3px; transition: width 1.5s ease-in-out; }
 
-        /* Botão será controlado via JavaScript para ser fixo ou estático */
         #area-whatsapp { width: 100%; max-width: 400px; margin: 0 auto; z-index: 999; }
     </style>
 </head>
@@ -70,8 +69,8 @@
 
                 <div class="text-center mb-4 mt-6">
                     <p class="text-[8px] text-blue-500 font-black uppercase tracking-widest mb-1 leading-none">Análise de Perfil e Estratégia</p>
-                    <h2 id="titulo-perfil" class="text-2xl font-black text-slate-800 uppercase leading-none tracking-tighter"></h2>
-                    <p id="subtitulo-perfil" class="text-xs text-slate-400 font-bold italic"></p>
+                    <h2 id="titulo-perfil" class="text-2xl font-black text-slate-800 uppercase leading-none tracking-tighter text-center"></h2>
+                    <p id="subtitulo-perfil" class="text-xs text-slate-400 font-bold italic text-center"></p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mb-6">
@@ -137,63 +136,59 @@
             document.getElementById('val-qi').innerText = qi;
             document.getElementById('val-qe').innerText = qe;
 
-            let s, d, r, p, m;
+            // LÓGICA DE PERFIS FIEL À ORIGINAL
+            let t, s, d, r, p_cego, m;
+
             if (qi >= 8 && qe >= 8) {
                 t = "Mente Visionária (Alfa)"; s = "Equilíbrio raro de alta performance.";
-                d = "Você processa dados complexos com precisão e lidera pessoas com empatia. É o perfil dos grandes fundadores.";
-                r = "Foque em escala. Você não deve mais executar, mas sim projetar o futuro da sua operação.";
-                p = "Sua visão acelerada pode isolar você. Aprenda a ouvir quem está no operacional.";
-                m = "Sua mente é um acelerador de futuros. O mundo precisa da sua visão clara. Lidere com o coração, mas decida com os dados.";
-            } 
-            else if (qi >= 8 && qe >= 5) {
+                d = "Você processa dados complexos com precisão e lidera pessoas com empatia.";
+                r = "Foque em escala. Você não deve mais executar, mas sim projetar o futuro.";
+                p_cego = "Sua visão acelerada pode isolar você.";
+                m = "Sua mente é um acelerador de futuros. Lidere com o coração, mas decida com os dados.";
+            } else if (qi >= 8 && qe >= 5) {
                 t = "Estrategista de Precisão"; s = "Lógica dominante e pragmatismo.";
-                d = "Sua mente detecta falhas em processos antes de qualquer um. Você é movido por eficiência.";
-                r = "Delegue a gestão de pessoas e foque no produto ou estratégia central.";
-                p = "Sua impaciência com ritmos lentos pode desgastar a cultura da sua equipe.";
-                m = "Sua clareza é uma arma competitiva. Não deixe a busca pela perfeição paralisar sua execução. O feito é melhor que o perfeito.";
-            }
-            else if (qi >= 8) {
+                d = "Sua mente detecta falhas em processos antes de qualquer um.";
+                r = "Delegue a gestão de pessoas e foque no produto.";
+                p_cego = "Sua impaciência pode desgastar a cultura da equipe.";
+                m = "Sua clareza é uma arma competitiva. O feito é melhor que o perfeito.";
+            } else if (qi >= 8) {
                 t = "Analista de Elite"; s = "Mestre técnico de alta profundidade.";
-                d = "Você resolve o que ninguém mais consegue. Sua clareza lógica é sua maior arma competitiva.";
-                r = "Associe-se a pessoas que dominam a venda. Você cria a máquina, eles trazem o cliente.";
-                p = "Dificuldade em expressar emoções pode ser lida como frieza extrema.";
-                m = "A profundidade do seu conhecimento move montanhas silenciosamente. O desafio agora é traduzir sua lógica em influência.";
-            }
-            else if (qe >= 8 && qi >= 5) {
+                d = "Você resolve o que ninguém mais consegue.";
+                r = "Associe-se a pessoas que dominam a venda.";
+                p_cego = "Dificuldade em expressar emoções.";
+                m = "A profundidade do seu conhecimento move montanhas.";
+            } else if (qe >= 8 && qi >= 5) {
                 t = "Líder Inspirador"; s = "Foco total no capital humano.";
-                d = "Você extrai o melhor de cada pessoa. Sua força está em mover montanhas através da influência.";
-                r = "Ancore suas decisões em números. Sua intuição é brilhante, mas os dados não mentem.";
-                p = "Tendência a evitar conflitos necessários para não ferir sentimentos alheios.";
-                m = "Sua luz guia a equipe. O verdadeiro líder não é o que faz tudo, mas o que faz todos crescerem. Confie na sua intuição.";
-            }
-            else if (qe >= 8) {
+                d = "Você extrai o melhor de cada pessoa.";
+                r = "Ancore suas decisões em números.";
+                p_cego = "Tendência a evitar conflitos necessários.";
+                m = "O verdadeiro líder é o que faz todos crescerem.";
+            } else if (qe >= 8) {
                 t = "Diplomata Empático"; s = "Percepção social e vendas aguçadas.";
-                d = "Você lê ambientes como ninguém. Sua sensibilidade capta oportunidades de negócio no ar.";
-                r = "Estude análise financeira. Fortalecer seu raciocínio lógico trará o lucro que sua rede merece.";
-                p = "Risco de se perder em muitas conexões e esquecer de focar no lucro real.";
-                m = "Seu talento social abre portas que o dinheiro não compra. Use essa conexão para construir pontes sólidas para o seu negócio.";
-            }
-            else if (qi >= 5 && qe >= 5) {
+                d = "Você lê ambientes como ninguém.";
+                r = "Estude análise financeira.";
+                p_cego = "Risco de se perder em muitas conexões.";
+                m = "Seu talento social abre portas que o dinheiro não compra.";
+            } else if (qi >= 5 && qe >= 5) {
                 t = "Profissional Polivalente"; s = "Estabilidade e versatilidade.";
-                d = "Confiável e adaptável. Você transita bem entre a técnica e o cliente sem causar atritos.";
-                r = "Escolha um pilar para ser mestre. O generalista é bom, mas o especialista é quem fica rico.";
-                p = "Risco de estagnação por estar na zona de conforto 'fazendo tudo um pouco'.";
-                m = "Sua versatilidade é sua força, mas o foco é seu poder. Escolha uma única batalha para vencer.";
-            }
-            else {
+                d = "Confiável e adaptável.";
+                r = "Escolha um pilar para ser mestre.";
+                p_cego = "Risco de estagnação.";
+                m = "Sua versatilidade é sua força, mas o foco é seu poder.";
+            } else {
                 t = "Perfil em Transição"; s = "Fase de reestruturação mental.";
-                d = "Suas métricas indicam saturação ou busca por um novo método. Seu potencial ainda está guardado.";
-                r = "Escolha UMA habilidade lógica para dominar nos próximos 90 dias. Menos é mais agora.";
-                p = "Falta de foco claro. Você começa muitas coisas e termina poucas, drenando sua energia.";
-                m = "A transição é o berço da evolução. Não tenha medo de recomeçar. Cada escolha agora é um tijolo no seu novo castelo.";
+                d = "Suas métricas indicam busca por um novo método.";
+                r = "Escolha UMA habilidade lógica para dominar.";
+                p_cego = "Falta de foco claro.";
+                m = "A transição é o berço da evolução.";
             }
+
             document.getElementById('titulo-perfil').innerText = t;
             document.getElementById('subtitulo-perfil').innerText = s;
-            document.getElementById('texto-analise-1').innerText = d;
-            document.getElementById('texto-analise-2').innerText = r;
-            document.getElementById('texto-analise-3').innerText = p;
-            document.getElementById('perfil-mensagem').innerText = m;
-    
+            document.getElementById('txt-diag').innerText = d;
+            document.getElementById('txt-estr').innerText = r;
+            document.getElementById('txt-cego').innerText = p_cego;
+
             setTimeout(() => {
                 document.getElementById('barra-qi').style.width = (qi*10)+'%';
                 document.getElementById('barra-qe').style.width = (qe*10)+'%';
@@ -204,8 +199,7 @@
             const zapDiv = document.getElementById('area-whatsapp');
             
             if (isMobile) {
-                // VISUAL PARA APP: Botão colado no relatório
-                zapDiv.className = "mt-4"; // Apenas margem topo
+                zapDiv.className = "mt-4";
                 zapDiv.innerHTML = `
                     <button onclick="irParaZap()" class="w-full bg-green-600 text-white p-4 rounded-2xl shadow-xl flex flex-col items-center justify-center active:scale-95 transition-transform">
                         <span class="text-[10px] font-bold opacity-80 uppercase tracking-widest mb-1">1. Tire o Print agora</span>
@@ -213,7 +207,6 @@
                     </button>
                 `;
             } else {
-                // VISUAL PARA WEB: Botão flutuante elegante
                 zapDiv.style.position = "fixed";
                 zapDiv.style.bottom = "20px";
                 zapDiv.style.left = "50%";
