@@ -220,12 +220,19 @@
             document.getElementById('texto-analise-3').innerText = p;
             document.getElementById('perfil-mensagem').innerText = m;
             
-            document.getElementById('btn-especialista').onclick = function() {
-                const msgFinal = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado e contar minha experiência!`;
+            document.getElementById('btn-especialista').onclick = 
+                
+               // Substitua suas funções irParaZap ou validarCertificado por esta única aqui:
+
+function irParaZap() {
+    // Definimos a mensagem com os dados dinâmicos do usuário
+    const msgFinal = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado e contar minha experiência!`;
     
+    // Abre o WhatsApp direto. Isso funciona 100% no App e na Web.
     window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msgFinal)}`, '_blank');
 }
 
+// Garanta que o botão do Especialista também esteja limpo:
 function abrirZapEspecialista() {
     const msgEsp = `Olá Anderson! Concluí meu SierQuiz (Perfil: ${t}) e quero entender os próximos passos.`;
     window.open(`https://wa.me/5571999466243?text=${encodeURIComponent(msgEsp)}`, '_blank');
