@@ -226,16 +226,8 @@
             };
         }
 
-        function irParaZap() {
-            const area = document.getElementById('capture-area');
-            html2canvas(area, { scale: 2 }).then(canvas => {
-                const image = canvas.toDataURL("image/png");
-                const link = document.createElement('a');
-                link.download = `SierQuiz-${nomeGlobal}.png`;
-                link.href = image;
-                link.click();
-                setTimeout(() => {
-     function irParaZap() {
+       function irParaZap() {
+    // Esta função ignora o html2canvas para não travar o App
     const msg = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado e contar minha experiência!`;
     window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msg)}`, '_blank');
 }
