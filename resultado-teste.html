@@ -9,23 +9,18 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #121212; margin: 0; padding: 0; }
         
-        /* Estilo para WEB (Desktop) */
+        /* Layout Híbrido: 2cm na Web, Ajustado no App */
         .page-container {
             padding-left: 2cm;
             padding-right: 2cm;
             max-width: 800px;
             margin: 0 auto;
             padding-top: 20px;
-            padding-bottom: 120px;
+            padding-bottom: 20px;
         }
 
-        /* Estilo específico para APP/Mobile */
         @media (max-width: 640px) {
-            .page-container { 
-                padding-left: 15px; 
-                padding-right: 15px; 
-                padding-bottom: 20px; 
-            }
+            .page-container { padding-left: 15px; padding-right: 15px; }
         }
 
         #relatorio {
@@ -49,7 +44,7 @@
         .barra-fundo { background: #f1f5f9; height: 5px; border-radius: 3px; width: 100%; margin-top: 3px; }
         .barra-fill { height: 100%; border-radius: 3px; transition: width 1.5s ease-in-out; }
 
-        #area-whatsapp { width: 100%; max-width: 400px; margin: 0 auto; z-index: 999; }
+        #container-dinamico { width: 100%; max-width: 400px; margin: 0 auto; z-index: 999; }
     </style>
 </head>
 <body>
@@ -68,7 +63,7 @@
                 </div>
 
                 <div class="text-center mb-4 mt-6">
-                    <p class="text-[8px] text-blue-500 font-black uppercase tracking-widest mb-1 leading-none">Análise de Perfil e Estratégia</p>
+                    <p class="text-[8px] text-blue-500 font-black uppercase tracking-widest mb-1 leading-none text-center">Análise de Perfil e Estratégia</p>
                     <h2 id="titulo-perfil" class="text-2xl font-black text-slate-800 uppercase leading-none tracking-tighter text-center"></h2>
                     <p id="subtitulo-perfil" class="text-xs text-slate-400 font-bold italic text-center"></p>
                 </div>
@@ -97,13 +92,18 @@
                         <h3 class="text-[9px] font-black text-orange-600 uppercase tracking-wider">Ponto Cego</h3>
                         <p id="txt-cego" class="text-[11px] font-bold italic text-slate-700"></p>
                     </div>
+
+                    <div class="mt-4 p-3 bg-slate-900 rounded-xl text-center shadow-lg border border-slate-700">
+                        <h3 class="text-[8px] font-black text-orange-500 uppercase tracking-widest mb-1">💡 Insight de Superação</h3>
+                        <p id="txt-insight" class="text-[10px] text-white italic leading-tight"></p>
+                    </div>
                 </div>
 
                 <div class="mt-8 pt-4 border-t border-slate-100 flex justify-between items-end">
                     <div class="flex flex-col">
-                        <p class="text-[9px] font-black text-slate-300 uppercase mb-3 leading-none">ID: <span id="res-id" class="text-slate-400"></span></p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase leading-none">Análise para:</p>
-                        <p id="nome-cliente" class="text-sm font-black text-slate-900 uppercase tracking-tighter"></p>
+                        <p class="text-[9px] font-black text-slate-300 uppercase mb-3 leading-none text-left">ID: <span id="res-id" class="text-slate-400"></span></p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase leading-none text-left">Análise para:</p>
+                        <p id="nome-cliente" class="text-sm font-black text-slate-900 uppercase tracking-tighter text-left"></p>
                     </div>
                     <div class="text-right">
                         <div class="assinatura leading-none">Anderson Dias</div>
@@ -113,7 +113,7 @@
             </div>
         </div>
 
-        <div id="area-whatsapp"></div>
+        <div id="container-dinamico"></div>
 
         <div class="text-center mt-6 mb-10">
             <button onclick="reiniciarNovoTeste()" class="text-[10px] text-slate-500 font-bold uppercase tracking-widest hover:text-orange-500 transition-colors">
@@ -136,7 +136,7 @@
             document.getElementById('val-qi').innerText = qi;
             document.getElementById('val-qe').innerText = qe;
 
-            // LÓGICA DE PERFIS FIEL À ORIGINAL
+            // LÓGICA DE PERFIS COMPLETA
             let t, s, d, r, p_cego, m;
 
             if (qi >= 8 && qe >= 8) {
@@ -188,35 +188,39 @@
             document.getElementById('txt-diag').innerText = d;
             document.getElementById('txt-estr').innerText = r;
             document.getElementById('txt-cego').innerText = p_cego;
-            document.getElementById('perfil-mensagem').innerText = m;
+            document.getElementById('txt-insight').innerText = m;
+
             setTimeout(() => {
                 document.getElementById('barra-qi').style.width = (qi*10)+'%';
                 document.getElementById('barra-qe').style.width = (qe*10)+'%';
             }, 300);
 
-            // LOGICA CONDICIONAL WEB VS APP
+            // DETECÇÃO E AJUSTE WEB VS APP
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            const zapDiv = document.getElementById('area-whatsapp');
-            
+            const container = document.getElementById('container-dinamico');
+            const page = document.querySelector('.page-container');
+
             if (isMobile) {
-                zapDiv.className = "mt-4";
-                zapDiv.innerHTML = `
+                container.className = "mt-4";
+                container.innerHTML = `
                     <button onclick="irParaZap()" class="w-full bg-green-600 text-white p-4 rounded-2xl shadow-xl flex flex-col items-center justify-center active:scale-95 transition-transform">
                         <span class="text-[10px] font-bold opacity-80 uppercase tracking-widest mb-1">1. Tire o Print agora</span>
                         <span class="text-sm font-black uppercase tracking-tight">2. Enviar para o Especialista</span>
                     </button>
                 `;
+                page.style.paddingBottom = "20px";
             } else {
-                zapDiv.style.position = "fixed";
-                zapDiv.style.bottom = "20px";
-                zapDiv.style.left = "50%";
-                zapDiv.style.transform = "translateX(-50%)";
-                zapDiv.innerHTML = `
+                container.style.position = "fixed";
+                container.style.bottom = "20px";
+                container.style.left = "50%";
+                container.style.transform = "translateX(-50%)";
+                container.innerHTML = `
                     <button onclick="irParaZap()" class="w-full bg-green-600 text-white p-4 rounded-2xl shadow-2xl flex flex-col items-center justify-center hover:bg-green-500 transition-all">
                         <span class="text-[10px] font-bold opacity-80 uppercase tracking-widest mb-1">📸 Guarde seu resultado</span>
-                        <span class="text-sm font-black uppercase tracking-tight">Enviar Certificado no WhatsApp</span>
+                        <span class="text-sm font-black uppercase tracking-tight">Enviar no WhatsApp do Especialista</span>
                     </button>
                 `;
+                page.style.paddingBottom = "120px";
             }
         };
 
