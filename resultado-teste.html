@@ -150,13 +150,10 @@
 
     <div id="btn-area" class="w-full max-w-[210mm] mx-auto mt-4 mb-10 px-4">
         <div class="space-y-3">
-            <button id="btn-certificado" class="w-full flex items-center justify-center bg-green-600 hover:bg-green-500 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer">
-                <span class="text-xl mr-2">🏅</span> VALIDE NO WHATSAPP COM SUA EXPERIÊNCIA
+            <button id="btn-certificado" class="w-full flex flex-col items-center justify-center bg-green-600 hover:bg-green-500 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer">
+    <span class="text-[10px] uppercase opacity-90 mb-1">Tire um print da tela e clique abaixo</span>
+    <span class="text-sm">🏅 VALIDE O PRINT DO CERTIFICADO NO WHATSAPP</span>
             </button>
-            <button id="btn-especialista" class="w-full flex items-center justify-center bg-slate-800 hover:bg-slate-700 border border-slate-600 text-blue-400 font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer text-sm">
-                <span class="text-lg mr-2">👨‍💼</span> FALAR COM ESPECIALISTA
-            </button>
-            
             <div class="pt-4 pb-8">
                 <button onclick="reiniciarNovoTeste()" class="w-full text-center text-[10px] text-slate-500 font-bold uppercase tracking-widest hover:text-orange-500 transition-colors">
                     🔄 Fazer um Novo Teste
@@ -260,20 +257,22 @@
             document.getElementById('texto-analise-3').innerText = p;
             document.getElementById('perfil-mensagem').innerText = m;
 
-            const zapCertificado = "5571984420194"; 
-            const zapEspecialista = "5571999466243"; 
+            // CONFIGURAÇÃO DOS CONTATOS (LINHA 263 EM DIANTE)
+const zapCertificado = "5571984420194"; 
+const zapEspecialista = "5571999466243"; 
 
-            // MENSAGENS ATUALIZADAS E PADRONIZADAS
-            const msgCertificado = `Olá! Acabei de concluir meu SierQuiz. Meu nome é *${dados.nome}*. Pontuei ${dados.qi_score} em Lógica e ${dados.qe_score} em Emoção. Gostaria de validar meu print e contar minha experiência para receber o certificado!`;
-            const msgEspecialista = `Olá Anderson! Concluí meu SierQuiz (Perfil: ${t}) e quero entender como acelerar meus resultados na fase de ${dados.fase_profissional}.`;
+// MENSAGENS ATUALIZADAS (SEM "NEURO")
+const msgCertificado = `Olá! Acabei de fazer meu SierQuiz e já tirei o print do meu resultado. Gostaria de validar meu certificado e contar minha experiência!`;
+const msgEspecialista = `Olá Anderson! Concluí meu SierQuiz (Perfil: ${t}) e quero entender como acelerar meus resultados na fase de ${dados.fase_profissional}.`;
 
-            document.getElementById('btn-certificado').onclick = function() {
-                window.open(`https://wa.me/${zapCertificado}?text=${encodeURIComponent(msgCertificado)}`, '_blank');
-            };
+// LINHA 270: CLIQUES DOS BOTÕES
+document.getElementById('btn-certificado').onclick = function() {
+    window.open(`https://wa.me/${zapCertificado}?text=${encodeURIComponent(msgCertificado)}`, '_blank');
+};
 
-            document.getElementById('btn-especialista').onclick = function() {
-                window.open(`https://wa.me/${zapEspecialista}?text=${encodeURIComponent(msgEspecialista)}`, '_blank');
-            };
+document.getElementById('btn-especialista').onclick = function() {
+    window.open(`https://wa.me/${zapEspecialista}?text=${encodeURIComponent(msgEspecialista)}`, '_blank');
+};
         }
 
         function reiniciarNovoTeste() {
