@@ -43,7 +43,7 @@
             border-radius: 99px; font-size: 8px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;
         }
 
-        /* ESTILOS DO MODO TELA CHEIA */
+        /* --- ESTILOS DO MODO TELA CHEIA (BLINDADOS PARA APP) --- */
         #modo-print {
             display: none;
             position: fixed;
@@ -76,6 +76,8 @@
         #conteudo-print { margin-top: 80px; width: 100%; }
         #conteudo-print #relatorio {
             display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
             box-shadow: none !important;
             width: 100% !important;
             max-width: 100% !important;
@@ -201,59 +203,55 @@
             const qe = dados.qe_score;
 
             setTimeout(() => {
-                document.getElementById('barra-qi').style.width = (qi*10) + '%';
-                document.getElementById('barra-qe').style.width = (qe*10) + '%';
+                const bqi = document.getElementById('barra-qi');
+                const bqe = document.getElementById('barra-qe');
+                if(bqi) bqi.style.width = (qi*10) + '%';
+                if(bqe) bqe.style.width = (qe*10) + '%';
             }, 500);
 
-            // LOGICA DOS PERFIS
-               if (qi >= 8 && qe >= 8) {
+            // LOGICA DOS PERFIS (Fiel à original)
+            if (qi >= 8 && qe >= 8) {
                 t = "Mente Visionária (Alfa)"; s = "Equilíbrio raro de alta performance.";
-                d = "Você processa dados complexos com precisão e lidera pessoas com empatia. É o perfil dos grandes fundadores.";
-                r = "Foque em escala. Você não deve mais executar, mas sim projetar o futuro da sua operação.";
-                p = "Sua visão acelerada pode isolar você. Aprenda a ouvir quem está no operacional.";
+                d = "Você processa dados complexos com precisão e lidera pessoas com empatia.";
+                r = "Foque em escala. Você não deve mais executar, mas sim projetar o futuro.";
+                p = "Sua visão acelerada pode isolar você.";
                 m = "Sua mente é um acelerador de futuros. Lidere com o coração, mas decida com os dados.";
-            } 
-            else if (qi >= 8 && qe >= 5) {
+            } else if (qi >= 8 && qe >= 5) {
                 t = "Estrategista de Precisão"; s = "Lógica dominante e pragmatismo.";
-                d = "Sua mente detecta falhas em processos antes de qualquer um. Você é movido por eficiência.";
-                r = "Delegue a gestão de pessoas e foque no produto ou estratégia central.";
-                p = "Sua impaciência com ritmos lentos pode desgastar a cultura da sua equipe.";
+                d = "Sua mente detecta falhas em processos antes de qualquer um.";
+                r = "Delegue a gestão de pessoas e foque no produto.";
+                p = "Sua impaciência pode desgastar a cultura da equipe.";
                 m = "Sua clareza é uma arma competitiva. O feito é melhor que o perfeito.";
-            }
-            else if (qi >= 8) {
+            } else if (qi >= 8) {
                 t = "Analista de Elite"; s = "Mestre técnico de alta profundidade.";
-                d = "Você resolve o que ninguém mais consegue. Sua clareza lógica é sua maior arma competitiva.";
+                d = "Você resolve o que ninguém mais consegue.";
                 r = "Associe-se a pessoas que dominam a venda.";
-                p = "Dificuldade em expressar emoções pode ser lida como frieza extrema.";
-                m = "O desafio agora é traduzir sua lógica em influência.";
-            }
-            else if (qe >= 8 && qi >= 5) {
+                p = "Dificuldade em expressar emoções.";
+                m = "A profundidade do seu conhecimento move montanhas.";
+            } else if (qe >= 8 && qi >= 5) {
                 t = "Líder Inspirador"; s = "Foco total no capital humano.";
                 d = "Você extrai o melhor de cada pessoa.";
                 r = "Ancore suas decisões em números.";
                 p = "Tendência a evitar conflitos necessários.";
-                m = "O verdadeiro líder não é o que faz tudo, mas o que faz todos crescerem.";
-            }
-            else if (qe >= 8) {
+                m = "O verdadeiro líder é o que faz todos crescerem.";
+            } else if (qe >= 8) {
                 t = "Diplomata Empático"; s = "Percepção social e vendas aguçadas.";
                 d = "Você lê ambientes como ninguém.";
                 r = "Estude análise financeira.";
                 p = "Risco de se perder em muitas conexões.";
                 m = "Seu talento social abre portas que o dinheiro não compra.";
-            }
-            else if (qi >= 5 && qe >= 5) {
+            } else if (qi >= 5 && qe >= 5) {
                 t = "Profissional Polivalente"; s = "Estabilidade e versatilidade.";
                 d = "Confiável e adaptável.";
                 r = "Escolha um pilar para ser mestre.";
-                p = "Risco de estagnação por estar na zona de conforto.";
+                p = "Risco de estagnação.";
                 m = "Sua versatilidade é sua força, mas o foco é seu poder.";
-            }
-            else {
+            } else {
                 t = "Perfil em Transição"; s = "Fase de reestruturação mental.";
                 d = "Suas métricas indicam busca por um novo método.";
                 r = "Escolha UMA habilidade lógica para dominar.";
                 p = "Falta de foco claro.";
-                m = "A transição é o berço da evolução. Cada escolha agora é um novo tijolo.";
+                m = "A transição é o berço da evolução.";
             }
 
             document.getElementById('titulo-perfil').innerText = t;
@@ -269,37 +267,39 @@
             };
         }
 
-        // FUNÇÃO QUE ABRE O PRINT
         function validarCertificado() {
-            const relatorioOriginal = document.getElementById('relatorio').innerHTML;
-            const modoPrint = document.getElementById('modo-print');
-            const conteudoPrint = document.getElementById('conteudo-print');
+            try {
+                const relatorio = document.getElementById('relatorio');
+                const modoPrint = document.getElementById('modo-print');
+                const conteudoPrint = document.getElementById('conteudo-print');
 
-            conteudoPrint.innerHTML = `<div id="relatorio" style="display:block;">${relatorioOriginal}</div>`;
-            modoPrint.style.display = 'block';
-            document.body.style.overflow = 'hidden';
+                // Abre a tela cheia
+                conteudoPrint.innerHTML = `<div id="relatorio" style="display:block !important; opacity:1 !important; visibility:visible !important;">${relatorio.innerHTML}</div>`;
+                modoPrint.style.display = 'block';
+                document.body.style.overflow = 'hidden';
 
-            // Tenta download na Web
-            if (typeof html2canvas !== 'undefined') {
-                html2canvas(document.getElementById('relatorio'), { scale: 2 }).then(canvas => {
-                    try {
+                // Tenta download automático apenas na Web (não mobile)
+                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                if (!isMobile && typeof html2canvas !== 'undefined') {
+                    html2canvas(relatorio, { scale: 2 }).then(canvas => {
                         const image = canvas.toDataURL("image/png");
                         const link = document.createElement('a');
                         link.download = `SierQuiz-${txidGlobal}.png`;
                         link.href = image;
                         link.click();
-                    } catch (e) { console.log("Download bloqueado (App)"); }
-                });
+                    }).catch(e => console.log("Print automático ignorado"));
+                }
+            } catch (err) {
+                console.log("Erro ao abrir modo print:", err);
+                enviarParaZapPosPrint();
             }
         }
 
-        // FUNÇÃO QUE FECHA E ABRE O ZAP
         function enviarParaZapPosPrint() {
             document.getElementById('modo-print').style.display = 'none';
             document.body.style.overflow = 'auto';
-
-            const msgPosPrint = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado!`;
-            window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msgPosPrint)}`, '_blank');
+            const msgPos = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado!`;
+            window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msgPos)}`, '_blank');
         }
 
         function reiniciarNovoTeste() {
