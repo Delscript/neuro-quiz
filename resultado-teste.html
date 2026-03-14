@@ -226,7 +226,7 @@
             };
         }
 
-        function validarCertificado() {
+        function irParaZap() {
             const area = document.getElementById('capture-area');
             html2canvas(area, { scale: 2 }).then(canvas => {
                 const image = canvas.toDataURL("image/png");
