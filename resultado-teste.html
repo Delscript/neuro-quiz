@@ -206,55 +206,105 @@
             }, 500);
 
             // LOGICA DOS PERFIS
-            if (qi >= 8 && qe >= 8) {
+                if (qi >= 8 && qe >= 8) {
+
                 t = "Mente Visionária (Alfa)"; s = "Equilíbrio raro de alta performance.";
+
                 d = "Você processa dados complexos com precisão e lidera pessoas com empatia. É o perfil dos grandes fundadores.";
+
                 r = "Foque em escala. Você não deve mais executar, mas sim projetar o futuro da sua operação.";
+
                 p = "Sua visão acelerada pode isolar você. Aprenda a ouvir quem está no operacional.";
-                m = "Sua mente é um acelerador de futuros. Lidere com o coração, mas decida com os dados.";
+
+                m = "Sua mente é um acelerador de futuros. O mundo precisa da sua visão clara. Lidere com o coração, mas decida com os dados.";
+
             } 
+
             else if (qi >= 8 && qe >= 5) {
+
                 t = "Estrategista de Precisão"; s = "Lógica dominante e pragmatismo.";
+
                 d = "Sua mente detecta falhas em processos antes de qualquer um. Você é movido por eficiência.";
+
                 r = "Delegue a gestão de pessoas e foque no produto ou estratégia central.";
+
                 p = "Sua impaciência com ritmos lentos pode desgastar a cultura da sua equipe.";
-                m = "Sua clareza é uma arma competitiva. O feito é melhor que o perfeito.";
+
+                m = "Sua clareza é uma arma competitiva. Não deixe a busca pela perfeição paralisar sua execução. O feito é melhor que o perfeito.";
+
             }
+
             else if (qi >= 8) {
+
                 t = "Analista de Elite"; s = "Mestre técnico de alta profundidade.";
+
                 d = "Você resolve o que ninguém mais consegue. Sua clareza lógica é sua maior arma competitiva.";
-                r = "Associe-se a pessoas que dominam a venda.";
+
+                r = "Associe-se a pessoas que dominam a venda. Você cria a máquina, eles trazem o cliente.";
+
                 p = "Dificuldade em expressar emoções pode ser lida como frieza extrema.";
-                m = "O desafio agora é traduzir sua lógica em influência.";
+
+                m = "A profundidade do seu conhecimento move montanhas silenciosamente. O desafio agora é traduzir sua lógica em influência.";
+
             }
+
             else if (qe >= 8 && qi >= 5) {
+
                 t = "Líder Inspirador"; s = "Foco total no capital humano.";
-                d = "Você extrai o melhor de cada pessoa.";
-                r = "Ancore suas decisões em números.";
-                p = "Tendência a evitar conflitos necessários.";
-                m = "O verdadeiro líder não é o que faz tudo, mas o que faz todos crescerem.";
+
+                d = "Você extrai o melhor de cada pessoa. Sua força está em mover montanhas através da influência.";
+
+                r = "Ancore suas decisões em números. Sua intuição é brilhante, mas os dados não mentem.";
+
+                p = "Tendência a evitar conflitos necessários para não ferir sentimentos alheios.";
+
+                m = "Sua luz guia a equipe. O verdadeiro líder não é o que faz tudo, mas o que faz todos crescerem. Confie na sua intuição.";
+
             }
+
             else if (qe >= 8) {
+
                 t = "Diplomata Empático"; s = "Percepção social e vendas aguçadas.";
-                d = "Você lê ambientes como ninguém.";
-                r = "Estude análise financeira.";
-                p = "Risco de se perder em muitas conexões.";
-                m = "Seu talento social abre portas que o dinheiro não compra.";
+
+                d = "Você lê ambientes como ninguém. Sua sensibilidade capta oportunidades de negócio no ar.";
+
+                r = "Estude análise financeira. Fortalecer seu raciocínio lógico trará o lucro que sua rede merece.";
+
+                p = "Risco de se perder em muitas conexões e esquecer de focar no lucro real.";
+
+                m = "Seu talento social abre portas que o dinheiro não compra. Use essa conexão para construir pontes sólidas para o seu negócio.";
+
             }
+
             else if (qi >= 5 && qe >= 5) {
+
                 t = "Profissional Polivalente"; s = "Estabilidade e versatilidade.";
-                d = "Confiável e adaptável.";
-                r = "Escolha um pilar para ser mestre.";
-                p = "Risco de estagnação por estar na zona de conforto.";
-                m = "Sua versatilidade é sua força, mas o foco é seu poder.";
+
+                d = "Confiável e adaptável. Você transita bem entre a técnica e o cliente sem causar atritos.";
+
+                r = "Escolha um pilar para ser mestre. O generalista é bom, mas o especialista é quem fica rico.";
+
+                p = "Risco de estagnação por estar na zona de conforto 'fazendo tudo um pouco'.";
+
+                m = "Sua versatilidade é sua força, mas o foco é seu poder. Escolha uma única batalha para vencer.";
+
             }
+
             else {
+
                 t = "Perfil em Transição"; s = "Fase de reestruturação mental.";
-                d = "Suas métricas indicam busca por um novo método.";
-                r = "Escolha UMA habilidade lógica para dominar.";
-                p = "Falta de foco claro.";
-                m = "A transição é o berço da evolução. Cada escolha agora é um novo tijolo.";
+
+                d = "Suas métricas indicam saturação ou busca por um novo método. Seu potencial ainda está guardado.";
+
+                r = "Escolha UMA habilidade lógica para dominar nos próximos 90 dias. Menos é mais agora.";
+
+                p = "Falta de foco claro. Você começa muitas coisas e termina poucas, drenando sua energia.";
+
+                m = "A transição é o berço da evolução. Não tenha medo de recomeçar. Cada escolha agora é um tijolo no seu novo castelo.";
+
             }
+
+
 
             document.getElementById('titulo-perfil').innerText = t;
             document.getElementById('subtitulo-perfil').innerText = s;
