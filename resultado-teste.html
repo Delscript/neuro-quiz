@@ -5,158 +5,118 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Relatório SierQuiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; overflow-x: hidden; }
-        
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
         #relatorio {
-            background-color: white;
-            width: 100%; max-width: 210mm; min-height: 297mm;
-            margin: 0 auto; position: relative; padding: 10mm;
+            background-color: white; width: 100%; max-width: 210mm;
+            margin: 0 auto; position: relative; padding: 15mm 10mm;
             box-sizing: border-box; display: none; color: #1f2937;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
-
-        @media (max-width: 640px) {
-            #relatorio { padding: 15px; margin: 0; box-shadow: none; min-height: auto; padding-bottom: 40px;}
-        }
-
+        @media (max-width: 640px) { #relatorio { padding: 20px 15px; } }
+        
         .watermark {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 5rem; font-weight: 900;
-            color: rgba(249, 115, 22, 0.04);
-            pointer-events: none; z-index: 0; white-space: nowrap;
+            font-size: 5rem; font-weight: 900; color: rgba(249, 115, 22, 0.04);
+            pointer-events: none; z-index: 0;
         }
-
-        .assinatura { font-family: 'Allura', cursive; font-size: 0.9rem; color: #1e3a8a; }
-        .texto-justificado { text-align: justify; line-height: 1.4; }
-        #loading { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-
-        .barra-fundo { background: #f1f5f9; height: 10px; border-radius: 5px; overflow: hidden; width: 100%; margin-top: 12px; }
-        .barra-qi { background: linear-gradient(90deg, #3b82f6, #2563eb); height: 100%; width: 0%; transition: width 1.5s ease-out; }
-        .barra-qe { background: linear-gradient(90deg, #f97316, #f59e0b); height: 100%; width: 0%; transition: width 1.5s ease-out; }
+        .assinatura { font-family: 'Allura', cursive; font-size: 1.1rem; color: #1e3a8a; }
         
-        /* NOVO ESTILO DO SELO DE VALIDAÇÃO (MAIOR E DESTACADO) */
-        .selo-validacao {
-            border: 2px solid #22c55e;
-            color: #15803d;
-            background: rgba(34, 197, 94, 0.05);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 20px;
-            border-radius: 99px;
-            font-size: 10px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 20px;
-        }
-
+        /* Ajuste para o número não colar na barra */
+        .barra-fundo { background: #f1f5f9; height: 10px; border-radius: 5px; width: 100%; margin-top: 12px; overflow: hidden; }
+        .barra-qi { background: linear-gradient(90deg, #3b82f6, #2563eb); height: 100%; width: 0%; transition: width 1.5s; }
+        .barra-qe { background: linear-gradient(90deg, #f97316, #f59e0b); height: 100%; width: 0%; transition: width 1.5s; }
+        
         .card-mensagem {
-            background-color: #f97316;
-            border-radius: 12px;
-            padding: 18px;
-            margin: 20px 0;
-            border: 2px solid #ffffff;
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
-            text-align: center;
+            background-color: #f97316; border-radius: 12px; padding: 20px;
+            margin: 25px 0; border: 2px solid white; text-align: center;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.2);
         }
-        .card-mensagem h3 { color: white; font-size: 11px; font-weight: 900; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; }
-        .card-mensagem p { color: white; font-size: 13px; line-height: 1.4; font-weight: 500; font-style: italic; }
+        .card-mensagem h3 { color: white; font-size: 10px; font-weight: 900; text-transform: uppercase; margin-bottom: 5px; }
+        .card-mensagem p { color: white; font-size: 14px; font-style: italic; font-weight: 500; line-height: 1.4; }
+        
+        .selo-validacao {
+            border: 1px solid #22c55e; color: #15803d; background: rgba(34, 197, 94, 0.1);
+            display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px;
+            border-radius: 99px; font-size: 8px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
 
-    <div id="loading">
-        <div class="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-slate-600 font-bold uppercase tracking-widest text-[10px]">Gerando Inteligência Estratégica...</p>
+    <div id="loading" class="h-screen flex flex-col justify-center items-center">
+        <div class="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Gerando Inteligência Estratégica...</p>
     </div>
 
     <div id="relatorio">
         <div class="watermark">SIERQUIZ</div>
         
-        <div class="flex justify-between items-start border-b border-slate-100 pb-6 mb-6 relative z-10">
+        <div class="flex justify-between border-b pb-4 mb-6">
             <div>
-                <h1 class="text-2xl font-black tracking-widest text-orange-600">SIER<span class="text-blue-500">QUIZ</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Intelligence Engine V2.0</p>
-                <div class="selo-validacao">
-                    <i data-lucide="check-circle" class="w-4 h-4"></i> Validado sob Pressão Cognitiva
-                </div>
+                <h1 class="text-xl font-black tracking-tighter text-orange-600">SIER<span class="text-blue-500">QUIZ</span></h1>
+                <p class="text-[8px] font-bold text-slate-400 uppercase mb-2 tracking-widest">Intelligence Engine v2.0</p>
+                <div class="selo-validacao"><i data-lucide="check-circle" class="w-3 h-3"></i> Validado sob Pressão</div>
             </div>
             <div class="text-right">
-                <p class="text-[10px] text-slate-500 font-black uppercase mb-1">Relatório Confidencial</p>
-                <p class="text-[9px] text-slate-400 font-bold uppercase">Resultado ID: <span id="res-id" class="text-slate-600">...</span></p>
-                <p class="text-[9px] text-slate-300 font-medium" id="data-hoje"></p>
+                <p class="text-[9px] text-slate-400 font-bold uppercase">Confidencial</p>
+                <p class="text-[8px] text-slate-300">ID: <span id="res-id">...</span></p>
+                <p id="data-hoje" class="text-[8px] text-slate-300 uppercase"></p>
             </div>
         </div>
 
-        <div class="text-center mb-6 relative z-10">
-            <span class="bg-blue-50 text-blue-800 text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest">Análise de Perfil e Estratégia</span>
-            <h2 id="titulo-perfil" class="text-3xl font-black text-slate-800 mt-4 uppercase leading-tight tracking-tight">...</h2>
-            <p id="subtitulo-perfil" class="text-base text-slate-500 italic">...</p>
+        <div class="text-center mb-8">
+            <span class="bg-blue-50 text-blue-800 text-[8px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Análise de Perfil e Estratégia</span>
+            <h2 id="titulo-perfil" class="text-2xl font-black text-slate-800 uppercase mt-3">...</h2>
+            <p id="subtitulo-perfil" class="text-sm text-slate-500 italic">...</p>
         </div>
 
-        <div class="flex flex-col md:flex-row justify-center gap-6 mb-8 relative z-10">
-            <div class="w-full md:w-1/2 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <div class="flex justify-between items-end">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase">Razão (QI)</p>
-                    <p class="text-4xl font-black text-blue-600" id="val-qi">0</p>
-                </div>
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <p class="text-[10px] font-bold text-slate-500 uppercase">Razão (QI)</p>
+                <p class="text-3xl font-black text-blue-600" id="val-qi">0</p>
                 <div class="barra-fundo"><div id="barra-qi" class="barra-qi"></div></div>
             </div>
-            
-            <div class="w-full md:w-1/2 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <div class="flex justify-between items-end">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase">Emoção (QE)</p>
-                    <p class="text-4xl font-black text-orange-500" id="val-qe">0</p>
-                </div>
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <p class="text-[10px] font-bold text-slate-500 uppercase">Emoção (QE)</p>
+                <p class="text-3xl font-black text-orange-500" id="val-qe">0</p>
                 <div class="barra-fundo"><div id="barra-qe" class="barra-qe"></div></div>
             </div>
         </div>
 
-        <div class="space-y-6 px-1 mb-2 relative z-10">
-            <div>
-                <h3 class="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-wider">Diagnóstico Perfil</h3>
-                <p id="texto-analise-1" class="text-sm text-slate-600 texto-justificado"></p>
-            </div>
-            <div>
-                <h3 class="text-[10px] font-black text-slate-400 uppercase mb-1 tracking-wider">Direção Estratégica</h3>
-                <p id="texto-analise-2" class="text-sm text-slate-600 texto-justificado"></p>
-            </div>
-            <div>
-                <h3 class="text-[10px] font-black text-orange-500 uppercase mb-1 tracking-wider">Ponto Cego (Alerta)</h3>
-                <p id="texto-analise-3" class="text-sm text-slate-600 font-bold italic"></p>
-            </div>
+        <div class="space-y-4 mb-6">
+            <div><h3 class="text-[9px] font-bold text-slate-400 uppercase">Diagnóstico</h3><p id="texto-analise-1" class="text-xs text-slate-600 text-justify"></p></div>
+            <div><h3 class="text-[9px] font-bold text-slate-400 uppercase">Estratégia</h3><p id="texto-analise-2" class="text-xs text-slate-600 text-justify"></p></div>
+            <div><h3 class="text-[9px] font-bold text-orange-500 uppercase">Ponto Cego</h3><p id="texto-analise-3" class="text-xs text-slate-600 font-bold italic"></p></div>
         </div>
 
-        <div class="card-mensagem relative z-10">
+        <div class="card-mensagem">
             <h3>💡 Insight de Superação</h3>
             <p id="perfil-mensagem">...</p>
         </div>
 
-        <div class="mt-8 flex justify-between items-end pb-4 relative z-10 border-t border-slate-100 pt-6">
+        <div class="mt-10 flex justify-between items-end border-t pt-6">
             <div>
                 <h4 id="nome-cliente" class="text-sm font-bold text-slate-900">...</h4>
                 <p id="profissao-cliente" class="text-[8px] text-orange-600 font-bold uppercase"></p>
             </div>
             <div class="text-right">
                 <div class="assinatura">Anderson Dias</div>
-                <p class="text-[6px] text-slate-400 font-bold uppercase leading-tight">Founder<br>Sier Growth Agência</p>
+                <p class="text-[7px] text-slate-400 font-bold uppercase">Founder Sier Growth</p>
             </div>
         </div>
     </div>
 
     <div id="btn-area" class="px-4 py-6 space-y-3 max-w-md mx-auto hidden">
-        <button onclick="validarCertificado()" class="w-full flex flex-col items-center justify-center bg-green-600 hover:bg-green-500 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer">
-        <span class="text-xs opacity-80 uppercase mb-1">Clique aqui para um print do resultado</span>
-        <span class="text-sm font-black">🏅 VALIDE O PRINT DO CERTIFICADO NO WHATSAPP</span>
-    </button>
-        <button id="btn-especialista" class="w-full bg-slate-800 text-blue-400 font-black py-4 rounded-xl border border-slate-700 text-sm flex items-center justify-center">
+        <button onclick="abrirZapCertificado()" class="w-full bg-green-600 text-white font-black py-4 rounded-xl shadow-lg flex flex-col items-center justify-center">
+            <span class="text-[10px] uppercase opacity-90 mb-1">Tire um print da tela e clique abaixo</span>
+            <span class="text-sm">🏅 VALIDE O PRINT DO CERTIFICADO NO WHATSAPP</span>
+        </button>
+        
+        <button onclick="abrirZapEspecialista()" class="w-full bg-slate-800 text-blue-400 font-black py-4 rounded-xl border border-slate-700 text-sm flex items-center justify-center">
             <span class="mr-2 text-lg">👨‍💼</span> FALAR COM ESPECIALISTA
         </button>
 
@@ -169,21 +129,23 @@
         lucide.createIcons();
         window.onload = carregarDados;
 
-        let t, s, d, r, p, m, nomeGlobal;
+        let t, txidGlobal, nomeGlobal, faseGlobal;
 
         function carregarDados() {
             const params = new URLSearchParams(window.location.search);
+            txidGlobal = params.get('txid') || Math.random().toString(36).substring(2, 9).toUpperCase();
             nomeGlobal = params.get('nome') || "Líder";
+            faseGlobal = params.get('fase') || "Profissional";
             const qi = parseInt(params.get('qi')) || 0;
             const qe = parseInt(params.get('qe')) || 0;
-            const fase = params.get('fase') || "Profissional";
 
             document.getElementById('data-hoje').innerText = new Date().toLocaleDateString('pt-BR');
+            document.getElementById('res-id').innerText = txidGlobal;
             document.getElementById('loading').style.display = 'none';
             document.getElementById('relatorio').style.display = 'block';
             document.getElementById('btn-area').style.display = 'block';
             
-            preencherRelatorio({ nome: nomeGlobal, fase_profissional: fase, qi_score: qi, qe_score: qe });
+            preencherRelatorio({ nome: nomeGlobal, fase_profissional: faseGlobal, qi_score: qi, qe_score: qe });
         }
 
         function preencherRelatorio(dados) {
@@ -194,15 +156,10 @@
 
             const qi = dados.qi_score;
             const qe = dados.qe_score;
+            let s, d, r, p, m;
 
-            // Animação das barras
-            setTimeout(() => {
-                document.getElementById('barra-qi').style.width = (qi*10) + '%';
-                document.getElementById('barra-qe').style.width = (qe*10) + '%';
-            }, 500);
-
-            // Lógica de perfis (a mesma que você já tem, adicionei a 'm')
-           if (qi >= 8 && qe >= 8) {
+            // Lógica de Perfis (Fiel ao original)
+            if (qi >= 8 && qe >= 8) {
                 t = "Mente Visionária (Alfa)"; s = "Equilíbrio raro de alta performance.";
                 d = "Você processa dados complexos com precisão e lidera pessoas com empatia. É o perfil dos grandes fundadores.";
                 r = "Foque em escala. Você não deve mais executar, mas sim projetar o futuro da sua operação.";
@@ -259,31 +216,20 @@
             document.getElementById('texto-analise-3').innerText = p;
             document.getElementById('perfil-mensagem').innerText = m;
 
-            // Botão Especialista direto
-            document.getElementById('btn-especialista').onclick = function() {
-            const msgEspecialista = `Olá Anderson! Concluí meu SierQuiz (Perfil: ${t}) e quero entender como acelerar meus resultados na fase de ${dados.fase_profissional}.`;
-                window.open(`https://wa.me/5571999466243?text=${encodeURIComponent(msg)}`, '_blank');
-            };
+            setTimeout(() => {
+                document.getElementById('barra-qi').style.width = (qi*10) + '%';
+                document.getElementById('barra-qe').style.width = (qe*10) + '%';
+            }, 500);
         }
 
-        // FUNÇÃO MESTRE: TIRA O PRINT (DOWNLOAD) E ABRE O ZAP
-        function validarCertificado() {
-            const area = document.getElementById('capture-area');
-            
-            // 1. Gera a imagem do relatório
-            html2canvas(area, { scale: 2 }).then(canvas => {
-                const image = canvas.toDataURL("image/png");
-                const link = document.createElement('a');
-                link.download = `SierQuiz-${nomeGlobal}.png`;
-                link.href = image;
-                link.click(); // Dispara o download automático no celular
+        function abrirZapCertificado() {
+            const msg = `Olá! Fiz meu SierQuiz e já tirei o print do resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado e contar minha experiência!`;
+            window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msg)}`, '_blank');
+        }
 
-                // 2. Após o download, abre o WhatsApp
-                setTimeout(() => {
-                    const msgCertificado = `Olá! Acabei de fazer meu SierQuiz e já tirei o print do meu resultado. Gostaria de validar meu certificado e contar minha experiência!`;
-                    window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msg)}`, '_blank');
-                }, 1000);
-            });
+        function abrirZapEspecialista() {
+            const msg = `Olá Anderson! Concluí meu SierQuiz (Perfil: ${t}) e quero entender como acelerar meus resultados na fase de ${faseGlobal}.`;
+            window.open(`https://wa.me/5571999466243?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
         function reiniciarNovoTeste() {
