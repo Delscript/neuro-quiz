@@ -213,6 +213,26 @@
                 m = "A transição é o berço da evolução. Não tenha medo de recomeçar. Cada escolha agora é um tijolo no seu novo castelo.";
             }
 
+            // Substitua suas funções de clique por estas abaixo:
+
+        function preencherRelatorio(dados) {
+            document.getElementById('nome-cliente').innerText = dados.nome;
+            document.getElementById('profissao-cliente').innerText = dados.fase_professional;
+            document.getElementById('val-qi').innerText = dados.qi_score;
+            document.getElementById('val-qe').innerText = dados.qe_score;
+
+            const qi = dados.qi_score;
+            const qe = dados.qe_score;
+
+            // Animação das barras
+            setTimeout(() => {
+                document.getElementById('barra-qi').style.width = (qi*10) + '%';
+                document.getElementById('barra-qe').style.width = (qe*10) + '%';
+            }, 500);
+
+            // ... (Aqui entra sua lógica de ifs e else ifs dos perfis que você já tem)
+            // Certifique-se de que a variável 't' e 'm' são preenchidas aqui.
+
             document.getElementById('titulo-perfil').innerText = t;
             document.getElementById('subtitulo-perfil').innerText = s;
             document.getElementById('texto-analise-1').innerText = d;
@@ -220,19 +240,17 @@
             document.getElementById('texto-analise-3').innerText = p;
             document.getElementById('perfil-mensagem').innerText = m;
 
+            // BOTÃO ESPECIALISTA (Ajustado)
             document.getElementById('btn-especialista').onclick = function() {
-                const msg = `Olá Anderson! Concluí meu SierQuiz (Perfil: ${t}) e quero entender como acelerar meus resultados na fase de ${dados.fase_professional}.`;
-                window.open(`https://wa.me/5571999466243?text=${encodeURIComponent(msg)}`, '_blank');
+                const msgEsp = `Olá Anderson! Concluí meu SierQuiz (Perfil: ${t}) e quero entender como acelerar meus resultados na fase de ${dados.fase_professional}.`;
+                window.open(`https://wa.me/5571999466243?text=${encodeURIComponent(msgEsp)}`, '_blank');
             };
         }
 
-       function irParaZap() {
-    // Esta função ignora o html2canvas para não travar o App
-    const msg = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado e contar minha experiência!`;
-    window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msg)}`, '_blank');
-}
-                }, 1000);
-            });
+        // FUNÇÃO DO BOTÃO VERDE (CERTIFICADO)
+        function irParaZap() {
+            const msgCert = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado e contar minha experiência!`;
+            window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msgCert)}`, '_blank');
         }
 
         function reiniciarNovoTeste() {
