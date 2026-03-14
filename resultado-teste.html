@@ -206,7 +206,7 @@
 
             // Botão Especialista direto
             document.getElementById('btn-especialista').onclick = function() {
-                const msg = `Olá Anderson! Concluí meu SierQuiz (${t}) e quero entender o próximo passo.`;
+            const msgEspecialista = `Olá Anderson! Concluí meu SierQuiz (Perfil: ${t}) e quero entender como acelerar meus resultados na fase de ${dados.fase_profissional}.`;
                 window.open(`https://wa.me/5571999466243?text=${encodeURIComponent(msg)}`, '_blank');
             };
         }
@@ -225,7 +225,7 @@
 
                 // 2. Após o download, abre o WhatsApp
                 setTimeout(() => {
-                    const msg = `Olá! Fiz meu teste no SierQuiz, o print já salvou aqui no meu celular e gostaria de contar minha experiência para validar meu certificado!`;
+                    const msgCertificado = `Olá! Acabei de fazer meu SierQuiz e já tirei o print do meu resultado. Gostaria de validar meu certificado e contar minha experiência!`;
                     window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msg)}`, '_blank');
                 }, 1000);
             });
