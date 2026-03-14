@@ -43,6 +43,49 @@
             display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px;
             border-radius: 99px; font-size: 8px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;
         }
+        /* --- NOVOS ESTILOS PARA O MODO TELA CHEIA (APP) --- */
+        #modo-print {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: white;
+            z-index: 9999;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .btn-fechar-print {
+            position: fixed;
+            top: 20px; 
+            left: 50%;
+            transform: translateX(-50%);
+            background: #22c55e; /* Verde WhatsApp */
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-weight: 900;
+            font-size: 13px;
+            z-index: 10000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 2px solid white;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* Ajuste para o conteúdo não ficar escondido sob o botão */
+        #conteudo-print {
+            margin-top: 80px; 
+            width: 100%;
+        }
+
+        /* Garante que no modo print o relatório ocupe a largura toda sem sombras */
+        #conteudo-print #relatorio {
+            display: block !important;
+            box-shadow: none !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
     </style>
 </head>
 <body>
@@ -112,11 +155,12 @@
         </div>
     </div>
 
-    <div id="btn-area" class="px-4 py-6 space-y-3 max-w-md mx-auto hidden">
-        <button onclick="irParaZap()" class="w-full flex flex-col items-center justify-center bg-green-600 hover:bg-green-500 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer">
-    <span class="text-[10px] uppercase opacity-90 mb-1">📸 TIRE UM PRINT DA TELA AGORA</span>
-    <span class="text-sm">🏅 ENVIAR PRINT PARA VALIDAR CERTIFICADO</span>
-</button>
+    <div id="modo-print">
+    <button onclick="enviarParaZapPosPrint()" class="btn-fechar-print">
+        ✅ JÁ TIREI O PRINT (ABRIR WHATSAPP)
+    </button>
+    <div id="conteudo-print"></div>
+</div>
         <button id="btn-especialista" class="w-full bg-slate-800 text-blue-400 font-black py-4 rounded-xl border border-slate-700 text-sm flex items-center justify-center">
             <span class="mr-2 text-lg">👨‍💼</span> FALAR COM ESPECIALISTA
         </button>
@@ -226,9 +270,14 @@
             };
         }
 
-        function irParaZap() {
-           const msgFinal = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado e contar minha experiência!`;
-           window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msgFinal)}`, '_blank');
+       function enviarParaZapPosPrint() {
+    // 1. Esconde a tela de print
+    document.getElementById('modo-print').style.display = 'none';
+    document.body.style.overflow = 'auto';
+
+    // 2. Dispara o WhatsApp na hora
+    const msgPosPrint = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado!`;
+    window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msgPosPrint)}`, '_blank');
 }
         function reiniciarNovoTeste() {
             localStorage.clear();
