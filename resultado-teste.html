@@ -37,13 +37,13 @@
         .card-mensagem h3 { color: white; font-size: 10px; font-weight: 900; text-transform: uppercase; margin-bottom: 5px; }
         .card-mensagem p { color: white; font-size: 14px; font-style: italic; font-weight: 500; line-height: 1.4; }
 
-        /* Estilo do Selo de Validação do Print */
         .selo-validacao {
             border: 1px solid #22c55e; color: #15803d; background: rgba(34, 197, 94, 0.1);
             display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px;
             border-radius: 99px; font-size: 8px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;
         }
-        /* --- NOVOS ESTILOS PARA O MODO TELA CHEIA (APP) --- */
+
+        /* ESTILOS DO MODO TELA CHEIA */
         #modo-print {
             display: none;
             position: fixed;
@@ -60,7 +60,7 @@
             top: 20px; 
             left: 50%;
             transform: translateX(-50%);
-            background: #22c55e; /* Verde WhatsApp */
+            background: #22c55e;
             color: white;
             padding: 15px 25px;
             border-radius: 50px;
@@ -73,13 +73,7 @@
             white-space: nowrap;
         }
 
-        /* Ajuste para o conteúdo não ficar escondido sob o botão */
-        #conteudo-print {
-            margin-top: 80px; 
-            width: 100%;
-        }
-
-        /* Garante que no modo print o relatório ocupe a largura toda sem sombras */
+        #conteudo-print { margin-top: 80px; width: 100%; }
         #conteudo-print #relatorio {
             display: block !important;
             box-shadow: none !important;
@@ -98,7 +92,6 @@
     <div id="capture-area">
         <div id="relatorio">
             <div class="watermark">SIERQUIZ</div>
-            
             <div class="flex justify-between border-b pb-4 mb-6">
                 <div>
                     <h1 class="text-xl font-black tracking-tighter text-orange-600">SIER<span class="text-blue-500">QUIZ</span></h1>
@@ -156,16 +149,21 @@
     </div>
 
     <div id="modo-print">
-    <button onclick="enviarParaZapPosPrint()" class="btn-fechar-print">
-        ✅ JÁ TIREI O PRINT (ABRIR WHATSAPP)
-    </button>
-    <div id="conteudo-print"></div>
-</div>
+        <button onclick="enviarParaZapPosPrint()" class="btn-fechar-print">✅ JÁ TIREI O PRINT (ABRIR WHATSAPP)</button>
+        <div id="conteudo-print"></div>
+    </div>
+
+    <div id="btn-area" class="px-4 py-6 space-y-3 max-w-md mx-auto hidden">
+        <button onclick="validarCertificado()" class="w-full flex flex-col items-center justify-center bg-green-600 hover:bg-green-500 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all cursor-pointer">
+            <span class="text-[10px] uppercase opacity-90 mb-1">📸 CLIQUE PARA PRINT EM TELA CHEIA</span>
+            <span class="text-sm font-black">🏅 VALIDAR CERTIFICADO NO WHATSAPP</span>
+        </button>
+
         <button id="btn-especialista" class="w-full bg-slate-800 text-blue-400 font-black py-4 rounded-xl border border-slate-700 text-sm flex items-center justify-center">
             <span class="mr-2 text-lg">👨‍💼</span> FALAR COM ESPECIALISTA
         </button>
 
-        <button onclick="reiniciarNovoTeste()" class="w-full py-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+        <button onclick="reiniciarNovoTeste()" class="w-full py-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center">
             🔄 Fazer um Novo Teste
         </button>
     </div>
@@ -207,54 +205,55 @@
                 document.getElementById('barra-qe').style.width = (qe*10) + '%';
             }, 500);
 
+            // LOGICA DOS PERFIS
             if (qi >= 8 && qe >= 8) {
                 t = "Mente Visionária (Alfa)"; s = "Equilíbrio raro de alta performance.";
                 d = "Você processa dados complexos com precisão e lidera pessoas com empatia. É o perfil dos grandes fundadores.";
                 r = "Foque em escala. Você não deve mais executar, mas sim projetar o futuro da sua operação.";
                 p = "Sua visão acelerada pode isolar você. Aprenda a ouvir quem está no operacional.";
-                m = "Sua mente é um acelerador de futuros. O mundo precisa da sua visão clara. Lidere com o coração, mas decida com os dados.";
+                m = "Sua mente é um acelerador de futuros. Lidere com o coração, mas decida com os dados.";
             } 
             else if (qi >= 8 && qe >= 5) {
                 t = "Estrategista de Precisão"; s = "Lógica dominante e pragmatismo.";
                 d = "Sua mente detecta falhas em processos antes de qualquer um. Você é movido por eficiência.";
                 r = "Delegue a gestão de pessoas e foque no produto ou estratégia central.";
                 p = "Sua impaciência com ritmos lentos pode desgastar a cultura da sua equipe.";
-                m = "Sua clareza é uma arma competitiva. Não deixe a busca pela perfeição paralisar sua execução. O feito é melhor que o perfeito.";
+                m = "Sua clareza é uma arma competitiva. O feito é melhor que o perfeito.";
             }
             else if (qi >= 8) {
                 t = "Analista de Elite"; s = "Mestre técnico de alta profundidade.";
                 d = "Você resolve o que ninguém mais consegue. Sua clareza lógica é sua maior arma competitiva.";
-                r = "Associe-se a pessoas que dominam a venda. Você cria a máquina, eles trazem o cliente.";
+                r = "Associe-se a pessoas que dominam a venda.";
                 p = "Dificuldade em expressar emoções pode ser lida como frieza extrema.";
-                m = "A profundidade do seu conhecimento move montanhas silenciosamente. O desafio agora é traduzir sua lógica em influência.";
+                m = "O desafio agora é traduzir sua lógica em influência.";
             }
             else if (qe >= 8 && qi >= 5) {
                 t = "Líder Inspirador"; s = "Foco total no capital humano.";
-                d = "Você extrai o melhor de cada pessoa. Sua força está em mover montanhas através da influência.";
-                r = "Ancore suas decisões em números. Sua intuição é brilhante, mas os dados não mentem.";
-                p = "Tendência a evitar conflitos necessários para não ferir sentimentos alheios.";
-                m = "Sua luz guia a equipe. O verdadeiro líder não é o que faz tudo, mas o que faz todos crescerem. Confie na sua intuição.";
+                d = "Você extrai o melhor de cada pessoa.";
+                r = "Ancore suas decisões em números.";
+                p = "Tendência a evitar conflitos necessários.";
+                m = "O verdadeiro líder não é o que faz tudo, mas o que faz todos crescerem.";
             }
             else if (qe >= 8) {
                 t = "Diplomata Empático"; s = "Percepção social e vendas aguçadas.";
-                d = "Você lê ambientes como ninguém. Sua sensibilidade capta oportunidades de negócio no ar.";
-                r = "Estude análise financeira. Fortalecer seu raciocínio lógico trará o lucro que sua rede merece.";
-                p = "Risco de se perder em muitas conexões e esquecer de focar no lucro real.";
-                m = "Seu talento social abre portas que o dinheiro não compra. Use essa conexão para construir pontes sólidas para o seu negócio.";
+                d = "Você lê ambientes como ninguém.";
+                r = "Estude análise financeira.";
+                p = "Risco de se perder em muitas conexões.";
+                m = "Seu talento social abre portas que o dinheiro não compra.";
             }
             else if (qi >= 5 && qe >= 5) {
                 t = "Profissional Polivalente"; s = "Estabilidade e versatilidade.";
-                d = "Confiável e adaptável. Você transita bem entre a técnica e o cliente sem causar atritos.";
-                r = "Escolha um pilar para ser mestre. O generalista é bom, mas o especialista é quem fica rico.";
-                p = "Risco de estagnação por estar na zona de conforto 'fazendo tudo um pouco'.";
-                m = "Sua versatilidade é sua força, mas o foco é seu poder. Escolha uma única batalha para vencer.";
+                d = "Confiável e adaptável.";
+                r = "Escolha um pilar para ser mestre.";
+                p = "Risco de estagnação por estar na zona de conforto.";
+                m = "Sua versatilidade é sua força, mas o foco é seu poder.";
             }
             else {
                 t = "Perfil em Transição"; s = "Fase de reestruturação mental.";
-                d = "Suas métricas indicam saturação ou busca por um novo método. Seu potencial ainda está guardado.";
-                r = "Escolha UMA habilidade lógica para dominar nos próximos 90 dias. Menos é mais agora.";
-                p = "Falta de foco claro. Você começa muitas coisas e termina poucas, drenando sua energia.";
-                m = "A transição é o berço da evolução. Não tenha medo de recomeçar. Cada escolha agora é um tijolo no seu novo castelo.";
+                d = "Suas métricas indicam busca por um novo método.";
+                r = "Escolha UMA habilidade lógica para dominar.";
+                p = "Falta de foco claro.";
+                m = "A transição é o berço da evolução. Cada escolha agora é um novo tijolo.";
             }
 
             document.getElementById('titulo-perfil').innerText = t;
@@ -265,20 +264,44 @@
             document.getElementById('perfil-mensagem').innerText = m;
             
             document.getElementById('btn-especialista').onclick = function() {
-                const msgEsp = `Olá Anderson! Concluí meu SierQuiz (Perfil: ${t}) e quero entender como acelerar meus resultados na fase de ${dados.fase_professional}.`;
+                const msgEsp = `Olá Anderson! Concluí meu SierQuiz (Perfil: ${t}) e quero acelerar meus resultados.`;
                 window.open(`https://wa.me/5571999466243?text=${encodeURIComponent(msgEsp)}`, '_blank');
             };
         }
 
-       function enviarParaZapPosPrint() {
-    // 1. Esconde a tela de print
-    document.getElementById('modo-print').style.display = 'none';
-    document.body.style.overflow = 'auto';
+        // FUNÇÃO QUE ABRE O PRINT
+        function validarCertificado() {
+            const relatorioOriginal = document.getElementById('relatorio').innerHTML;
+            const modoPrint = document.getElementById('modo-print');
+            const conteudoPrint = document.getElementById('conteudo-print');
 
-    // 2. Dispara o WhatsApp na hora
-    const msgPosPrint = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado!`;
-    window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msgPosPrint)}`, '_blank');
-}
+            conteudoPrint.innerHTML = `<div id="relatorio" style="display:block;">${relatorioOriginal}</div>`;
+            modoPrint.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+
+            // Tenta download na Web
+            if (typeof html2canvas !== 'undefined') {
+                html2canvas(document.getElementById('relatorio'), { scale: 2 }).then(canvas => {
+                    try {
+                        const image = canvas.toDataURL("image/png");
+                        const link = document.createElement('a');
+                        link.download = `SierQuiz-${txidGlobal}.png`;
+                        link.href = image;
+                        link.click();
+                    } catch (e) { console.log("Download bloqueado (App)"); }
+                });
+            }
+        }
+
+        // FUNÇÃO QUE FECHA E ABRE O ZAP
+        function enviarParaZapPosPrint() {
+            document.getElementById('modo-print').style.display = 'none';
+            document.body.style.overflow = 'auto';
+
+            const msgPosPrint = `Olá! Acabei de concluir meu SierQuiz e já tirei o print do meu resultado (ID: ${txidGlobal}). Gostaria de validar meu certificado!`;
+            window.open(`https://wa.me/5571984420194?text=${encodeURIComponent(msgPosPrint)}`, '_blank');
+        }
+
         function reiniciarNovoTeste() {
             localStorage.clear();
             sessionStorage.clear();
