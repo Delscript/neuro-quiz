@@ -5,37 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Relatório SierQuiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; }
-        #relatorio {
-            background-color: white; width: 100%; max-width: 210mm;
-            margin: 0 auto; position: relative; padding: 15mm 10mm;
-            box-sizing: border-box; display: none; color: #1f2937;
-        }
-        @media (max-width: 640px) { #relatorio { padding: 20px 15px; } }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0; overflow-x: hidden; }
         
+        #relatorio {
+            background-color: white;
+            width: 100%; max-width: 210mm; min-height: 297mm;
+            margin: 0 auto; position: relative; padding: 10mm;
+            box-sizing: border-box; display: none; color: #1f2937;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 640px) {
+            #relatorio { padding: 15px; margin: 0; box-shadow: none; min-height: auto; padding-bottom: 40px;}
+        }
+
         .watermark {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 5rem; font-weight: 900; color: rgba(249, 115, 22, 0.04);
-            pointer-events: none; z-index: 0;
+            font-size: 5rem; font-weight: 900;
+            color: rgba(249, 115, 22, 0.04);
+            pointer-events: none; z-index: 0; white-space: nowrap;
         }
-        .assinatura { font-family: 'Allura', cursive; font-size: 1.1rem; color: #1e3a8a; }
-        .barra-fundo { background: #f1f5f9; height: 8px; border-radius: 4px; width: 100%; margin-top: 10px; }
-        .barra-qi { background: linear-gradient(90deg, #3b82f6, #2563eb); height: 100%; width: 0%; transition: width 1.5s; }
-        .barra-qe { background: linear-gradient(90deg, #f97316, #f59e0b); height: 100%; width: 0%; transition: width 1.5s; }
+
+        .assinatura { font-family: 'Allura', cursive; font-size: 0.9rem; color: #1e3a8a; }
+        .texto-justificado { text-align: justify; line-height: 1.4; }
+        #loading { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+
+        .barra-fundo { background: #f1f5f9; height: 10px; border-radius: 5px; overflow: hidden; width: 100%; margin-top: 12px; }
+        .barra-qi { background: linear-gradient(90deg, #3b82f6, #2563eb); height: 100%; width: 0%; transition: width 1.5s ease-out; }
+        .barra-qe { background: linear-gradient(90deg, #f97316, #f59e0b); height: 100%; width: 0%; transition: width 1.5s ease-out; }
         
-        .card-mensagem {
-            background-color: #f97316; border-radius: 12px; padding: 20px;
-            margin: 25px 0; border: 2px solid white; text-align: center;
-            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.2);
+        /* NOVO ESTILO DO SELO DE VALIDAÇÃO (MAIOR E DESTACADO) */
+        .selo-validacao {
+            border: 2px solid #22c55e;
+            color: #15803d;
+            background: rgba(34, 197, 94, 0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 20px;
         }
-        .card-mensagem h3 { color: white; font-size: 10px; font-weight: 900; text-transform: uppercase; margin-bottom: 5px; }
-        .card-mensagem p { color: white; font-size: 14px; font-style: italic; font-weight: 500; line-height: 1.4; }
+
+        .card-mensagem {
+            background-color: #f97316;
+            border-radius: 12px;
+            padding: 18px;
+            margin: 20px 0;
+            border: 2px solid #ffffff;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+            text-align: center;
+        }
+        .card-mensagem h3 { color: white; font-size: 11px; font-weight: 900; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; }
+        .card-mensagem p { color: white; font-size: 13px; line-height: 1.4; font-weight: 500; font-style: italic; }
     </style>
 </head>
 <body>
