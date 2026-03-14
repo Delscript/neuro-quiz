@@ -9,14 +9,13 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #121212; margin: 0; padding: 0; }
         
-        /* Margem fixa de 2cm nas laterais no Desktop e proporcional no App */
         .page-container {
             padding-left: 2cm;
             padding-right: 2cm;
             max-width: 800px;
             margin: 0 auto;
             padding-top: 20px;
-            padding-bottom: 60px; /* Espaço para o botão flutuante */
+            padding-bottom: 20px; /* Ajustado dinamicamente via JS */
         }
 
         @media (max-width: 640px) {
@@ -44,12 +43,8 @@
         .barra-fundo { background: #f1f5f9; height: 5px; border-radius: 3px; width: 100%; margin-top: 3px; }
         .barra-fill { height: 100%; border-radius: 3px; transition: width 1.5s ease-in-out; }
 
-        /* Botão Flutuante Ajustado para ficar próximo ao card */
-        .btn-flutuante {
-            position: fixed; bottom: 15px; left: 50%;
-            transform: translateX(-50%); width: 90%;
-            max-width: 400px; z-index: 999;
-        }
+        /* Estilo Base do Botão (será modificado pelo JS) */
+        #container-whatsapp { width: 100%; max-width: 400px; margin: 0 auto; z-index: 999; }
     </style>
 </head>
 <body>
@@ -62,13 +57,13 @@
                 <div class="flex justify-between items-start">
                     <div>
                         <h1 class="text-xl font-black text-orange-600 tracking-tighter leading-none">SIER<span class="text-blue-600">QUIZ</span></h1>
-                        <p class="text-[8px] font-black text-green-600 uppercase tracking-widest mt-1">VALIDADO SOB PRESSÃO COGNITIVA</p>
+                        <p class="text-[8px] font-black text-green-600 uppercase tracking-widest mt-1 leading-none">VALIDADO SOB PRESSÃO COGNITIVA</p>
                     </div>
                     <div class="text-right text-[9px] text-slate-400 font-bold" id="data-hoje"></div>
                 </div>
 
                 <div class="text-center mb-4 mt-6">
-                    <p class="text-[8px] text-blue-500 font-black uppercase tracking-widest mb-1">Análise de Perfil e Estratégia</p>
+                    <p class="text-[8px] text-blue-500 font-black uppercase tracking-widest mb-1 leading-none">Análise de Perfil e Estratégia</p>
                     <h2 id="titulo-perfil" class="text-2xl font-black text-slate-800 uppercase leading-none tracking-tighter"></h2>
                     <p id="subtitulo-perfil" class="text-xs text-slate-400 font-bold italic"></p>
                 </div>
@@ -101,8 +96,8 @@
 
                 <div class="mt-8 pt-4 border-t border-slate-100 flex justify-between items-end">
                     <div class="flex flex-col">
-                        <p class="text-[9px] font-black text-slate-300 uppercase mb-3">ID: <span id="res-id" class="text-slate-400"></span></p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase">Análise para:</p>
+                        <p class="text-[9px] font-black text-slate-300 uppercase mb-3 leading-none">ID: <span id="res-id" class="text-slate-400"></span></p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase leading-none">Análise para:</p>
                         <p id="nome-cliente" class="text-sm font-black text-slate-900 uppercase tracking-tighter"></p>
                     </div>
                     <div class="text-right">
@@ -113,18 +108,13 @@
             </div>
         </div>
 
-        <div class="text-center mt-6">
+        <div id="btn-container-dinamico" class="mt-4"></div>
+
+        <div class="text-center mt-6 mb-10">
             <button onclick="reiniciarNovoTeste()" class="text-[10px] text-slate-500 font-bold uppercase tracking-widest hover:text-orange-500 transition-colors">
                 🔄 Refazer Análise
             </button>
         </div>
-    </div>
-
-    <div class="btn-flutuante">
-        <button onclick="irParaZap()" class="w-full bg-green-600 text-white p-4 rounded-2xl shadow-2xl flex flex-col items-center justify-center active:scale-95 transition-transform">
-            <span class="text-[10px] font-bold opacity-80 uppercase tracking-widest mb-1">1. Tire o Print agora</span>
-            <span class="text-sm font-black uppercase tracking-tight">2. Enviar para o Especialista</span>
-        </button>
     </div>
 
     <script>
@@ -157,6 +147,33 @@
                 document.getElementById('barra-qi').style.width = (qi*10)+'%';
                 document.getElementById('barra-qe').style.width = (qe*10)+'%';
             }, 300);
+
+            // 🚀 LÓGICA DE DETECÇÃO WEB vs APP
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const containerDinamico = document.getElementById('btn-container-dinamico');
+            const pageContainer = document.querySelector('.page-container');
+
+            if (isMobile) {
+                // VISUAL PARA APP: Botão colado no relatório
+                containerDinamico.innerHTML = `
+                    <button onclick="irParaZap()" class="w-full bg-green-600 text-white p-4 rounded-2xl shadow-xl flex flex-col items-center justify-center active:scale-95 transition-transform">
+                        <span class="text-[10px] font-bold opacity-80 uppercase tracking-widest mb-1 leading-none">1. Tire o Print agora</span>
+                        <span class="text-sm font-black uppercase tracking-tight leading-none">2. Enviar para o Especialista</span>
+                    </button>
+                `;
+                pageContainer.style.paddingBottom = "20px";
+            } else {
+                // VISUAL PARA WEB: Botão flutuante no pé da página
+                containerDinamico.innerHTML = `
+                    <div style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; z-index: 999;">
+                        <button onclick="irParaZap()" class="w-full bg-green-600 text-white p-4 rounded-2xl shadow-2xl flex flex-col items-center justify-center hover:bg-green-500 transition-all">
+                            <span class="text-[10px] font-bold opacity-80 uppercase tracking-widest mb-1 leading-none">📸 Tire um print ou salve a tela</span>
+                            <span class="text-sm font-black uppercase tracking-tight leading-none">Enviar para o Especialista no WhatsApp</span>
+                        </button>
+                    </div>
+                `;
+                pageContainer.style.paddingBottom = "100px";
+            }
         };
 
         function irParaZap() {
