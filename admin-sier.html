@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SierGrowth - Admin 2ª Via</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-black text-orange-500 uppercase tracking-tight">Portal Admin <span class="text-blue-500">Sier</span></h1>
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Gerador de 2ª Via Segura</p>
+        </div>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nome do Cliente</label>
+                <input type="text" id="admin-nome" class="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 mt-1 outline-none text-sm focus:border-blue-500 transition-colors">
+            </div>
+            
+            <div class="flex gap-4">
+                <div class="w-1/2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nota QI Real</label>
+                    <input type="number" id="admin-qi" class="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 mt-1 outline-none text-blue-400 font-black text-xl text-center">
+                </div>
+                <div class="w-1/2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nota QE Real</label>
+                    <input type="number" id="admin-qe" class="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 mt-1 outline-none text-orange-400 font-black text-xl text-center">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">TXID Original (Opcional)</label>
+                <input type="text" id="admin-txid" class="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 mt-1 outline-none text-xs text-slate-500" placeholder="Ex: 2VIA-12345">
+            </div>
+
+            <div class="pt-4 border-t border-slate-700 mt-4">
+                <label class="text-[10px] font-black text-red-500 uppercase tracking-widest">Senha de Acesso (Banco de Dados)</label>
+                <input type="password" id="admin-senha" class="w-full p-3 rounded-lg bg-slate-950 border border-red-900 mt-1 outline-none text-sm text-center text-red-400 focus:border-red-500 transition-colors" placeholder="••••••••">
+            </div>
+            
+            <button id="btn-gerar" onclick="gerarSegundaVia()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl mt-6 uppercase tracking-widest transition-transform active:scale-95 shadow-lg shadow-blue-900/50">
+                🚀 Validar e Gerar
+            </button>
+        </div>
+    </div>
+
+    <script>
+        async function gerarSegundaVia() {
+            const senha = document.getElementById('admin-senha').value;
+            const btn = document.getElementById('btn-gerar');
+            
+            if(!senha) {
+                alert("Digite a senha do banco de dados!");
+                return;
+            }
+
+            // Efeito visual de carregamento
+            btn.innerHTML = "⏳ Validando no Banco...";
+            btn.classList.replace('bg-blue-600', 'bg-slate-600');
+
+            try {
+                // 1. CHAMA A API NA VERCEL (O código fonte não sabe a senha)
+                const resposta = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ senha_digitada: senha })
+                });
+
+                const auth = await resposta.json();
+
+                // 2. SE A API DIZER QUE A SENHA TÁ CERTA...
+                if (auth.autorizado === true) {
+                    const nome = document.getElementById('admin-nome').value || 'Cliente';
+                    const qi = document.getElementById('admin-qi').value || 0;
+                    const qe = document.getElementById('admin-qe').value || 0;
+                    let txid = document.getElementById('admin-txid').value;
+                    
+                    if(!txid) txid = "2VIA-" + Math.floor(Math.random() * 99999);
+
+                    // Coloca no cofre e abre a tela
+                    localStorage.setItem('sier_nome', nome);
+                    localStorage.setItem('sier_qi', qi);
+                    localStorage.setItem('sier_qe', qe);
+                    window.open('resultado-teste.html?txid=' + txid, '_blank');
+                    
+                    btn.innerHTML = "🚀 Validar e Gerar";
+                    btn.classList.replace('bg-slate-600', 'bg-blue-600');
+                    document.getElementById('admin-senha').value = ''; // Limpa a senha
+                } 
+                else {
+                    // SE A SENHA TIVER ERRADA...
+                    alert("❌ SENHA INCORRETA! Acesso Negado.");
+                    btn.innerHTML = "🚀 Validar e Gerar";
+                    btn.classList.replace('bg-slate-600', 'bg-blue-600');
+                }
+            } catch (error) {
+                alert("Erro ao conectar com o banco de dados.");
+                btn.innerHTML = "🚀 Validar e Gerar";
+                btn.classList.replace('bg-slate-600', 'bg-blue-600');
+            }
+        }
+    </script>
+</body>
+</html>

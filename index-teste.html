@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SierQuiz - Avaliação de Perfil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', 'SEU_ID_DO_PIXEL_AQUI'); // <--- SEU PIXEL AQUI
+    fbq('track', 'PageView');
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; margin: 0; padding: 0; }
+        .card-quiz { background: #0f172a; border: 1px solid #1e293b; border-radius: 24px; padding: 2rem; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .opcao-btn { background: #1e293b; border: 1px solid #334155; padding: 16px; border-radius: 16px; width: 100%; text-align: left; margin-bottom: 12px; font-weight: 500; cursor: pointer; transition: 0.2s; }
+        .opcao-btn:active { background: #3b82f6; border-color: #60a5fa; transform: scale(0.98); }
+        .barra-progresso { height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
+        .progresso-fill { height: 100%; background: linear-gradient(to right, #f97316, #ea580c); width: 0%; transition: width 0.3s; }
+        .barra-tempo-container { height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; margin-bottom: 10px; width: 100%; }
+        .tempo-fill { height: 100%; width: 100%; background: #10b981; transition: width 0.1s linear, background-color 0.3s; }
+        .tempo-urgente { background: #ef4444; animation: piscarUrgencia 0.5s infinite; }
+        @keyframes piscarUrgencia { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        #msg-esgotado { color: #ef4444; font-weight: 900; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; display: none; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 100;}
+        .tela-app { display: none; }
+        .tela-app.ativa { display: block; animation: aparecer 0.4s; }
+        @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md relative">
+        <!-- INÍCIO DIRETO -->
+        <div id="tela-inicio" class="card-quiz text-center tela-app ativa">
+            <h1 class="text-3xl font-black text-orange-500 mb-1 tracking-tighter">Sier<span class="text-blue-500">Quiz</span></h1>
+            <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-8 italic font-semibold text-center">Intelligence Engine v2.0</p>
+            <p class="text-slate-300 text-sm mb-6">Descubra seu perfil comportamental e inteligência emocional em poucos minutos.</p>
+            <button type="button" onclick="_quizApp.iniciar()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-extrabold text-lg shadow-lg">Começar Avaliação</button>
+        </div>
+
+        <!-- PERGUNTAS -->
+        <div id="tela-perguntas" class="card-quiz tela-app text-center relative">
+            <div class="barra-progresso"><div id="barra-progresso" class="progresso-fill"></div></div>
+            <div class="barra-tempo-container" id="container-tempo"><div id="barra-tempo" class="tempo-fill"></div></div>
+            <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-6 uppercase tracking-widest text-center mt-2">
+                <span>PERGUNTA <span id="num-pergunta">1</span>/21</span>
+                <span class="text-orange-500 italic">SierQuiz</span>
+            </div>
+            <div id="msg-esgotado">TEMPO ESGOTADO!</div>
+            <h2 id="texto-pergunta" class="text-lg font-bold mb-8 leading-tight text-slate-100 text-center transition-opacity duration-200">...</h2>
+            <div id="area-opcoes" class="transition-opacity duration-200"></div>
+        </div>
+
+        <!-- CARREGANDO -->
+        <div id="tela-carregando" class="card-quiz text-center tela-app">
+            <div class="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+            <h2 class="text-lg font-bold">Processando Respostas...</h2>
+            <p class="text-xs text-slate-500 mt-2 uppercase tracking-widest">Aguarde o vídeo carregar seu resultado.</p>
+        </div>
+    </div>
+
+    <script>
+        // Se houver um Pix pendente e o usuário tentar refazer, limpa pra evitar bugs
+        window.onload = function() {
+            if(localStorage.getItem('neuro_txid_pendente')) {
+                localStorage.removeItem('neuro_txid_pendente');
+            }
+        };
+
+        var _quizApp = {
+            dados: { qi: 0, qe: 0, idx: 0, fase: '', respostas: [] },
+            tempoTotal: 25, tempoRestante: 25, intervaloTempo: null,
+
+            banco: [
+                { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
+                { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
+                { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
+                { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
+                { q: "20% de 500 é:", opts: ["100", "50", "200"], type: "QI", c: 0 },
+                { q: "Se ontem fosse amanhã, hoje seria sábado. Hoje é:", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
+                { q: "Médico : Hospital :: Professor : ?", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
+                { q: "Carro 80km/h em 30min percorre:", opts: ["40km", "80km", "60km"], type: "QI", c: 0 },
+                { q: "Qual item não pertence ao grupo?", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
+                { q: "Inovar exige:", opts: ["Resolver uma dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
+                { q: "Se o dia depois de amanhã é terça, que dia foi ontem?", opts: ["Sábado", "Domingo", "Sexta"], type: "QI", c: 0 },
+                { q: "Luz está para Olho como Som está para:", opts: ["Ouvido", "Voz", "Eco"], type: "QI", c: 0 },
+                { q: "A à esquerda de B. C à direita de B. Quem está no meio?", opts: ["B", "A", "C"], type: "QI", c: 0 },
+                { q: "Lógica: 1, 3, 6, 10... Qual o próximo?", opts: ["15", "12", "14"], type: "QI", c: 0 },
+                { q: "Cientistas são curiosos. Pedro é cientista. Logo:", opts: ["Pedro é curioso", "Pedro pode ser curioso", "Sem conclusão"], type: "QI", c: 0 },
+                { q: "6 maçãs/6 pessoas/6 min. 60 maçãs/60 pessoas levam:", opts: ["6 min", "60 min", "1 min"], type: "QI", c: 0 },
+                { q: "Antônimo de 'Explícito'?", opts: ["Tácito", "Claro", "Direto"], type: "QI", c: 0 },
+                { q: "Avião cai na fronteira. Onde enterram sobreviventes?", opts: ["Não se enterra vivos", "No Brasil", "Argentina"], type: "QI", c: 0 },
+                { q: "Invertendo o número 8102:", opts: ["2018", "2108", "8012"], type: "QI", c: 0 },
+                { q: "Pai de Maria tem 5 filhas: Lala, Lele, Lili, Lolo e...?", opts: ["Maria", "Lulu", "Leila"], type: "QI", c: 0 },
+                { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
+                { q: "Cliente gritou. Sua reação imediata é:", opts: ["Resolve calmamente", "Grita de volta", "Ignora"], type: "QE", c: 0 },
+                { q: "Em grupo, você prefere:", opts: ["Liderar", "Seguir", "Fazer só"], type: "QE", c: 0 },
+                { q: "Erro na empresa, você:", opts: ["Assume", "Esconde", "Culpa outro"], type: "QE", c: 0 },
+                { q: "Feedback duro:", opts: ["Cresce", "Raiva", "Desiste"], type: "QE", c: 0 },
+                { q: "Colega triste:", opts: ["Ajuda", "Ignora", "Piada"], type: "QE", c: 0 },
+                { q: "Negociação:", opts: ["Ganha-ganha", "Vencer", "Não perder"], type: "QE", c: 0 },
+                { q: "Inteligência Emocional:", opts: ["Gerir emoções", "Sempre feliz", "Sem raiva"], type: "QE", c: 0 },
+                { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
+                { q: "Ao notar colega estressado:", opts: ["Valida o sentimento", "Dá conselho", "Ignora"], type: "QE", c: 0 },
+                { q: "Ao receber crítica:", opts: ["Analisa fatos", "Sente-se atacado", "Desmotiva"], type: "QE", c: 0 },
+                { q: "Consegue nomear o que sente agora?", opts: ["Sim", "Às vezes", "Não"], type: "QE", c: 0 },
+                { q: "Em conflitos de interesse, busca:", opts: ["Equilíbrio", "Defender posição", "Ceder"], type: "QE", c: 0 },
+                { q: "Imprevisto destrói o dia:", opts: ["Recalcula rota", "Irrita-se", "Tenta seguir"], type: "QE", c: 0 },
+                { q: "Liderança inspiradora exige:", opts: ["Propósito e Valores", "Metas e Pressão", "Controle"], type: "QE", c: 0 },
+                { q: "Lê microexpressões no rosto alheio?", opts: ["Sim", "Razoável", "Não"], type: "QE", c: 0 },
+                { q: "Erro grave da equipe:", opts: ["Assume responsabilidade", "Busca culpado", "Relata"], type: "QE", c: 0 },
+                { q: "Entusiasmo sem resultados rápidos:", opts: ["Sim", "Só com bônus", "Dificuldade"], type: "QE", c: 0 },
+                { q: "Discussões calorosas:", opts: ["Pausa para acalmar", "Eleva o tom", "Ignora"], type: "QE", c: 0 },
+                { q: "Amigo frustrado:", opts: ["Valida a dor", "Tenta resolver", "Diz para superar"], type: "QE", c: 0 }
+            ],
+
+            perguntaFixa: { q: "Para calibrar sua liderança: Qual sua fase atual?", opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], type: "SEG", c: 0 },
+            perguntas: [],
+
+            prepararQuiz: function() {
+                const gQI = this.banco.filter(p => p.type === 'QI').sort(() => Math.random() - 0.5);
+                const gQE = this.banco.filter(p => p.type === 'QE').sort(() => Math.random() - 0.5);
+                const sel = [...gQI.slice(0, 10), ...gQE.slice(0, 10)].sort(() => Math.random() - 0.5);
+                this.perguntas = [...sel, this.perguntaFixa];
+            },
+
+            iniciar: function() {
+                try { if(window.fbq) fbq('track', 'Lead', { content_name: 'Inicio SierQuiz' }); } catch(err) {}
+                this.prepararQuiz();
+                this.mostrarTela('tela-perguntas');
+                this.renderizar();
+            },
+
+            iniciarCronometro: function() {
+                clearInterval(this.intervaloTempo); this.tempoRestante = this.tempoTotal;
+                const barraTempo = document.getElementById('barra-tempo');
+                barraTempo.style.width = '100%'; barraTempo.classList.remove('tempo-urgente');
+
+                if(this.perguntas[this.dados.idx].type === 'SEG') { document.getElementById('container-tempo').style.display = 'none'; return; }
+                else { document.getElementById('container-tempo').style.display = 'block'; }
+
+                this.intervaloTempo = setInterval(() => {
+                    this.tempoRestante -= 0.1;
+                    barraTempo.style.width = `${(this.tempoRestante / this.tempoTotal) * 100}%`;
+                    if (this.tempoRestante <= 5) barraTempo.classList.add('tempo-urgente');
+                    if (this.tempoRestante <= 0) { clearInterval(this.intervaloTempo); this.punirEsgotamento(); }
+                }, 100);
+            },
+
+            punirEsgotamento: function() {
+                this.dados.respostas.push({ pergunta: this.perguntas[this.dados.idx].q, resposta: "NÃO RESPONDEU" });
+                document.getElementById('texto-pergunta').style.opacity = '0'; document.getElementById('area-opcoes').style.opacity = '0';
+                document.getElementById('msg-esgotado').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('msg-esgotado').style.display = 'none';
+                    document.getElementById('texto-pergunta').style.opacity = '1'; document.getElementById('area-opcoes').style.opacity = '1';
+                    this.dados.idx++; this.renderizar();
+                }, 1500);
+            },
+
+            renderizar: function() {
+                if(this.dados.idx >= this.perguntas.length) return this.finalizar();
+                this.iniciarCronometro();
+                const q = this.perguntas[this.dados.idx];
+                document.getElementById('num-pergunta').innerText = this.dados.idx + 1;
+                document.getElementById('texto-pergunta').innerText = q.q;
+                document.getElementById('barra-progresso').style.width = ((this.dados.idx / 21) * 100) + '%';
+                const div = document.getElementById('area-opcoes'); div.innerHTML = '';
+
+                q.opts.forEach((opt, i) => {
+                    const btn = document.createElement('div'); btn.className = 'opcao-btn'; btn.innerText = opt;
+                    btn.onclick = () => {
+                        clearInterval(this.intervaloTempo);
+                        this.dados.respostas.push({ pergunta: q.q, resposta: opt });
+                        if(q.type === 'SEG') this.dados.fase = opt;
+                        else if(i === q.c) q.type === 'QI' ? this.dados.qi++ : this.dados.qe++;
+                        this.dados.idx++; this.renderizar();
+                    };
+                    div.appendChild(btn);
+                });
+            },
+
+            finalizar: function() {
+                clearInterval(this.intervaloTempo);
+                this.mostrarTela('tela-carregando');
+
+                // Salva notas na memória e chama o anúncio IMEDIATAMENTE
+                localStorage.setItem('sier_qi', this.dados.qi);
+                localStorage.setItem('sier_qe', this.dados.qe);
+                localStorage.setItem('sier_fase', this.dados.fase);
+
+                setTimeout(() => {
+                    if (window.AndroidInterface && window.AndroidInterface.showInterstitial) {
+                        window.AndroidInterface.showInterstitial();
+                    } else {
+                        // Se estiver rodando no navegador do PC, vai direto
+                        this.liberarRelatorio();
+                    }
+                }, 1500);
+            },
+
+            liberarRelatorio: function() {
+                window.location.href = `resultado-teste.html?txid=FREE`;
+            },
+
+            mostrarTela: function(id) {
+                document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
+                document.getElementById(id).classList.add('ativa');
+            }
+        };
+
+        // Quando o anúncio termina no App, essa função é disparada e solta o resultado.
+        window.onAdDismissed = function() {
+            _quizApp.liberarRelatorio();
+        };
+        _quizApp.onAdDismissed = function() {
+            this.liberarRelatorio();
+        };
+    </script>
+</body>
+</html>

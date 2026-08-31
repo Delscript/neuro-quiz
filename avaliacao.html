@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliação Neuro-Cognitiva</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --cor-principal: #2563eb; --fundo: #f8fafc; --texto: #1e293b; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--fundo); color: var(--texto); padding: 20px; text-align: center; margin: 0; }
+        .cx-container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #0f172a; font-size: 1.8rem; }
+        .botao-acao { display: block; width: 100%; padding: 16px; background: var(--cor-principal); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.2s; }
+        .botao-acao:active { transform: scale(0.98); }
+        input { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; margin-top: 10px; box-sizing: border-box; font-size: 1rem; }
+        .tela-app { display: none; animation: aparecer 0.4s; }
+        .tela-app.ativa { display: block; }
+        @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .opcao-quiz { padding: 15px; border: 2px solid #f1f5f9; margin: 10px 0; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; font-weight: 500; }
+        .opcao-quiz:hover { background: #eff6ff; border-color: var(--cor-principal); }
+        .barra-fundo { width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 20px; }
+        .barra-progresso { height: 100%; background: var(--cor-principal); width: 0%; border-radius: 4px; transition: width 0.3s; }
+        .caixa-pix { background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px dashed #cbd5e1; margin: 20px 0; word-break: break-all; }
+        .box-relatorio { text-align: left; border: 2px solid #2563eb; padding: 20px; border-radius: 10px; background: #eff6ff; margin-top: 20px; }
+        .box-relatorio h2 { color: #2563eb; margin-top: 0; }
+    </style>
+</head>
+<body>
+
+<div class="cx-container">
+    <div id="tela-inicio" class="tela-app ativa">
+        <h1>Avaliação Neuro-Cognitiva</h1>
+        <p>Descubra seu perfil exato de QI e QE e receba um plano de carreira.</p>
+        <div style="background: #ecfdf5; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #065f46; margin-bottom: 20px;">🔒 Teste Oficial Sier Growth</div>
+        <input type="text" id="nome-usuario" placeholder="Seu Nome Completo">
+        <input type="email" id="email-usuario" placeholder="Seu melhor e-mail...">
+        <input type="tel" id="whatsapp-usuario" placeholder="WhatsApp (com DDD)">
+        <button class="botao-acao" onclick="_quizApp.iniciar()">Iniciar Avaliação</button>
+    </div>
+
+    <div id="tela-perguntas" class="tela-app">
+        <div class="barra-fundo"><div id="barra-progresso" class="barra-progresso"></div></div>
+        <p style="text-align: right; font-size: 0.8rem; color: #64748b;">Pergunta <span id="num-pergunta">1</span> de 20</p>
+        <h2 id="texto-pergunta" style="min-height: 50px;">...</h2>
+        <div id="area-opcoes"></div>
+    </div>
+
+    <div id="tela-carregando" class="tela-app">
+        <div style="font-size: 3rem; margin-bottom: 20px;">🧠</div>
+        <h2>Processando Respostas...</h2>
+        <p>Cruzando métricas...</p>
+    </div>
+
+    <div id="tela-pagamento" class="tela-app">
+        <h2 style="color: #10b981">Análise Concluída!</h2>
+        <div id="area-qr" class="caixa-pix">Gerando Pix Seguro...</div>
+        <p id="status-pagamento" style="font-size: 0.9rem; color: #2563eb;">⏳ Aguardando pagamento...</p>
+    </div>
+
+    <div id="tela-resultado" class="tela-app">
+        <h1 style="color: #2563eb">Relatório Liberado ✅</h1>
+        <div id="conteudo-final"></div>
+        <button class="botao-acao" style="background: #25D366" onclick="_quizApp.abrirZap()">Falar com Anderson Dias</button>
+    </div>
+</div>
+
+<script>
+    var _URL_BANCO = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
+    var _CHAVE_BANCO = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw";
+
+    // --- BLINDAGEM DE F5 ---
+    window.onload = () => {
+        const pendente = localStorage.getItem('neuro_txid_pendente');
+        if (pendente) {
+            _quizApp.mostrarTela('tela-pagamento');
+            document.getElementById('area-qr').innerHTML = `<p>Recuperando seu QR Code...</p><button class="botao-acao" onclick="localStorage.removeItem('neuro_txid_pendente');location.reload();">Reiniciar Teste</button>`;
+            _quizApp.startStatusCheck(pendente);
+        }
+    };
+
+    var _quizApp = {
+        dados: { nome: '', email: '', whatsapp: '', qi: 0, qe: 0, idx: 0, perfil: null, fase: 'Não Informado' },
+        
+        perguntas: [
+            { q: "Qual número completa: 2, 4, 8...?", opts: ["16", "12", "10"], type: "QI", c: 0 },
+            { q: "Sob pressão extrema, você:", opts: ["Foca na solução", "Trava", "Reclama"], type: "QE", c: 0 },
+            { q: "Se A > B e B > C, então:", opts: ["A > C", "C > A", "A = C"], type: "QI", c: 0 },
+            { q: "Cliente gritou. Reação:", opts: ["Resolve calmo", "Grita", "Chora"], type: "QE", c: 0 },
+            { q: "O que pesa mais: 1kg chumbo ou algodão?", opts: ["Iguais", "Chumbo", "Algodão"], type: "QI", c: 0 },
+            { q: "Complete: A, C, E, G...", opts: ["I", "H", "J"], type: "QI", c: 0 },
+            { q: "Em grupo prefere:", opts: ["Liderar", "Esperar", "Fazer só"], type: "QE", c: 0 },
+            { q: "Erro na empresa:", opts: ["Assume", "Esconde", "Culpa outro"], type: "QE", c: 0 },
+            { q: "20% de 500 é:", opts: ["100", "50", "200"], type: "QI", c: 0 },
+            { q: "Se ontem fosse amanhã, hoje seria sábado. Hoje é:", opts: ["Sexta", "Domingo", "Segunda"], type: "QI", c: 2 },
+            { q: "Feedback duro:", opts: ["Cresce", "Raiva", "Desiste"], type: "QE", c: 0 },
+            { q: "Médico : Hospital :: Professor : ?", opts: ["Escola", "Aluno", "Giz"], type: "QI", c: 0 },
+            { q: "Colega triste:", opts: ["Ajuda", "Ignora", "Piada"], type: "QE", c: 0 },
+            { q: "Negociação:", opts: ["Acordo", "Vencer", "Não perder"], type: "QE", c: 0 },
+            { q: "Carro 80km/h em 30min:", opts: ["40km", "80km", "60km"], type: "QI", c: 0 },
+            { q: "Inteligência Emocional:", opts: ["Gerir emoções", "Nada", "Feliz"], type: "QE", c: 0 },
+            { q: "Não pertence:", opts: ["Cadeira", "Banana", "Maçã"], type: "QI", c: 0 },
+            { q: "Inovar precisa:", opts: ["Resolver dor", "Dinheiro", "Sorte"], type: "QI", c: 0 },
+            { q: "Mudança repentina:", opts: ["Adapta", "Reclama", "Trava"], type: "QE", c: 0 },
+            { q: "Para calibrar sua liderança: Qual sua fase atual?", opts: ["Empreendedor/Dono", "Autônomo/Liberal", "CLT/Colaborador", "Estudante/Outros"], type: "SEG", c: 0 }
+        ],
+
+        iniciar: async () => {
+            const nome = document.getElementById('nome-usuario').value;
+            const email = document.getElementById('email-usuario').value;
+            const zap = document.getElementById('whatsapp-usuario').value;
+            if(!nome || !email.includes('@') || !zap) return alert('Preencha os dados!');
+            _quizApp.dados.nome = nome; _quizApp.dados.email = email; _quizApp.dados.whatsapp = zap;
+            _quizApp.mostrarTela('tela-perguntas');
+            _quizApp.renderizar();
+        },
+
+        renderizar: () => {
+            if(_quizApp.dados.idx >= _quizApp.perguntas.length) return _quizApp.finalizar();
+            const q = _quizApp.perguntas[_quizApp.dados.idx];
+            document.getElementById('num-pergunta').innerText = _quizApp.dados.idx + 1;
+            document.getElementById('texto-pergunta').innerText = q.q;
+            document.getElementById('barra-progresso').style.width = ((_quizApp.dados.idx / _quizApp.perguntas.length) * 100) + '%';
+            const div = document.getElementById('area-opcoes');
+            div.innerHTML = '';
+            q.opts.forEach((opt, i) => {
+                const btn = document.createElement('div');
+                btn.className = 'opcao-quiz'; btn.innerText = opt;
+                btn.onclick = () => {
+                    if(q.type === 'SEG') _quizApp.dados.fase = opt;
+                    else if(i === q.c) q.type === 'QI' ? _quizApp.dados.qi++ : _quizApp.dados.qe++;
+                    _quizApp.dados.idx++; _quizApp.renderizar();
+                };
+                div.appendChild(btn);
+            });
+        },
+
+        finalizar: () => { _quizApp.mostrarTela('tela-carregando'); _quizApp.gerarPix(); },
+
+        gerarPix: async () => {
+            try {
+                const res = await fetch('/api/pix', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        nome: _quizApp.dados.nome, email: _quizApp.dados.email, 
+                        whatsapp: _quizApp.dados.whatsapp, qi: _quizApp.dados.qi, 
+                        qe: _quizApp.dados.qe, fase: _quizApp.dados.fase 
+                    })
+                });
+                const data = await res.json();
+                if(data.txid) {
+                    localStorage.setItem('neuro_txid_pendente', data.txid); // SALVA TXID
+                    document.getElementById('area-qr').innerHTML = `
+                        <img src="${data.img}" style="width:200px; margin:0 auto; display:block;">
+                        <textarea style="width:100%; font-size:0.7rem; margin-top:10px;" rows="3" readonly>${data.code}</textarea>
+                        <button class="botao-acao" style="background:#333;" onclick="navigator.clipboard.writeText('${data.code}');alert('Copiado!')">Copiar Pix</button>
+                    `;
+                    _quizApp.mostrarTela('tela-pagamento');
+                    _quizApp.startStatusCheck(data.txid);
+                }
+            } catch(e) { alert("Erro ao gerar Pix"); }
+        },
+
+        startStatusCheck: (txid) => {
+            if (window.loopVerificacao) clearInterval(window.loopVerificacao);
+            window.loopVerificacao = setInterval(async () => {
+                try {
+                    const res = await fetch('/api/status?txid=' + txid);
+                    const json = await res.json();
+                    if (json.status === 'pago') {
+                        clearInterval(window.loopVerificacao);
+                        localStorage.removeItem('neuro_txid_pendente'); // LIMPA TXID
+                        window.location.href = `resultado.html?txid=${txid}`;
+                    }
+                } catch (e) {}
+            }, 3000);
+        },
+
+        abrirZap: () => window.open("https://wa.me/5571999466243", "_blank"),
+        mostrarTela: (id) => {
+            document.querySelectorAll('.tela-app').forEach(el => el.classList.remove('ativa'));
+            document.getElementById(id).classList.add('ativa');
+        }
+    };
+</script>
+</body>
+</html>

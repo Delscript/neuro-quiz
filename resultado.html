@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Oficial - SierComp4ny</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .serif { font-family: 'Playfair Display', serif; }
+        .assinatura {
+            font-family: 'Allura', cursive;
+            font-size: 1.0rem;
+            color: #1e3a8a;
+            transform: rotate(-2deg);
+            margin-bottom: -10px;
+        }
+        .marca-dagua {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 60px; color: rgba(0,0,0,0.03); font-weight: 900; white-space: nowrap; pointer-events: none;
+            z-index: 0;
+        }
+        .loading-screen { position: fixed; inset: 0; background: #0f172a; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex justify-center items-start">
+
+    <div id="loading" class="loading-screen">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-orange-500 mb-4"></div>
+        <h2 id="msg-loading" class="text-lg font-bold animate-pulse">Gerando Relatório...</h2>
+        <p id="msg-erro" class="text-red-400 mt-4 text-sm hidden"></p>
+    </div>
+
+    <div id="relatorio" class="hidden bg-white w-full max-w-3xl shadow-2xl rounded-lg overflow-hidden relative min-h-[1000px]">
+        
+        <div class="bg-gray-900 text-white p-6 flex justify-between items-start relative z-10">
+            <div>
+                <h1 class="text-xl font-bold tracking-widest">SIERCOMP4NY</h1>
+                <p class="text-[10px] text-gray-400 uppercase tracking-wider mt-1">
+                    Intelligence & <span class="text-orange-500 font-bold">Sier Growth</span>
+                </p>
+            </div>
+            <div class="text-right mt-1">
+                <p class="text-[9px] opacity-60 uppercase tracking-widest">Relatório Confidencial</p>
+                <p class="text-[10px] font-mono text-gray-400" id="data-hoje">...</p>
+            </div>
+        </div>
+
+        <div class="p-8 relative pb-20"> <div class="marca-dagua">SIERCOMP4NY</div>
+
+            <div class="text-center mb-6 relative z-10">
+                <span class="bg-blue-50 text-blue-900 text-[10px] font-bold px-2 py-1 rounded border border-blue-100 uppercase tracking-wide">Resultado da Análise</span>
+                <h2 id="titulo-perfil" class="text-3xl font-black text-gray-900 mt-3 mb-1">...</h2>
+                <p id="subtitulo-perfil" class="text-md text-gray-500 italic serif">...</p>
+            </div>
+
+            <div class="flex justify-center gap-4 mb-8 relative z-10">
+                <div class="text-center">
+                    <div class="text-[10px] font-bold text-gray-400 uppercase mb-1">Razão (QI)</div>
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-2 w-24">
+                        <span id="score-qi" class="text-2xl font-black text-blue-700">0</span>
+                        <span class="text-gray-400 text-xs">/10</span>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="text-[10px] font-bold text-gray-400 uppercase mb-1">Emoção (QE)</div>
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-2 w-24">
+                        <span id="score-qe" class="text-2xl font-black text-purple-700">0</span>
+                        <span class="text-gray-400 text-xs">/10</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6 relative z-10">
+                <div class="flex gap-3">
+                    <div class="text-xl mt-1">👁️</div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-sm">O que ninguém vê em você</h3>
+                        <p id="texto-analise" class="text-xs text-gray-600 leading-relaxed mt-1 text-justify">...</p>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <div class="text-xl mt-1">🚀</div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-sm">Seu Potencial Máximo</h3>
+                        <p id="texto-potencial" class="text-xs text-gray-600 leading-relaxed mt-1 text-justify">...</p>
+                    </div>
+                </div>
+                <div class="bg-blue-50 border-l-2 border-orange-500 p-3 rounded-r-lg">
+                    <h3 class="font-bold text-blue-900 text-xs mb-1 flex items-center">
+                        <span class="mr-2">⚡</span> Sua Ação Imediata
+                    </h3>
+                    <p id="texto-acao" class="text-xs text-blue-800 italic">...</p>
+                </div>
+                <div class="text-center py-2">
+                    <p class="text-sm serif italic text-gray-400">“A inovação distingue um líder de um seguidor.”</p>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-gray-100 relative z-10 text-center">
+                <p class="font-bold text-gray-900 uppercase tracking-[0.2em] text-[10px]">SierComp4ny</p>
+                <p class="serif text-lg text-gray-600 mt-1 italic">Certificado de Autoconhecimento</p>
+                <p class="text-[10px] font-mono text-gray-300 mt-1 mb-4">ID: <span id="txid-display">...</span></p>
+                
+                <h1 id="nome-cliente" class="text-3xl font-bold text-blue-900 capitalize mb-8 inline-block border-b border-gray-200 pb-2 px-8">...</h1>
+
+                <div class="flex flex-col items-center justify-center mt-4">
+                    <div class="assinatura">Anderson Dias</div>
+                    <div class="h-px w-32 bg-gray-400 mt-2 mb-1"></div>
+                    <p class="text-[9px] text-gray-400 uppercase mt-0.5">Dias Anderson • Founder & Lead Developer Sier Growth</p>
+                </div>
+            </div>
+
+    <div class="fixed bottom-6 right-6 flex flex-col gap-3 z-50 no-print">
+        <a href="https://wa.me/5571999466243?text=Ol%C3%A1%2C%20recebi%20meu%20relat%C3%B3rio!" target="_blank" class="hidden flex items-center justify-center w-12 h-12 bg-green-500 text-white rounded-full shadow-lg hover:bg-green-600 transition hover:scale-110" id="btn-whatsapp">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+        </a>
+       <div id="btn-area" class="fixed bottom-10 left-0 right-0 flex justify-center hidden z-50">
+        <button onclick="gerarPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-2xl transition-all hover:scale-105">
+            BAIXAR PDF (A4)
+        </button>
+    </div>
+
+
+    <script>
+        // ======================================================
+        // ⚠️ COLOQUE SUAS CHAVES AQUI ⚠️
+        const SUPABASE_URL = "https://oabcppkojfmmmqhevjpq.supabase.co"; 
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hYmNwcGtvamZtbW1xaGV2anBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE2ODEsImV4cCI6MjA4NTg4NzY4MX0.b2OlaVmawuwC34kXhLwbJMm6hnPsO7Hng0r8_AHjwhw"; 
+        // ======================================================
+
+        const PERFIS = {
+            "Potência Expansiva": {
+                titulo: "O Visionário", sub: "Equilíbrio raro entre Razão e Emoção.",
+                analise: "Você tem a capacidade rara de processar dados frios sem perder o tato humano. Onde a maioria vê problemas isolados, você enxerga o sistema inteiro. Seu cérebro funciona como um radar que detecta oportunidades invisíveis para mentes comuns.",
+                potencial: "Pense em Steve Jobs: ele não vendia apenas computadores (Lógica), vendia sonhos e status (Emoção). Você tem esse mesmo potencial de unir o útil ao desejável.",
+                acao: "Pare de fazer o operacional. Sua mente vale ouro na estratégia. Delegue as tarefas repetitivas hoje mesmo."
+            },
+            "Executor Solitário": {
+                titulo: "O Estrategista", sub: "Alta precisão lógica, foco implacável.",
+                analise: "Sua mente é uma máquina de resolver problemas. Você disseca desafios complexos com frieza cirúrgica. Porém, tende a carregar o mundo nas costas porque 'ninguém faz tão bem quanto você'.",
+                potencial: "Seu caminho é a liderança técnica ou a consultoria de alto nível. Você enxerga a falha no plano antes de todos.",
+                acao: "Treine um braço direito imediatamente. Você está limitando seu crescimento ao centralizar tudo."
+            },
+            "Conector Nato": {
+                titulo: "O Diplomata", sub: "Inteligência social acima da média.",
+                analise: "Você lê ambientes e pessoas como quem lê um livro. Sua força está na influência e na venda de ideias. O desafio é que você, às vezes, evita conflitos necessários para manter a harmonia.",
+                potencial: "Grandes negociadores e líderes de cultura corporativa têm esse perfil. Você move montanhas através das pessoas.",
+                acao: "Use ferramentas de gestão (CRM/Agenda). Sua carisma abre portas, mas a falta de processo pode fechá-las."
+            },
+             "Em Construção": {
+                titulo: "Em Análise", sub: "Dados inconclusivos.",
+                analise: "Não foi possível determinar um padrão claro. O equilíbrio entre suas respostas sugere um momento de transição ou adaptação.",
+                potencial: "Seu potencial é vasto, mas precisa de direcionamento. Foque em autoconhecimento.",
+                acao: "Nossa inteligência detectou inconsistências. Resultados reais exigem foco real. Tente novamente com calma."
+            }
+        };
+
+        async function init() {
+            try {
+                if (SUPABASE_URL.includes("COLE_SUA")) throw new Error("Configure as chaves no código!");
+
+                const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                const params = new URLSearchParams(window.location.search);
+                const txid = params.get('txid');
+
+                if (!txid) throw new Error("Link incompleto.");
+
+                const { data, error } = await supabase.from('leads').select('*').eq('txid', txid).single();
+
+                if (error || !data) throw new Error("Relatório não encontrado.");
+
+                document.getElementById('nome-cliente').innerText = data.nome || "Cliente VIP";
+                document.getElementById('score-qi').innerText = data.qi_score || 0;
+                document.getElementById('score-qe').innerText = data.qe_score || 0;
+                document.getElementById('txid-display').innerText = txid.slice(0, 8);
+                document.getElementById('data-hoje').innerText = new Date(data.created_at).toLocaleDateString('pt-BR');
+
+                const qi = data.qi_score || 0;
+                const qe = data.qe_score || 0;
+                let p = "Conector Nato";
+                if (qi > 6 && qe > 6) p = "Potência Expansiva";
+                else if (qi > 6) p = "Executor Solitário";
+                else if (qe > 6) p = "Conector Nato";
+                else p = "Em Construção";
+
+                const txt = PERFIS[p];
+                document.getElementById('titulo-perfil').innerText = txt.titulo;
+                document.getElementById('subtitulo-perfil').innerText = txt.sub;
+                document.getElementById('texto-analise').innerText = txt.analise;
+                document.getElementById('texto-potencial').innerText = txt.potencial;
+                document.getElementById('texto-acao').innerText = txt.acao;
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('relatorio').classList.remove('hidden');
+                document.getElementById('btn-area').classList.remove('hidden');
+                document.getElementById('btn-whatsapp').classList.remove('hidden');
+
+            } catch (err) {
+                document.getElementById('msg-loading').innerText = "Erro ao carregar.";
+                const divErro = document.getElementById('msg-erro');
+                divErro.innerText = err.message;
+                divErro.classList.remove('hidden');
+            }
+        }
+
+        // --- MÁGICA DO PDF V3 (CLONE PERFEITO + RODAPÉ FIXO) ---
+       function gerarPDF() {
+            const btnArea = document.getElementById('btn-area');
+            btnArea.style.display = 'none';
+            
+            const elemento = document.getElementById("relatorio");
+            
+            const opt = {
+                margin: 0, // Margem já está no CSS do elemento
+                filename: `Relatorio_Sier_${document.getElementById('nome-cliente').innerText.split(' ')[0]}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+        html2pdf()
+            .set(opt)
+            .from(elemento)
+            .toPdf()
+            .get('pdf')
+            .then(function (pdf) {
+                // 🔥 Remove qualquer página extra criada
+                if (pdf.internal.getNumberOfPages() > 1) {
+                    pdf.deletePage(2);
+                }
+            })
+            .save()
+            .then(() => {
+                btnArea.style.display = 'flex';
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
+
