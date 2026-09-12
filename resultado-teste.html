@@ -418,22 +418,46 @@
         }
 
         function compartilharResultado() {
-            const perfilResultado = document.getElementById('titulo-perfil').innerText;
-            const textoCompartilhamento = `Acabei de descobrir que meu perfil estratégico é *${perfilResultado}* no SierQuiz!\n\nFaça o teste gratuito, descubra o seu ponto cego e compare com o meu 👇\nhttps://play.google.com/store/apps/details?id=com.siergrowth.neuroquiz`;
+                    const perfilResultado = document.getElementById('titulo-perfil').innerText;
+                    const textoCompartilhamento = `Acabei de descobrir que meu perfil estratégico é *${perfilResultado}* no SierQuiz!\n\nFaça o teste gratuito, descubra o seu ponto cego e compare com o meu 👇\nhttps://play.google.com/store/apps/details?id=com.siergrowth.neuroquiz`;
 
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Meu Perfil no SierQuiz',
-                    text: textoCompartilhamento
-                }).catch((error) => console.log('Erro ao compartilhar', error));
-            } else {
-                navigator.clipboard.writeText(textoCompartilhamento).then(() => {
-                    alert('Texto e link copiados com sucesso! Cole no seu WhatsApp, Instagram ou LinkedIn.');
-                }).catch(err => {
-                    alert('Erro ao copiar o link.');
-                });
-            }
-        }
+                    const btnCompartilhar = document.querySelector('#area-compartilhar button');
+
+                    if (navigator.share) {
+                        // Tenta abrir a gaveta nativa do celular (Funciona no Chrome/Safari padrão)
+                        navigator.share({
+                            title: 'Meu Perfil no SierQuiz',
+                            text: textoCompartilhamento
+                        }).catch((error) => console.log('Compartilhamento fechado pelo usuário'));
+                    } else {
+                        // PLANO B: Para quando o WebView do App da Play Store bloquear o menu nativo
+                        navigator.clipboard.writeText(textoCompartilhamento).then(() => {
+                            // 1. Remove o alerta feio e dá feedback visual direto no botão (Muda para Verde)
+                            const conteudoOriginal = btnCompartilhar.innerHTML;
+                            btnCompartilhar.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                            btnCompartilhar.classList.add('bg-green-600');
+                            btnCompartilhar.innerHTML = `
+                                <span class="flex items-center gap-2 text-white font-black text-sm uppercase">✅ Link Copiado!</span>
+                                <span class="text-[10px] opacity-90 mt-1 font-semibold normal-case text-white">Direcionando para o WhatsApp...</span>
+                            `;
+
+                            // 2. Tenta forçar a abertura do WhatsApp automaticamente
+                            setTimeout(() => {
+                                window.location.href = "whatsapp://send?text=" + encodeURIComponent(textoCompartilhamento);
+                            }, 600);
+
+                            // 3. Devolve o botão ao formato original azul depois de 5 segundos
+                            setTimeout(() => {
+                                btnCompartilhar.innerHTML = conteudoOriginal;
+                                btnCompartilhar.classList.remove('bg-green-600');
+                                btnCompartilhar.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                            }, 5000);
+
+                        }).catch(err => {
+                            console.log('Erro ao copiar', err);
+                        });
+                    }
+                }
 
         function reiniciarNovoTeste() {
             localStorage.clear();
