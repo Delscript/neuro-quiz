@@ -103,6 +103,21 @@
         </div>
 
         <!-- ========================================== -->
+        <!-- BOTÃO DE COMPARTILHAMENTO VIRAL (GRÁTIS)   -->
+        <!-- ========================================== -->
+        <div id="area-compartilhar" class="hidden mt-6">
+            <button onclick="compartilharResultado()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-sm uppercase tracking-wider py-4 rounded-2xl shadow-[0_10px_20px_rgba(37,99,235,0.3)] transition-all flex flex-col items-center">
+                <span class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5z"/>
+                    </svg>
+                    Compartilhar meu Perfil
+                </span>
+                <span class="text-[10px] opacity-90 mt-1 font-semibold normal-case">Desafie seus amigos a fazerem o teste</span>
+            </button>
+        </div>
+
+        <!-- ========================================== -->
         <!-- ÁREA DE UPSELL (SÓ APARECE NO GRÁTIS)      -->
         <!-- ========================================== -->
         <div id="area-upsell" class="hidden mt-6">
@@ -193,6 +208,7 @@
                 document.getElementById('area-detalhes').style.display = 'none';
                 document.getElementById('area-assinatura').style.display = 'none';
                 document.getElementById('area-upsell').style.display = 'block';
+                document.getElementById('area-compartilhar').style.display = 'block';
                 document.getElementById('selo-validacao').innerText = 'AMOSTRA GRATUITA - INCOMPLETA';
                 document.getElementById('selo-validacao').className = 'text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1 leading-none';
                 document.getElementById('marca-dagua').style.display = 'none';
@@ -399,6 +415,24 @@
 
             var msg = encodeURIComponent(textoMsg);
             window.location.href = "https://wa.me/5571984420194?text=" + msg;
+        }
+
+        function compartilharResultado() {
+            const perfilResultado = document.getElementById('titulo-perfil').innerText;
+            const textoCompartilhamento = `Acabei de descobrir que meu perfil estratégico é *${perfilResultado}* no SierQuiz!\n\nFaça o teste gratuito, descubra o seu ponto cego e compare com o meu 👇\nhttps://play.google.com/store/apps/details?id=com.siergrowth.neuroquiz`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Meu Perfil no SierQuiz',
+                    text: textoCompartilhamento
+                }).catch((error) => console.log('Erro ao compartilhar', error));
+            } else {
+                navigator.clipboard.writeText(textoCompartilhamento).then(() => {
+                    alert('Texto e link copiados com sucesso! Cole no seu WhatsApp, Instagram ou LinkedIn.');
+                }).catch(err => {
+                    alert('Erro ao copiar o link.');
+                });
+            }
         }
 
         function reiniciarNovoTeste() {
