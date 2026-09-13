@@ -16,10 +16,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SierQuiz - Resultado Oficial</title>
-    
-    <!-- Biblioteca mágica para tirar o print automático da tela -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -421,32 +417,27 @@
             window.location.href = "https://wa.me/5571984420194?text=" + msg;
         }
 
-        async function compartilharResultado() {
+       async function compartilharResultado() {
             const btnCompartilhar = document.querySelector('#area-compartilhar button');
             const conteudoOriginal = btnCompartilhar.innerHTML;
 
-            // 1. Dá um feedback visual porque gerar a imagem demora 1 ou 2 segundos
+            // Feedback visual enquanto tenta gerar a imagem
             btnCompartilhar.classList.remove('bg-blue-600', 'hover:bg-blue-700');
             btnCompartilhar.classList.add('bg-slate-700');
-            btnCompartilhar.innerHTML = `<span class="flex items-center gap-2 text-white font-black text-sm uppercase">⏳ Preparando Imagem...</span>`;
+            btnCompartilhar.innerHTML = `<span class="flex items-center gap-2 text-white font-black text-sm uppercase">⏳ Preparando...</span>`;
+
+            const perfilResultado = document.getElementById('titulo-perfil').innerText;
+            const textoCompartilhamento = `Acabei de descobrir que meu perfil estratégico é *${perfilResultado}* no SierQuiz!\n\nFaça o teste gratuito, descubra o seu ponto cego e compare com o meu 👇\nhttps://play.google.com/store/apps/details?id=com.siergrowth.neuroquiz`;
 
             try {
-                // 2. O script tira uma "foto" da div do relatório
+                // Tenta gerar a imagem
                 const elementoRelatorio = document.getElementById('relatorio');
-                const canvas = await html2canvas(elementoRelatorio, { 
-                    scale: 2, // Deixa a imagem com alta qualidade
-                    useCORS: true, 
-                    backgroundColor: "#ffffff" 
-                });
+                const canvas = await html2canvas(elementoRelatorio, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
 
-                // 3. Transforma a foto em um arquivo de verdade
                 canvas.toBlob(async function(blob) {
                     const file = new File([blob], "Meu-Perfil-SierQuiz.png", { type: "image/png" });
 
-                    const perfilResultado = document.getElementById('titulo-perfil').innerText;
-                    const textoCompartilhamento = `Acabei de descobrir que meu perfil estratégico é *${perfilResultado}* no SierQuiz!\n\nFaça o teste gratuito, descubra o seu ponto cego e compare com o meu 👇\nhttps://play.google.com/store/apps/details?id=com.siergrowth.neuroquiz`;
-
-                    // 4. Aciona a gaveta do celular enviando ARQUIVO + TEXTO juntos
+                    // Tenta enviar a IMAGEM + TEXTO (Funciona no Chrome normal)
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         try {
                             await navigator.share({
@@ -454,28 +445,51 @@
                                 title: 'Meu Perfil SierQuiz',
                                 text: textoCompartilhamento
                             });
+                            // Restaura o botão após compartilhar
+                            btnCompartilhar.classList.remove('bg-slate-700');
+                            btnCompartilhar.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                            btnCompartilhar.innerHTML = conteudoOriginal;
                         } catch (error) {
-                            console.log('O usuário fechou a gaveta sem compartilhar.');
+                            // Se o usuário fechar a gaveta
+                            btnCompartilhar.classList.remove('bg-slate-700');
+                            btnCompartilhar.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                            btnCompartilhar.innerHTML = conteudoOriginal;
                         }
                     } else {
-                        // Se o celular for antigo ou o aplicativo bloquear envio de arquivos
-                        navigator.clipboard.writeText(textoCompartilhamento);
-                        alert("Seu aparelho bloqueou o envio da imagem. Tire um print da tela e o link já está copiado!");
+                        // Força o erro para cair no Plano B elegante
+                        throw new Error("Envio de arquivo bloqueado pelo App");
                     }
-
-                    // Devolve o botão ao formato original azul
-                    btnCompartilhar.classList.remove('bg-slate-700');
-                    btnCompartilhar.classList.add('bg-blue-600', 'hover:bg-blue-700');
-                    btnCompartilhar.innerHTML = conteudoOriginal;
                 });
 
             } catch (error) {
-                console.error("Erro ao gerar imagem", error);
-                btnCompartilhar.classList.remove('bg-slate-700');
-                btnCompartilhar.classList.add('bg-blue-600', 'hover:bg-blue-700');
-                btnCompartilhar.innerHTML = conteudoOriginal;
-            }
-        }
+                // =========================================================
+                // PLANO B ELEGANTE (Sem o Alert feio do navegador)
+                // Usado quando o App da Play Store bloqueia a imagem
+                // =========================================================
+                navigator.clipboard.writeText(textoCompartilhamento).then(() => {
+                    btnCompartilhar.classList.remove('bg-slate-700', 'bg-blue-600', 'hover:bg-blue-700');
+                    btnCompartilhar.classList.add('bg-green-600');
+                    
+                    // Muda o visual do botão para instruir o usuário
+                    btnCompartilhar.innerHTML = `
+                        <span class="flex items-center gap-2 text-white font-black text-sm uppercase">✅ TEXTO E LINK COPIADOS!</span>
+                        <span class="text-[10px] opacity-100 mt-1 font-bold normal-case text-white text-center leading-tight">
+                            O app não envia a imagem automática.<br>Tire um print e cole no Insta/Zap!
+                        </span>
+                    `;
+
+                    // Devolve o botão ao azul original depois de 6 segundos
+                    setTimeout(() => {
+                        btnCompartilhar.classList.remove('bg-green-600');
+                        btnCompartilhar.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                        btnCompartilhar.innerHTML = conteudoOriginal;
+                    }, 6000);
+
+                        }).catch(err => {
+                            console.log('Erro ao copiar', err);
+                        });
+                    }
+                }
 
         function reiniciarNovoTeste() {
             localStorage.clear();
