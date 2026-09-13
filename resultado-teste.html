@@ -16,6 +16,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SierQuiz - Resultado Oficial</title>
+    
+    <!-- Biblioteca mágica para tirar o print automático da tela -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Allura&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -417,47 +421,61 @@
             window.location.href = "https://wa.me/5571984420194?text=" + msg;
         }
 
-        function compartilharResultado() {
+        async function compartilharResultado() {
+            const btnCompartilhar = document.querySelector('#area-compartilhar button');
+            const conteudoOriginal = btnCompartilhar.innerHTML;
+
+            // 1. Dá um feedback visual porque gerar a imagem demora 1 ou 2 segundos
+            btnCompartilhar.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            btnCompartilhar.classList.add('bg-slate-700');
+            btnCompartilhar.innerHTML = `<span class="flex items-center gap-2 text-white font-black text-sm uppercase">⏳ Preparando Imagem...</span>`;
+
+            try {
+                // 2. O script tira uma "foto" da div do relatório
+                const elementoRelatorio = document.getElementById('relatorio');
+                const canvas = await html2canvas(elementoRelatorio, { 
+                    scale: 2, // Deixa a imagem com alta qualidade
+                    useCORS: true, 
+                    backgroundColor: "#ffffff" 
+                });
+
+                // 3. Transforma a foto em um arquivo de verdade
+                canvas.toBlob(async function(blob) {
+                    const file = new File([blob], "Meu-Perfil-SierQuiz.png", { type: "image/png" });
+
                     const perfilResultado = document.getElementById('titulo-perfil').innerText;
                     const textoCompartilhamento = `Acabei de descobrir que meu perfil estratégico é *${perfilResultado}* no SierQuiz!\n\nFaça o teste gratuito, descubra o seu ponto cego e compare com o meu 👇\nhttps://play.google.com/store/apps/details?id=com.siergrowth.neuroquiz`;
 
-                    const btnCompartilhar = document.querySelector('#area-compartilhar button');
-
-                    if (navigator.share) {
-                        // Tenta abrir a gaveta nativa do celular (Funciona no Chrome/Safari padrão)
-                        navigator.share({
-                            title: 'Meu Perfil no SierQuiz',
-                            text: textoCompartilhamento
-                        }).catch((error) => console.log('Compartilhamento fechado pelo usuário'));
+                    // 4. Aciona a gaveta do celular enviando ARQUIVO + TEXTO juntos
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({
+                                files: [file],
+                                title: 'Meu Perfil SierQuiz',
+                                text: textoCompartilhamento
+                            });
+                        } catch (error) {
+                            console.log('O usuário fechou a gaveta sem compartilhar.');
+                        }
                     } else {
-                        // PLANO B: Para quando o WebView do App da Play Store bloquear o menu nativo
-                        navigator.clipboard.writeText(textoCompartilhamento).then(() => {
-                            // 1. Remove o alerta feio e dá feedback visual direto no botão (Muda para Verde)
-                            const conteudoOriginal = btnCompartilhar.innerHTML;
-                            btnCompartilhar.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-                            btnCompartilhar.classList.add('bg-green-600');
-                            btnCompartilhar.innerHTML = `
-                                <span class="flex items-center gap-2 text-white font-black text-sm uppercase">✅ Link Copiado!</span>
-                                <span class="text-[10px] opacity-90 mt-1 font-semibold normal-case text-white">Direcionando para o WhatsApp...</span>
-                            `;
-
-                            // 2. Tenta forçar a abertura do WhatsApp automaticamente
-                            setTimeout(() => {
-                                window.location.href = "whatsapp://send?text=" + encodeURIComponent(textoCompartilhamento);
-                            }, 600);
-
-                            // 3. Devolve o botão ao formato original azul depois de 5 segundos
-                            setTimeout(() => {
-                                btnCompartilhar.innerHTML = conteudoOriginal;
-                                btnCompartilhar.classList.remove('bg-green-600');
-                                btnCompartilhar.classList.add('bg-blue-600', 'hover:bg-blue-700');
-                            }, 5000);
-
-                        }).catch(err => {
-                            console.log('Erro ao copiar', err);
-                        });
+                        // Se o celular for antigo ou o aplicativo bloquear envio de arquivos
+                        navigator.clipboard.writeText(textoCompartilhamento);
+                        alert("Seu aparelho bloqueou o envio da imagem. Tire um print da tela e o link já está copiado!");
                     }
-                }
+
+                    // Devolve o botão ao formato original azul
+                    btnCompartilhar.classList.remove('bg-slate-700');
+                    btnCompartilhar.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                    btnCompartilhar.innerHTML = conteudoOriginal;
+                });
+
+            } catch (error) {
+                console.error("Erro ao gerar imagem", error);
+                btnCompartilhar.classList.remove('bg-slate-700');
+                btnCompartilhar.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                btnCompartilhar.innerHTML = conteudoOriginal;
+            }
+        }
 
         function reiniciarNovoTeste() {
             localStorage.clear();
